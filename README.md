@@ -221,7 +221,6 @@ automation:
 - Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
 - Single device per entry: each config entry connects to one brewer. If an account contains multiple Fellow products, the integration auto-selects the first compatible Aiden brewer, but it still does not let you choose between multiple compatible Aidens on the same account.
-- Vendored client: the integration uses the vendored `custom_components/fellow/fellow_aiden/` client from this repository. It does not install or import a PyPI `fellow-aiden` package, and it talks directly to Fellow's AWS API endpoint rather than `app.fellow.com`.
 
 ---
 
@@ -236,7 +235,7 @@ automation:
 
 ## FAQ & Troubleshooting
 
-1. **"Device not found" / "No supported brewer found"** -- Make sure the account you used has at least one Fellow Aiden brewer linked to it. Mixed-device accounts are supported by auto-selecting the first compatible Aiden. This integration uses Fellow's AWS API endpoint directly and does not call `app.fellow.com`.
+1. **"Device not found" / "No supported brewer found"** -- Make sure the account you used has at least one Fellow Aiden brewer linked to it. Mixed-device accounts are supported by auto-selecting the first compatible Aiden.
 
 2. **Sensors showing "Unknown"** -- The brewer may not have reported data yet. Wait a few minutes. If it persists for days, file a bug report.
 
