@@ -11,7 +11,10 @@
       }
     },
     "error": {
-      "auth": "Correo electrónico o contraseña incorrectos"
+      "auth": "Correo electrónico o contraseña incorrectos.",
+      "cannot_connect": "No se pudo conectar con los servidores de Fellow. Inténtalo de nuevo más tarde.",
+      "unsupported_device": "No se encontró ninguna cafetera Fellow Aiden compatible en esta cuenta.",
+      "unknown": "Ocurrió un error inesperado."
     }
   },
   "options": {
