@@ -1,10 +1,10 @@
 # Fellow Aiden Integration for Home Assistant
 
 <p align="center">
-  <a href="https://github.com/NewsGuyTor/FellowAiden-HomeAssistant/releases"><img src="https://img.shields.io/github/v/release/NewsGuyTor/FellowAiden-HomeAssistant" alt="GitHub Release"></a>
-  <a href="https://github.com/NewsGuyTor/FellowAiden-HomeAssistant/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/NewsGuyTor/FellowAiden-HomeAssistant/validate.yml?label=validation" alt="Validation"></a>
+  <a href="https://github.com/kristofferR/FellowAiden-HomeAssistant/releases"><img src="https://img.shields.io/github/v/release/kristofferR/FellowAiden-HomeAssistant" alt="GitHub Release"></a>
+  <a href="https://github.com/kristofferR/FellowAiden-HomeAssistant/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/kristofferR/FellowAiden-HomeAssistant/validate.yml?label=validation" alt="Validation"></a>
   <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Default-blue.svg" alt="HACS"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/NewsGuyTor/FellowAiden-HomeAssistant" alt="License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kristofferR/FellowAiden-HomeAssistant" alt="License"></a>
 </p>
 
 <img src="device.png" alt="Device Image" align="right" width="200"/>
@@ -78,7 +78,7 @@ Choose one of the following methods to install the **Fellow Aiden** integration:
 1. **Download or Clone the Repository**
    ```bash
    cd /config/custom_components
-   git clone https://github.com/NewsGuyTor/FellowAiden-HomeAssistant.git fellow
+   git clone https://github.com/kristofferR/FellowAiden-HomeAssistant.git fellow
    ```
    - Ensure the folder is named exactly `fellow`.
 
@@ -250,7 +250,7 @@ automation:
 
 ## Contributing
 
-- **Issues**: Spot a bug, have a feature request, or can’t resist a coffee pun? [Open an issue](https://github.com/NewsGuyTor/FellowAiden-HomeAssistant/issues).  
+- **Issues**: Spot a bug, have a feature request, or can’t resist a coffee pun? [Open an issue](https://github.com/kristofferR/FellowAiden-HomeAssistant/issues).  
 - **PRs**: Fork, code, and send a pull request. We welcome improvements—just keep code style and good taste in brew puns consistent.  
 - **Local Testing**: If you break something, revert changes or blame the brew cycle. Either is acceptable.
 
