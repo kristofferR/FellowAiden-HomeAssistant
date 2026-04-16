@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import ssl
 from difflib import SequenceMatcher
 from typing import Any
 
@@ -20,6 +21,18 @@ def similar(a: str, b: str) -> float:
 
 class FellowAuthError(Exception):
     """Raised when Fellow API authentication fails (bad credentials)."""
+
+
+class FellowConnectionError(Exception):
+    """Raised when a Fellow API request fails due to connectivity issues."""
+
+
+class FellowNoSupportedDeviceError(Exception):
+    """Raised when the account has no compatible Fellow Aiden brewer."""
+
+
+class _IncompatibleDeviceError(Exception):
+    """Raised when a device candidate does not expose Aiden endpoints."""
 
 
 class FellowAiden:
@@ -59,6 +72,8 @@ class FellowAiden:
     ]
 
     _RETRY_STATUSES = frozenset({408, 500, 501, 502, 503, 504})
+    _TRANSIENT_HTTP_STATUSES = frozenset({408, 429, 500, 501, 502, 503, 504})
+    _INCOMPATIBLE_DEVICE_STATUSES = frozenset({400, 404, 405, 422})
     _MAX_RETRIES = 3
 
     def __init__(
@@ -99,11 +114,25 @@ class FellowAiden:
 
         response: aiohttp.ClientResponse | None = None
         for attempt in range(self._MAX_RETRIES + 1):
-            response = await self._session.request(
-                method, url, headers=headers, **kwargs
-            )
-            if response.status not in self._RETRY_STATUSES or attempt == self._MAX_RETRIES:
+            try:
+                response = await self._session.request(
+                    method, url, headers=headers, **kwargs
+                )
+            except (
+                aiohttp.ClientError,
+                asyncio.TimeoutError,
+                ssl.SSLError,
+            ) as err:
+                raise FellowConnectionError(
+                    f"Request failed for {method.upper()} {url}: {err}"
+                ) from err
+            if response.status not in self._TRANSIENT_HTTP_STATUSES:
                 return response
+            if response.status not in self._RETRY_STATUSES or attempt == self._MAX_RETRIES:
+                parsed = await self._parse_response(response)
+                raise FellowConnectionError(
+                    f"Request failed for {method.upper()} {url} ({response.status}): {parsed}"
+                )
             response.release()
             await asyncio.sleep(min(2 ** attempt, 8))
             self._log.debug(
@@ -248,26 +277,33 @@ class FellowAiden:
         self._log.debug(parsed)
         if not isinstance(parsed, list):
             raise Exception(f"Unexpected device response payload: {parsed}")
-        if not parsed:
-            raise Exception("No Fellow Aiden devices found for this account.")
-
-        first_device = parsed[0]
-        if not isinstance(first_device, dict):
-            raise Exception(f"Unexpected device payload type: {first_device}")
-
-        brewer_id = first_device.get("id")
-        if not brewer_id:
-            raise Exception(
-                f"Device response missing required id field: {first_device}"
+        device_candidates = [
+            device for device in parsed if isinstance(device, dict)
+        ]
+        if not device_candidates:
+            raise FellowNoSupportedDeviceError(
+                "No supported Fellow Aiden brewer was found on this account."
             )
 
-        self._device_config = first_device
-        self._brewer_id = brewer_id
-        self._profiles = None
-        self._schedules = None
+        for candidate in self._ordered_device_candidates(device_candidates):
+            try:
+                brewer_id, profiles, schedules = await self._probe_device(candidate)
+            except _IncompatibleDeviceError as err:
+                self._log.debug("Skipping incompatible device candidate: %s", err)
+                continue
 
-        self._log.debug("Brewer ID: %s", self._brewer_id)
-        self._log.debug("Device and profile information set")
+            self._device_config = candidate
+            self._brewer_id = brewer_id
+            self._profiles = profiles
+            self._schedules = schedules
+
+            self._log.debug("Brewer ID: %s", self._brewer_id)
+            self._log.debug("Device and profile information set")
+            return
+
+        raise FellowNoSupportedDeviceError(
+            "No supported Fellow Aiden brewer was found on this account."
+        )
 
     async def fetch_device(self) -> None:
         """Public method to re-fetch device data from the cloud."""
@@ -280,15 +316,9 @@ class FellowAiden:
             profiles_url = self.BASE_URL + self.API_PROFILES.format(
                 id=self._brewer_id
             )
-            response = await self._request_with_reauth("get", profiles_url)
-            await self._ensure_success(response, "Profile fetch")
-
-            parsed = await self._parse_response(response)
-            if not isinstance(parsed, list):
-                raise Exception(f"Unexpected profiles response payload: {parsed}")
-
-            self._log.debug(parsed)
-            self._profiles = parsed
+            self._profiles = await self._fetch_list_resource(
+                profiles_url, "Profile fetch"
+            )
         return self._profiles
 
     async def get_schedules(self) -> list[dict[str, Any]]:
@@ -298,15 +328,9 @@ class FellowAiden:
             schedules_url = self.BASE_URL + self.API_SCHEDULES.format(
                 id=self._brewer_id
             )
-            response = await self._request_with_reauth("get", schedules_url)
-            await self._ensure_success(response, "Schedule fetch")
-
-            parsed = await self._parse_response(response)
-            if not isinstance(parsed, list):
-                raise Exception(f"Unexpected schedules response payload: {parsed}")
-
-            self._log.debug(parsed)
-            self._schedules = parsed
+            self._schedules = await self._fetch_list_resource(
+                schedules_url, "Schedule fetch"
+            )
         return self._schedules
 
     def get_device_config(self) -> dict[str, Any] | None:
@@ -324,6 +348,97 @@ class FellowAiden:
         return self._brewer_id
 
     # -- Internal helpers ---------------------------------------------------
+
+    def _ordered_device_candidates(
+        self, devices: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Return devices ordered with the cached brewer first when possible."""
+        if not self._brewer_id:
+            return devices
+
+        preferred = [
+            device for device in devices if device.get("id") == self._brewer_id
+        ]
+        remaining = [
+            device for device in devices if device.get("id") != self._brewer_id
+        ]
+        return preferred + remaining
+
+    async def _fetch_list_resource(
+        self, url: str, action: str
+    ) -> list[dict[str, Any]]:
+        """Fetch a list payload from the Fellow API."""
+        response = await self._request_with_reauth("get", url)
+        await self._ensure_success(response, action)
+
+        parsed = await self._parse_response(response)
+        if not isinstance(parsed, list) or any(
+            not isinstance(item, dict) for item in parsed
+        ):
+            raise Exception(f"Unexpected {action.lower()} payload: {parsed}")
+
+        self._log.debug(parsed)
+        return parsed
+
+    async def _probe_list_resource(
+        self, brewer_id: str, url: str, action: str
+    ) -> list[dict[str, Any]]:
+        """Probe a candidate device endpoint and treat non-Aiden shapes as incompatible."""
+        response = await self._request_with_reauth("get", url)
+
+        if response.status in (401, 403):
+            parsed = await self._parse_response(response)
+            raise FellowAuthError(
+                f"{action} unauthorized for device {brewer_id} ({response.status}): {parsed}"
+            )
+        if response.status in self._TRANSIENT_HTTP_STATUSES:
+            parsed = await self._parse_response(response)
+            response.release()
+            raise FellowConnectionError(
+                f"{action} failed for device {brewer_id} ({response.status}): {parsed}"
+            )
+        if response.status in self._INCOMPATIBLE_DEVICE_STATUSES:
+            response.release()
+            raise _IncompatibleDeviceError(
+                f"Device {brewer_id} does not support {action.lower()} ({response.status})"
+            )
+        if not 200 <= response.status < 300:
+            parsed = await self._parse_response(response)
+            response.release()
+            raise _IncompatibleDeviceError(
+                f"Device {brewer_id} returned {response.status} for {action.lower()}: {parsed}"
+            )
+
+        parsed = await self._parse_response(response)
+        if not isinstance(parsed, list):
+            raise _IncompatibleDeviceError(
+                f"Device {brewer_id} returned non-list {action.lower()} payload: {parsed}"
+            )
+        if any(not isinstance(item, dict) for item in parsed):
+            raise _IncompatibleDeviceError(
+                f"Device {brewer_id} returned invalid {action.lower()} payload: {parsed}"
+            )
+        return parsed
+
+    async def _probe_device(
+        self, candidate: dict[str, Any]
+    ) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]]]:
+        """Return cached data for a compatible Aiden candidate."""
+        brewer_id = candidate.get("id")
+        if not isinstance(brewer_id, str) or not brewer_id:
+            raise _IncompatibleDeviceError(
+                f"Device response missing required id field: {candidate}"
+            )
+
+        profiles_url = self.BASE_URL + self.API_PROFILES.format(id=brewer_id)
+        schedules_url = self.BASE_URL + self.API_SCHEDULES.format(id=brewer_id)
+        profiles = await self._probe_list_resource(
+            brewer_id, profiles_url, "Profile fetch"
+        )
+        schedules = await self._probe_list_resource(
+            brewer_id, schedules_url, "Schedule fetch"
+        )
+        return brewer_id, profiles, schedules
 
     async def _get_profile_ids(self) -> list[str]:
         """Return a list of profile IDs with titles."""

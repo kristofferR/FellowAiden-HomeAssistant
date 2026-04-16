@@ -39,6 +39,7 @@
     "error": {
       "auth": "Invalid email or password.",
       "cannot_connect": "Could not connect to Fellow servers. Try again later.",
+      "unsupported_device": "No supported Fellow Aiden brewer was found on this account.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {

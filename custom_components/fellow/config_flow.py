@@ -12,7 +12,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
 
-from .fellow_aiden import FellowAiden
+from .fellow_aiden import (
+    FellowAiden,
+    FellowAuthError,
+    FellowConnectionError,
+    FellowNoSupportedDeviceError,
+)
 from .const import DOMAIN, DEFAULT_UPDATE_INTERVAL_MINUTES, MIN_UPDATE_INTERVAL_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,6 +37,17 @@ async def _try_login(hass: HomeAssistant, email: str, password: str) -> None:
     await api.authenticate()
 
 
+def _login_error_key(err: Exception) -> str:
+    """Map a login/setup exception to a config flow error key."""
+    if isinstance(err, FellowAuthError):
+        return "auth"
+    if isinstance(err, FellowConnectionError):
+        return "cannot_connect"
+    if isinstance(err, FellowNoSupportedDeviceError):
+        return "unsupported_device"
+    return "unknown"
+
+
 class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Fellow Aiden."""
 
@@ -49,9 +65,12 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             password = user_input["password"]
             try:
                 await _try_login(self.hass, email, password)
-            except Exception:
-                _LOGGER.exception("Authentication failed")
-                errors["base"] = "auth"
+            except Exception as err:
+                errors["base"] = _login_error_key(err)
+                if errors["base"] == "unknown":
+                    _LOGGER.exception("Authentication failed")
+                else:
+                    _LOGGER.debug("Authentication failed: %s", err)
             else:
                 await self.async_set_unique_id(email.lower())
                 self._abort_if_unique_id_configured()
@@ -84,9 +103,12 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="unknown")
             try:
                 await _try_login(self.hass, self._reauth_email, password)
-            except Exception:
-                _LOGGER.exception("Re-authentication failed")
-                errors["base"] = "auth"
+            except Exception as err:
+                errors["base"] = _login_error_key(err)
+                if errors["base"] == "unknown":
+                    _LOGGER.exception("Re-authentication failed")
+                else:
+                    _LOGGER.debug("Re-authentication failed: %s", err)
             else:
                 await self.async_set_unique_id(self._reauth_email.lower())
                 self._abort_if_unique_id_mismatch(reason="wrong_account")
@@ -119,9 +141,12 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             password = user_input["password"]
             try:
                 await _try_login(self.hass, email, password)
-            except Exception:
-                _LOGGER.exception("Reconfigure authentication failed")
-                errors["base"] = "auth"
+            except Exception as err:
+                errors["base"] = _login_error_key(err)
+                if errors["base"] == "unknown":
+                    _LOGGER.exception("Reconfigure authentication failed")
+                else:
+                    _LOGGER.debug("Reconfigure authentication failed: %s", err)
             else:
                 await self.async_set_unique_id(email.lower())
                 self._abort_if_unique_id_mismatch(reason="wrong_account")

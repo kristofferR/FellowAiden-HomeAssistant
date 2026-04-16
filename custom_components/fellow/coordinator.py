@@ -7,11 +7,20 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryError,
+    ConfigEntryNotReady,
+)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .fellow_aiden import FellowAiden, FellowAuthError
+from .fellow_aiden import (
+    FellowAiden,
+    FellowAuthError,
+    FellowConnectionError,
+    FellowNoSupportedDeviceError,
+)
 from .brew_history import BrewHistoryManager
 from .const import DEFAULT_UPDATE_INTERVAL_MINUTES
 
@@ -52,6 +61,12 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ConfigEntryAuthFailed(
                 f"Authentication failed: {err}"
             ) from err
+        except FellowConnectionError as err:
+            raise ConfigEntryNotReady(
+                f"Unable to connect to Fellow cloud: {err}"
+            ) from err
+        except FellowNoSupportedDeviceError as err:
+            raise ConfigEntryError(str(err)) from err
         await super().async_config_entry_first_refresh()
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -68,6 +83,14 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ConfigEntryAuthFailed(  # noqa: TRY003
                 f"Authentication failed: {err}"
             ) from err
+        except FellowConnectionError as err:
+            raise UpdateFailed(  # noqa: TRY003
+                f"Device fetch failed: {err}"
+            ) from err
+        except FellowNoSupportedDeviceError as err:
+            raise UpdateFailed(  # noqa: TRY003
+                f"Device fetch failed: {err}"
+            ) from err
         except Exception as err:
             raise UpdateFailed(  # noqa: TRY003
                 f"Device fetch failed: {err}"
@@ -81,6 +104,14 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except FellowAuthError as err:
             raise ConfigEntryAuthFailed(
                 f"Authentication failed: {err}"
+            ) from err
+        except FellowConnectionError as err:
+            raise UpdateFailed(  # noqa: TRY003
+                f"Data fetch failed: {err}"
+            ) from err
+        except FellowNoSupportedDeviceError as err:
+            raise UpdateFailed(  # noqa: TRY003
+                f"Data fetch failed: {err}"
             ) from err
         except Exception as err:
             raise UpdateFailed(  # noqa: TRY003
