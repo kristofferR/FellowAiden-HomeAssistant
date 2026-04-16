@@ -9,7 +9,8 @@ from module_loader import load_config_flow_module
 
 class ConfigFlowErrorMappingTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.module = load_config_flow_module()
+        self.module, cleanup = load_config_flow_module()
+        self.addCleanup(cleanup)
 
     async def test_async_step_user_maps_known_login_errors(self) -> None:
         cases = [

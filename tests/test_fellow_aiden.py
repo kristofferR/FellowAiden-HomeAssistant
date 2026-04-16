@@ -50,7 +50,8 @@ class FakeSession:
 
 class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.module = load_fellow_aiden_module()
+        self.module, cleanup = load_fellow_aiden_module()
+        self.addCleanup(cleanup)
         self.base_url = self.module.FellowAiden.BASE_URL
 
     def _api(self, responses: dict[tuple[str, str], list[object]]):

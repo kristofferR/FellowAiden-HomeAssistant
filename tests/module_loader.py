@@ -4,7 +4,7 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 _OWNED_EXACT_MODULES = frozenset(
@@ -18,9 +18,35 @@ _OWNED_EXACT_MODULES = frozenset(
         "homeassistant.helpers",
         "homeassistant.helpers.aiohttp_client",
         "homeassistant.helpers.selector",
+        "custom_components",
         "custom_components.fellow",
     }
 )
+
+_MISSING = object()
+
+
+def _owned_module_names() -> list[str]:
+    names = set(_OWNED_EXACT_MODULES)
+    names.update(
+        name for name in sys.modules if name.startswith("custom_components.fellow.")
+    )
+    return list(names)
+
+
+def _snapshot_modules() -> dict[str, object]:
+    return {name: sys.modules.get(name, _MISSING) for name in _owned_module_names()}
+
+
+def _restore_modules(snapshot: dict[str, object]) -> None:
+    for name in _owned_module_names():
+        if name not in snapshot:
+            sys.modules.pop(name, None)
+    for name, original in snapshot.items():
+        if original is _MISSING:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = original  # type: ignore[assignment]
 
 
 def _clear_modules() -> None:
@@ -270,7 +296,8 @@ def _load_module(
     return module
 
 
-def load_fellow_aiden_module() -> types.ModuleType:
+def load_fellow_aiden_module() -> tuple[types.ModuleType, Callable[[], None]]:
+    snapshot = _snapshot_modules()
     _clear_modules()
     _install_aiohttp_stub()
     _install_pydantic_stub()
@@ -279,14 +306,16 @@ def load_fellow_aiden_module() -> types.ModuleType:
         "custom_components.fellow.const",
         ROOT / "custom_components" / "fellow" / "const.py",
     )
-    return _load_module(
+    module = _load_module(
         "custom_components.fellow.fellow_aiden",
         ROOT / "custom_components" / "fellow" / "fellow_aiden" / "__init__.py",
         package=True,
     )
+    return module, lambda: _restore_modules(snapshot)
 
 
-def load_config_flow_module() -> types.ModuleType:
+def load_config_flow_module() -> tuple[types.ModuleType, Callable[[], None]]:
+    snapshot = _snapshot_modules()
     _clear_modules()
     _install_aiohttp_stub()
     _install_pydantic_stub()
@@ -302,7 +331,8 @@ def load_config_flow_module() -> types.ModuleType:
         ROOT / "custom_components" / "fellow" / "fellow_aiden" / "__init__.py",
         package=True,
     )
-    return _load_module(
+    module = _load_module(
         "custom_components.fellow.config_flow",
         ROOT / "custom_components" / "fellow" / "config_flow.py",
     )
+    return module, lambda: _restore_modules(snapshot)

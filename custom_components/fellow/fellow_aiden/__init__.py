@@ -372,7 +372,9 @@ class FellowAiden:
         await self._ensure_success(response, action)
 
         parsed = await self._parse_response(response)
-        if not isinstance(parsed, list):
+        if not isinstance(parsed, list) or any(
+            not isinstance(item, dict) for item in parsed
+        ):
             raise Exception(f"Unexpected {action.lower()} payload: {parsed}")
 
         self._log.debug(parsed)
@@ -409,6 +411,10 @@ class FellowAiden:
         if not isinstance(parsed, list):
             raise _IncompatibleDeviceError(
                 f"Device {brewer_id} returned non-list {action.lower()} payload: {parsed}"
+            )
+        if any(not isinstance(item, dict) for item in parsed):
+            raise _IncompatibleDeviceError(
+                f"Device {brewer_id} returned invalid {action.lower()} payload: {parsed}"
             )
         return parsed
 
