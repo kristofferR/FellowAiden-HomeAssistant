@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import types
 import unittest
+from unittest.mock import patch
 
 from module_loader import load_config_flow_module
 
@@ -27,13 +28,15 @@ class ConfigFlowErrorMappingTests(unittest.IsolatedAsyncioTestCase):
                 del hass, email, password
                 raise exc
 
-            self.module._try_login = failing_login
-            flow = self.module.FellowAidenConfigFlow()
-            flow.hass = types.SimpleNamespace(session=object())
+            with self.subTest(expected=expected), patch.object(
+                self.module, "_try_login", new=failing_login
+            ):
+                flow = self.module.FellowAidenConfigFlow()
+                flow.hass = types.SimpleNamespace(session=object())
 
-            result = await flow.async_step_user(
-                {"email": "user@example.com", "password": "secret"}
-            )
+                result = await flow.async_step_user(
+                    {"email": "user@example.com", "password": "secret"}
+                )
 
-            self.assertEqual(result["type"], "form")
-            self.assertEqual(result["errors"]["base"], expected)
+                self.assertEqual(result["type"], "form")
+                self.assertEqual(result["errors"]["base"], expected)

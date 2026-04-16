@@ -126,8 +126,13 @@ class FellowAiden:
                 raise FellowConnectionError(
                     f"Request failed for {method.upper()} {url}: {err}"
                 ) from err
-            if response.status not in self._RETRY_STATUSES or attempt == self._MAX_RETRIES:
+            if response.status not in self._TRANSIENT_HTTP_STATUSES:
                 return response
+            if response.status not in self._RETRY_STATUSES or attempt == self._MAX_RETRIES:
+                parsed = await self._parse_response(response)
+                raise FellowConnectionError(
+                    f"Request failed for {method.upper()} {url} ({response.status}): {parsed}"
+                )
             response.release()
             await asyncio.sleep(min(2 ** attempt, 8))
             self._log.debug(

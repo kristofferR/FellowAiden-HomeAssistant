@@ -167,6 +167,25 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(self.module.FellowConnectionError):
             await api.authenticate()
 
+    async def test_raises_connection_error_after_final_transient_login_status(self) -> None:
+        login_url = f"{self.base_url}/auth/login"
+        api, session = self._api(
+            {
+                ("post", login_url): [
+                    FakeResponse(503, {"message": "Service unavailable"})
+                    for _ in range(self.module.FellowAiden._MAX_RETRIES + 1)
+                ]
+            }
+        )
+
+        with self.assertRaises(self.module.FellowConnectionError):
+            await api.authenticate()
+
+        self.assertEqual(
+            session.requests,
+            [("post", login_url)] * (self.module.FellowAiden._MAX_RETRIES + 1),
+        )
+
     async def test_reuses_cached_brewer_when_it_remains_compatible(self) -> None:
         api, session = self._api(
             {
@@ -210,13 +229,10 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(api.get_brewer_id(), "aiden-2")
         self.assertEqual(
-            session.requests[1:3],
+            session.requests,
             [
+                ("get", f"{self.base_url}/devices"),
                 ("get", f"{self.base_url}/devices/aiden-2/profiles"),
                 ("get", f"{self.base_url}/devices/aiden-2/schedules"),
             ],
-        )
-        self.assertNotIn(
-            ("get", f"{self.base_url}/devices/aiden-1/profiles"),
-            session.requests,
         )

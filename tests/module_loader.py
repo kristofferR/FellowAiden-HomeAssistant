@@ -7,18 +7,27 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def _clear_modules() -> None:
-    prefixes = (
-        "custom_components",
-        "homeassistant",
+_OWNED_EXACT_MODULES = frozenset(
+    {
         "aiohttp",
         "pydantic",
         "voluptuous",
-    )
+        "homeassistant",
+        "homeassistant.config_entries",
+        "homeassistant.core",
+        "homeassistant.helpers",
+        "homeassistant.helpers.aiohttp_client",
+        "homeassistant.helpers.selector",
+        "custom_components.fellow",
+    }
+)
+
+
+def _clear_modules() -> None:
     for name in list(sys.modules):
-        if name.startswith(prefixes):
+        if name in _OWNED_EXACT_MODULES or name.startswith(
+            "custom_components.fellow."
+        ):
             sys.modules.pop(name, None)
 
 
