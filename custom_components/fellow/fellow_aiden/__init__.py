@@ -393,6 +393,7 @@ class FellowAiden:
             )
         if response.status in self._TRANSIENT_HTTP_STATUSES:
             parsed = await self._parse_response(response)
+            response.release()
             raise FellowConnectionError(
                 f"{action} failed for device {brewer_id} ({response.status}): {parsed}"
             )
@@ -403,6 +404,7 @@ class FellowAiden:
             )
         if not 200 <= response.status < 300:
             parsed = await self._parse_response(response)
+            response.release()
             raise _IncompatibleDeviceError(
                 f"Device {brewer_id} returned {response.status} for {action.lower()}: {parsed}"
             )

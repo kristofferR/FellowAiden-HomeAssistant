@@ -20,6 +20,7 @@ class ConfigFlowErrorMappingTests(unittest.IsolatedAsyncioTestCase):
                 self.module.FellowNoSupportedDeviceError("no brewer"),
                 "unsupported_device",
             ),
+            (RuntimeError("unexpected"), "unknown"),
         ]
 
         for error, expected in cases:
