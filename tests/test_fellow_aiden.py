@@ -54,9 +54,15 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(cleanup)
         self.base_url = self.module.FellowAiden.BASE_URL
 
-    def _api(self, responses: dict[tuple[str, str], list[object]]):
+    def _api(
+        self,
+        responses: dict[tuple[str, str], list[object]],
+        brewer_id: str | None = None,
+    ):
         session = FakeSession(responses)
-        api = self.module.FellowAiden("user@example.com", "secret", session)
+        api = self.module.FellowAiden(
+            "user@example.com", "secret", session, brewer_id=brewer_id
+        )
         return api, session
 
     async def test_selects_first_compatible_aiden_after_skipping_incompatible_device(self) -> None:
@@ -236,4 +242,159 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
                 ("get", f"{self.base_url}/devices/aiden-2/profiles"),
                 ("get", f"{self.base_url}/devices/aiden-2/schedules"),
             ],
+        )
+
+    async def test_discovers_every_compatible_aiden(self) -> None:
+        api, _session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        200,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [
+                            {"id": "aiden-1", "displayName": "His"},
+                            {"id": "espresso-1", "displayName": "Espresso"},
+                            {"id": "aiden-2", "displayName": "Hers"},
+                        ],
+                    )
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/profiles"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/schedules"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/espresso-1/profiles"): [
+                    FakeResponse(404, {"message": "Not found"})
+                ],
+                ("get", f"{self.base_url}/devices/aiden-2/profiles"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-2/schedules"): [
+                    FakeResponse(200, [])
+                ],
+            }
+        )
+
+        await api.authenticate(fetch_device=False)
+        devices = await api.get_supported_devices()
+
+        self.assertEqual(
+            [(device["id"], device["displayName"]) for device in devices],
+            [("aiden-1", "His"), ("aiden-2", "Hers")],
+        )
+
+    async def test_configured_brewer_is_pinned_across_refreshes(self) -> None:
+        api, session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        200,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [
+                            {"id": "aiden-1", "displayName": "His"},
+                            {"id": "aiden-2", "displayName": "Hers"},
+                        ],
+                    ),
+                    FakeResponse(
+                        200,
+                        [
+                            {"id": "aiden-1", "displayName": "His"},
+                            {"id": "aiden-2", "displayName": "Hers"},
+                        ],
+                    ),
+                ],
+                ("get", f"{self.base_url}/devices/aiden-2/profiles"): [
+                    FakeResponse(200, []),
+                    FakeResponse(200, []),
+                ],
+                ("get", f"{self.base_url}/devices/aiden-2/schedules"): [
+                    FakeResponse(200, []),
+                    FakeResponse(200, []),
+                ],
+            },
+            brewer_id="aiden-2",
+        )
+
+        await api.authenticate()
+        await api.fetch_device()
+
+        self.assertEqual(api.get_brewer_id(), "aiden-2")
+        self.assertNotIn(
+            ("get", f"{self.base_url}/devices/aiden-1/profiles"),
+            session.requests,
+        )
+
+    async def test_configured_brewer_does_not_fall_back_to_another_device(
+        self,
+    ) -> None:
+        api, session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        200,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [{"id": "aiden-1", "displayName": "His"}],
+                    )
+                ],
+            },
+            brewer_id="aiden-2",
+        )
+
+        with self.assertRaises(self.module.FellowNoSupportedDeviceError):
+            await api.authenticate()
+
+        self.assertNotIn(
+            ("get", f"{self.base_url}/devices/aiden-1/profiles"),
+            session.requests,
+        )
+
+    async def test_incompatible_configured_brewer_does_not_fall_back(
+        self,
+    ) -> None:
+        api, session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        200,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [
+                            {"id": "aiden-1", "displayName": "His"},
+                            {"id": "aiden-2", "displayName": "Hers"},
+                        ],
+                    )
+                ],
+                ("get", f"{self.base_url}/devices/aiden-2/profiles"): [
+                    FakeResponse(404, {"message": "Not found"})
+                ],
+            },
+            brewer_id="aiden-2",
+        )
+
+        with self.assertRaises(self.module.FellowNoSupportedDeviceError):
+            await api.authenticate()
+
+        self.assertNotIn(
+            ("get", f"{self.base_url}/devices/aiden-1/profiles"),
+            session.requests,
         )

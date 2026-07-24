@@ -2,6 +2,13 @@ create_profile:
   name: "Create Brew Profile"
   description: "Create a new brew profile on the Fellow Aiden device."
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     profile_type:
       name: "Profile Type"
       description: "Numeric profile type"
@@ -149,6 +156,13 @@ delete_profile:
   name: "Delete Brew Profile"
   description: "Delete a brew profile by ID"
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     profile_id:
       name: "Profile ID"
       description: "ID of profile to delete (e.g. 'p1')"
@@ -161,6 +175,13 @@ create_schedule:
   name: "Create Brew Schedule"
   description: "Create a new brew schedule on the Fellow Aiden device. ⚠️ WARNING: Ensure carafe/cup is in place before scheduled brew time to prevent spills!"
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     monday:
       name: "Monday"
       description: "Enable brewing on Monday"
@@ -255,6 +276,13 @@ delete_schedule:
   name: "Delete Brew Schedule"
   description: "Delete a brew schedule by its ID."
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     schedule_id:
       name: "Schedule ID"
       description: "ID of the schedule to delete."
@@ -266,6 +294,13 @@ toggle_schedule:
   name: "Enable/Disable Brew Schedule"
   description: "Enable or disable a brew schedule by its ID."
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     schedule_id:
       name: "Schedule ID"
       description: "ID of the schedule to toggle."
@@ -283,12 +318,26 @@ toggle_schedule:
 list_profiles:
   name: "List All Profiles"
   description: "Lists all available brew profiles with their names and IDs."
-  fields: {}
+  fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
 
 get_profile_details:
   name: "Get Profile Details"
   description: "Gets detailed information about a specific profile by its name or ID."
   fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
     profile_name:
       name: "Profile Name"
       description: "Name of the profile to get details for."
@@ -307,19 +356,47 @@ get_profile_details:
 reset_water_tracking:
   name: "Reset Water Usage Tracking"
   description: "Resets water usage tracking to start fresh. Use this if historical water sensors seem incorrect."
-  fields: {}
+  fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
 
 list_schedules:
   name: "List All Schedules"
   description: "Lists all available brew schedules with their details."
-  fields: {}
+  fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
 
 debug_water_usage:
   name: "Debug Water Usage"
   description: "Logs detailed water usage history for troubleshooting."
-  fields: {}
+  fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow
 
 refresh_and_log_data:
   name: "Refresh and Log Full Data"
   description: "Manually refreshes all data from the Fellow API and logs the complete response."
-  fields: {}
+  fields:
+    config_entry_id:
+      name: "Brewer"
+      description: "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+      required: false
+      selector:
+        config_entry:
+          integration: fellow

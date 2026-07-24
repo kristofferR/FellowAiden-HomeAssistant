@@ -8,6 +8,13 @@
           "email": "Correo electrónico",
           "password": "Contraseña"
         }
+      },
+      "device": {
+        "title": "Elegir un Fellow Aiden",
+        "description": "Elige la cafetera que deseas añadir. Para añadir otra cafetera de esta cuenta, ejecuta la configuración de nuevo.",
+        "data": {
+          "brewer_id": "Cafetera"
+        }
       }
     },
     "error": {
@@ -33,6 +40,9 @@
     "error": {
       "too_fast": "El intervalo de actualización debe ser de al menos 30 segundos para evitar sobrecargar los servidores de Fellow"
     }
+  },
+  "abort": {
+    "all_brewers_configured": "Todas las cafeteras compatibles de esta cuenta ya están configuradas."
   },
   "services": {
     "create_profile": {

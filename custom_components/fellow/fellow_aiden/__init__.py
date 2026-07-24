@@ -77,7 +77,11 @@ class FellowAiden:
     _MAX_RETRIES = 3
 
     def __init__(
-        self, email: str, password: str, session: aiohttp.ClientSession
+        self,
+        email: str,
+        password: str,
+        session: aiohttp.ClientSession,
+        brewer_id: str | None = None,
     ) -> None:
         """Store credentials and session.  Call ``authenticate()`` to log in."""
         self._log = logging.getLogger(self.LOGGER_NAME)
@@ -87,7 +91,8 @@ class FellowAiden:
         self._email = email
         self._password = password
         self._device_config: dict[str, Any] | None = None
-        self._brewer_id: str | None = None
+        self._configured_brewer_id = brewer_id
+        self._brewer_id: str | None = brewer_id
         self._profiles: list[dict[str, Any]] | None = None
         self._schedules: list[dict[str, Any]] | None = None
         self._session = session
@@ -202,9 +207,9 @@ class FellowAiden:
 
     # -- Authentication -----------------------------------------------------
 
-    async def authenticate(self) -> None:
-        """Authenticate and fetch initial device data."""
-        await self._do_auth(fetch_device=True)
+    async def authenticate(self, *, fetch_device: bool = True) -> None:
+        """Authenticate and optionally fetch initial device data."""
+        await self._do_auth(fetch_device=fetch_device)
 
     async def _refresh_auth(self) -> bool:
         """Attempt to refresh the access token using the stored refresh token.
@@ -266,24 +271,19 @@ class FellowAiden:
 
     async def _fetch_device(self) -> None:
         """Fetch device info from the API."""
-        self._log.debug("Fetching device for account")
-        device_url = self.BASE_URL + self.API_DEVICES
-        response = await self._request_with_reauth(
-            "get", device_url, params={"dataType": "real"}
-        )
-        await self._ensure_success(response, "Device fetch")
+        device_candidates = await self._fetch_device_candidates()
 
-        parsed = await self._parse_response(response)
-        self._log.debug(parsed)
-        if not isinstance(parsed, list):
-            raise Exception(f"Unexpected device response payload: {parsed}")
-        device_candidates = [
-            device for device in parsed if isinstance(device, dict)
-        ]
-        if not device_candidates:
-            raise FellowNoSupportedDeviceError(
-                "No supported Fellow Aiden brewer was found on this account."
-            )
+        if self._configured_brewer_id:
+            device_candidates = [
+                device
+                for device in device_candidates
+                if device.get("id") == self._configured_brewer_id
+            ]
+            if not device_candidates:
+                raise FellowNoSupportedDeviceError(
+                    f"Configured Fellow Aiden brewer {self._configured_brewer_id} "
+                    "was not found on this account."
+                )
 
         for candidate in self._ordered_device_candidates(device_candidates):
             try:
@@ -304,6 +304,45 @@ class FellowAiden:
         raise FellowNoSupportedDeviceError(
             "No supported Fellow Aiden brewer was found on this account."
         )
+
+    async def _fetch_device_candidates(self) -> list[dict[str, Any]]:
+        """Fetch all device candidates associated with the account."""
+        self._log.debug("Fetching devices for account")
+        device_url = self.BASE_URL + self.API_DEVICES
+        response = await self._request_with_reauth(
+            "get", device_url, params={"dataType": "real"}
+        )
+        await self._ensure_success(response, "Device fetch")
+
+        parsed = await self._parse_response(response)
+        self._log.debug(parsed)
+        if not isinstance(parsed, list):
+            raise Exception(f"Unexpected device response payload: {parsed}")
+        device_candidates = [
+            device for device in parsed if isinstance(device, dict)
+        ]
+        if not device_candidates:
+            raise FellowNoSupportedDeviceError(
+                "No supported Fellow Aiden brewer was found on this account."
+            )
+        return device_candidates
+
+    async def get_supported_devices(self) -> list[dict[str, Any]]:
+        """Return every compatible Aiden brewer associated with the account."""
+        supported_devices: list[dict[str, Any]] = []
+        for candidate in await self._fetch_device_candidates():
+            try:
+                await self._probe_device(candidate)
+            except _IncompatibleDeviceError as err:
+                self._log.debug("Skipping incompatible device candidate: %s", err)
+                continue
+            supported_devices.append(candidate)
+
+        if not supported_devices:
+            raise FellowNoSupportedDeviceError(
+                "No supported Fellow Aiden brewer was found on this account."
+            )
+        return supported_devices
 
     async def fetch_device(self) -> None:
         """Public method to re-fetch device data from the cloud."""

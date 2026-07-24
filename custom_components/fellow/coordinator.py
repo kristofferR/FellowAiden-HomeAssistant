@@ -15,25 +15,33 @@ from homeassistant.exceptions import (
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .brew_history import BrewHistoryManager
+from .const import DEFAULT_UPDATE_INTERVAL_MINUTES
 from .fellow_aiden import (
     FellowAiden,
     FellowAuthError,
     FellowConnectionError,
     FellowNoSupportedDeviceError,
 )
-from .brew_history import BrewHistoryManager
-from .const import DEFAULT_UPDATE_INTERVAL_MINUTES
 
 _LOGGER = logging.getLogger(__name__)
 
 class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator to fetch data from the Fellow Aiden cloud API."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, email: str, password: str) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        email: str,
+        password: str,
+        brewer_id: str | None = None,
+    ) -> None:
         """Initialize with credentials."""
         self.hass = hass
         self.email = email
         self.password = password
+        self.brewer_id = brewer_id
         self.api: FellowAiden | None = None
         self.history_manager = BrewHistoryManager(hass, entry.entry_id)
         self._next_refresh_verbose = False
@@ -54,7 +62,12 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_config_entry_first_refresh(self) -> None:
         """Create the async API client and perform the initial refresh."""
         session = async_get_clientsession(self.hass)
-        self.api = FellowAiden(self.email, self.password, session)
+        self.api = FellowAiden(
+            self.email,
+            self.password,
+            session,
+            brewer_id=self.brewer_id,
+        )
         try:
             await self.api.authenticate()
         except FellowAuthError as err:

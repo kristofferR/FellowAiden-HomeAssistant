@@ -101,6 +101,12 @@ Choose one of the following methods to install the **Fellow Aiden** integration:
 |-----------|-------------|
 | **Email** | The email address for your Fellow Aiden account. |
 | **Password** | Your Fellow account password. |
+| **Brewer** | The Aiden to add when the account contains more than one unconfigured brewer. |
+
+Each Aiden is represented by its own Home Assistant config entry. To add
+multiple brewers from the same Fellow account, run **Add Integration** once for
+each brewer and choose a different brewer each time. Already configured
+brewers are omitted from the chooser.
 
 ### Options
 
@@ -175,6 +181,10 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | `fellow.debug_water_usage` | Dump raw water usage records. |
 | `fellow.refresh_and_log_data` | Force a data refresh and return the API response. |
 
+Service actions continue to work without a target when only one Fellow Aiden
+entry is loaded. With multiple brewers, choose the **Brewer** config entry (or
+provide `config_entry_id` in YAML) so the action cannot affect the wrong Aiden.
+
 ---
 
 ## Automation examples
@@ -220,7 +230,6 @@ automation:
 - No direct brew start: the Fellow API does not support starting a brew remotely. Use the physical controls or a schedule.
 - Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
-- Single device per entry: each config entry connects to one brewer. If an account contains multiple Fellow products, the integration auto-selects the first compatible Aiden brewer, but it still does not let you choose between multiple compatible Aidens on the same account.
 
 ---
 
@@ -235,7 +244,7 @@ automation:
 
 ## FAQ & Troubleshooting
 
-1. **"Device not found" / "No supported brewer found"** -- Make sure the account you used has at least one Fellow Aiden brewer linked to it. Mixed-device accounts are supported by auto-selecting the first compatible Aiden.
+1. **"Device not found" / "No supported brewer found"** -- Make sure the account you used has at least one Fellow Aiden brewer linked to it. Mixed-device and multi-Aiden accounts are supported; unsupported Fellow products are omitted from the brewer chooser.
 
 2. **Sensors showing "Unknown"** -- The brewer may not have reported data yet. Wait a few minutes. If it persists for days, file a bug report.
 
