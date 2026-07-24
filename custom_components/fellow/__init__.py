@@ -146,11 +146,6 @@ def _get_coordinator(
         for entry in entries
         if entry.state is ConfigEntryState.LOADED
     ]
-    if not loaded_entries:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="not_loaded",
-        )
 
     if config_entry_id:
         target = next(
@@ -169,10 +164,19 @@ def _get_coordinator(
             )
         return target.runtime_data
 
-    if len(loaded_entries) > 1:
+    # Ambiguity is judged from every configured entry, not just the loaded
+    # ones: with a second brewer configured but temporarily unloaded, an
+    # untargeted call would otherwise silently act on the wrong Aiden.
+    if len(entries) > 1:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="target_required",
+        )
+
+    if not loaded_entries:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="not_loaded",
         )
 
     return loaded_entries[0].runtime_data
@@ -552,6 +556,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) 
     if "brewer_id" not in entry.data and coordinator.api:
         brewer_id = coordinator.api.get_brewer_id()
         if brewer_id:
+            # Pin the already-constructed client too, so the entry stays on
+            # this brewer until the next reload instead of only preferring it.
+            coordinator.brewer_id = brewer_id
+            coordinator.api.pin_brewer(brewer_id)
             hass.config_entries.async_update_entry(
                 entry,
                 data={**entry.data, "brewer_id": brewer_id},

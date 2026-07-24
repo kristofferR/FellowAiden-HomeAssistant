@@ -398,3 +398,44 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
             ("get", f"{self.base_url}/devices/aiden-1/profiles"),
             session.requests,
         )
+
+    async def test_pin_brewer_prevents_fallback_to_another_aiden(self) -> None:
+        """A legacy entry that pins its discovered brewer must not fall back."""
+        api, _session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        200,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [{"id": "aiden-1", "displayName": "His"}],
+                    ),
+                    FakeResponse(
+                        200,
+                        [{"id": "aiden-2", "displayName": "Hers"}],
+                    ),
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/profiles"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/schedules"): [
+                    FakeResponse(200, [])
+                ],
+            }
+        )
+
+        await api.authenticate()
+        self.assertEqual(api.get_brewer_id(), "aiden-1")
+
+        api.pin_brewer("aiden-1")
+
+        # The pinned brewer disappeared from the account; the client must
+        # report that rather than silently switching to the other Aiden.
+        with self.assertRaises(self.module.FellowNoSupportedDeviceError):
+            await api.fetch_device()
+
+        self.assertEqual(api.get_brewer_id(), "aiden-1")

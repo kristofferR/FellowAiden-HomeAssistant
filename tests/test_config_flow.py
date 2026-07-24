@@ -255,3 +255,35 @@ class ConfigFlowErrorMappingTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result["type"], "form")
         self.assertEqual(result["errors"]["base"], "unsupported_device")
+
+    async def test_reconfigure_without_brewer_id_keeps_account_check(self) -> None:
+        """Unmigrated entries fall back to the email-based account check."""
+
+        async def successful_login(
+            hass: object, email: str, password: str
+        ) -> list[dict[str, str]]:
+            del hass, email, password
+            return [{"id": "aiden-1", "displayName": "His"}]
+
+        mismatch_reasons: list[str | None] = []
+
+        with patch.object(self.module, "_try_login", new=successful_login):
+            flow = self.module.FellowAidenConfigFlow()
+            flow.hass = types.SimpleNamespace(session=object())
+            flow._get_reconfigure_entry = lambda: types.SimpleNamespace(
+                data={"email": "user@example.com", "password": "old"}
+            )
+            flow._abort_if_unique_id_mismatch = (
+                lambda reason=None: mismatch_reasons.append(reason)
+            )
+
+            result = await flow.async_step_reconfigure(
+                {
+                    "email": "Other@Example.com",
+                    "password": "secret",
+                }
+            )
+
+        self.assertEqual(mismatch_reasons, ["wrong_account"])
+        self.assertEqual(flow._unique_id, "other@example.com")
+        self.assertEqual(result["type"], "abort")

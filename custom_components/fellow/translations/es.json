@@ -22,6 +22,9 @@
       "cannot_connect": "No se pudo conectar con los servidores de Fellow. Inténtalo de nuevo más tarde.",
       "unsupported_device": "No se encontró ninguna cafetera Fellow Aiden compatible en esta cuenta.",
       "unknown": "Ocurrió un error inesperado."
+    },
+    "abort": {
+      "all_brewers_configured": "Todas las cafeteras compatibles de esta cuenta ya están configuradas."
     }
   },
   "options": {
@@ -40,9 +43,6 @@
     "error": {
       "too_fast": "El intervalo de actualización debe ser de al menos 30 segundos para evitar sobrecargar los servidores de Fellow"
     }
-  },
-  "abort": {
-    "all_brewers_configured": "Todas las cafeteras compatibles de esta cuenta ya están configuradas."
   },
   "services": {
     "create_profile": {

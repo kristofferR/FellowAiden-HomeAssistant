@@ -271,6 +271,14 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     _LOGGER.debug("Reconfigure authentication failed: %s", err)
             else:
+                if not brewer_id:
+                    # A migrated entry that has not persisted its brewer yet is
+                    # still keyed by account email, so keep the original
+                    # account check as a fallback. Without it, reconfigure
+                    # would accept any Fellow account and silently retarget
+                    # the entry at a different physical brewer.
+                    await self.async_set_unique_id(email.lower())
+                    self._abort_if_unique_id_mismatch(reason="wrong_account")
                 return self.async_update_reload_and_abort(
                     entry,
                     data_updates={"email": email, "password": password},

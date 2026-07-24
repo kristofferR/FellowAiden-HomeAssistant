@@ -386,6 +386,22 @@ class FellowAiden:
         """Return the brewer ID."""
         return self._brewer_id
 
+    def pin_brewer(self, brewer_id: str) -> None:
+        """Pin every subsequent refresh to a specific brewer.
+
+        Used when a legacy account-level config entry discovers its brewer on
+        the first refresh: without this, the live client stays unpinned and a
+        later refresh could fall back to another compatible Aiden.
+        """
+        if brewer_id != self._brewer_id:
+            # Cached data belongs to a different brewer; drop it so nothing is
+            # served for the newly pinned one until the next refresh.
+            self._device_config = None
+            self._profiles = None
+            self._schedules = None
+        self._configured_brewer_id = brewer_id
+        self._brewer_id = brewer_id
+
     # -- Internal helpers ---------------------------------------------------
 
     def _ordered_device_candidates(
