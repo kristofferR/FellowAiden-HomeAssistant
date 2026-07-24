@@ -8,6 +8,13 @@
           "email": "Correo electrónico",
           "password": "Contraseña"
         }
+      },
+      "device": {
+        "title": "Elegir un Fellow Aiden",
+        "description": "Elige la cafetera que deseas añadir. Para añadir otra cafetera de esta cuenta, ejecuta la configuración de nuevo.",
+        "data": {
+          "brewer_id": "Cafetera"
+        }
       }
     },
     "error": {
@@ -15,6 +22,9 @@
       "cannot_connect": "No se pudo conectar con los servidores de Fellow. Inténtalo de nuevo más tarde.",
       "unsupported_device": "No se encontró ninguna cafetera Fellow Aiden compatible en esta cuenta.",
       "unknown": "Ocurrió un error inesperado."
+    },
+    "abort": {
+      "all_brewers_configured": "Todas las cafeteras compatibles de esta cuenta ya están configuradas."
     }
   },
   "options": {

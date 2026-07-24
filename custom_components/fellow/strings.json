@@ -13,6 +13,13 @@
           "password": "Your Fellow account password."
         }
       },
+      "device": {
+        "title": "Choose a Fellow Aiden",
+        "description": "Choose the brewer to add. To add another brewer from this account, run setup again.",
+        "data": {
+          "brewer_id": "Brewer"
+        }
+      },
       "reauth_confirm": {
         "title": "Re-authenticate Fellow Aiden",
         "description": "Your credentials have expired. Enter your current Fellow account password.",
@@ -43,7 +50,8 @@
       "unknown": "An unexpected error occurred."
     },
     "abort": {
-      "already_configured": "This account is already configured.",
+      "already_configured": "This brewer is already configured.",
+      "all_brewers_configured": "All supported brewers on this account are already configured.",
       "reauth_successful": "Re-authentication successful.",
       "wrong_account": "This is a different Fellow account than the one originally configured.",
       "reconfigure_successful": "Reconfiguration successful."
@@ -102,6 +110,10 @@
       "name": "Create brew profile",
       "description": "Create a new brew profile on the Fellow Aiden.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "profile_type": {
           "name": "Profile type",
           "description": "Numeric profile type."
@@ -168,6 +180,10 @@
       "name": "Delete brew profile",
       "description": "Delete a brew profile by ID.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "profile_id": {
           "name": "Profile ID",
           "description": "ID of the profile to delete (e.g. 'p1')."
@@ -178,6 +194,10 @@
       "name": "Create brew schedule",
       "description": "Create a brewing schedule. Make sure a carafe or cup is in place before the scheduled time.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "monday": { "name": "Monday", "description": "Brew on Monday." },
         "tuesday": { "name": "Tuesday", "description": "Brew on Tuesday." },
         "wednesday": { "name": "Wednesday", "description": "Brew on Wednesday." },
@@ -196,6 +216,10 @@
       "name": "Delete brew schedule",
       "description": "Delete a schedule by ID.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "schedule_id": { "name": "Schedule ID", "description": "ID of the schedule to delete." }
       }
     },
@@ -203,37 +227,75 @@
       "name": "Toggle brew schedule",
       "description": "Enable or disable a schedule.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "schedule_id": { "name": "Schedule ID", "description": "ID of the schedule." },
         "enabled": { "name": "Enabled", "description": "True to enable, false to disable." }
       }
     },
     "list_profiles": {
       "name": "List profiles",
-      "description": "Returns all brew profiles with their names and IDs."
+      "description": "Returns all brew profiles with their names and IDs.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        }
+      }
     },
     "get_profile_details": {
       "name": "Get profile details",
       "description": "Returns full details for a profile.",
       "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        },
         "profile_name": { "name": "Profile name", "description": "Name of the profile." },
         "profile_id": { "name": "Profile ID", "description": "ID of the profile (alternative to name)." }
       }
     },
     "reset_water_tracking": {
       "name": "Reset water tracking",
-      "description": "Resets the water usage baseline. Period sensors will read 0 until new usage is recorded."
+      "description": "Resets the water usage baseline. Period sensors will read 0 until new usage is recorded.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        }
+      }
     },
     "list_schedules": {
       "name": "List schedules",
-      "description": "Returns all brew schedules."
+      "description": "Returns all brew schedules.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        }
+      }
     },
     "debug_water_usage": {
       "name": "Debug water usage",
-      "description": "Returns raw water usage history for troubleshooting."
+      "description": "Returns raw water usage history for troubleshooting.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        }
+      }
     },
     "refresh_and_log_data": {
       "name": "Refresh and log data",
-      "description": "Forces a data refresh and returns the full API response."
+      "description": "Forces a data refresh and returns the full API response.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Brewer",
+          "description": "Fellow Aiden config entry to use. Required when multiple brewers are configured."
+        }
+      }
     }
   },
   "exceptions": {
@@ -242,6 +304,12 @@
     },
     "not_loaded": {
       "message": "Fellow Aiden integration is not loaded. Check Settings > Integrations."
+    },
+    "target_required": {
+      "message": "Choose a Fellow Aiden config entry when more than one brewer is configured."
+    },
+    "target_not_loaded": {
+      "message": "Fellow Aiden config entry {config_entry_id} is not loaded."
     },
     "profile_id_required": {
       "message": "profile_id is required."

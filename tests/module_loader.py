@@ -126,8 +126,12 @@ def _install_voluptuous_stub() -> None:
     def Range(**_kwargs: Any) -> Any:
         return lambda value: value
 
+    def In(container: Any) -> Any:
+        return container
+
     voluptuous.All = All
     voluptuous.Coerce = Coerce
+    voluptuous.In = In
     voluptuous.Invalid = Invalid
     voluptuous.Optional = Optional
     voluptuous.Range = Range
@@ -159,6 +163,9 @@ def _install_homeassistant_stubs() -> None:
 
         def _abort_if_unique_id_mismatch(self, reason: str | None = None) -> None:
             return None
+
+        def _async_current_entries(self) -> list[Any]:
+            return []
 
         def _get_reauth_entry(self) -> dict[str, Any]:
             return {"entry_id": "reauth"}

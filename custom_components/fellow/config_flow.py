@@ -1,24 +1,28 @@
 """Config flow for Fellow Aiden."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
-from typing import Any, Mapping
+from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
+from homeassistant.helpers.selector import (
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 
+from .const import DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, MIN_UPDATE_INTERVAL_SECONDS
 from .fellow_aiden import (
     FellowAiden,
     FellowAuthError,
     FellowConnectionError,
     FellowNoSupportedDeviceError,
 )
-from .const import DOMAIN, DEFAULT_UPDATE_INTERVAL_MINUTES, MIN_UPDATE_INTERVAL_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,11 +34,14 @@ USER_SCHEMA = vol.Schema(
 )
 
 
-async def _try_login(hass: HomeAssistant, email: str, password: str) -> None:
-    """Attempt to authenticate asynchronously. Raises on failure."""
+async def _try_login(
+    hass: HomeAssistant, email: str, password: str
+) -> list[dict[str, Any]]:
+    """Authenticate and return every supported brewer on the account."""
     session = async_get_clientsession(hass)
     api = FellowAiden(email, password, session)
-    await api.authenticate()
+    await api.authenticate(fetch_device=False)
+    return await api.get_supported_devices()
 
 
 def _login_error_key(err: Exception) -> str:
@@ -51,9 +58,65 @@ def _login_error_key(err: Exception) -> str:
 class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Fellow Aiden."""
 
-    VERSION = 1
+    VERSION = 2
 
     _reauth_email: str | None = None
+    _reauth_brewer_id: str | None = None
+    _email: str | None = None
+    _password: str | None = None
+    _available_devices: list[dict[str, Any]] | None = None
+
+    def _configured_brewer_ids(self) -> set[str]:
+        """Return brewer IDs already represented by config entries."""
+        brewer_ids: set[str] = set()
+        for entry in self._async_current_entries():
+            brewer_id = entry.data.get("brewer_id")
+            if not brewer_id:
+                runtime_data = getattr(entry, "runtime_data", None)
+                api = getattr(runtime_data, "api", None)
+                brewer_id = api.get_brewer_id() if api else None
+            if (
+                not brewer_id
+                and self._email
+                and self._available_devices
+                and entry.data.get("email", "").lower() == self._email.lower()
+            ):
+                # A not-yet-loaded version 1 entry has no persisted brewer ID.
+                # It used the first compatible device, so reserve that device
+                # until setup can migrate the entry.
+                brewer_id = self._available_devices[0].get("id")
+            if isinstance(brewer_id, str):
+                brewer_ids.add(brewer_id)
+        return brewer_ids
+
+    @staticmethod
+    def _device_name(device: Mapping[str, Any]) -> str:
+        """Return a useful display name for a discovered brewer."""
+        display_name = device.get("displayName")
+        if isinstance(display_name, str) and display_name:
+            return display_name
+        return f"Fellow Aiden ({device.get('id', 'unknown')})"
+
+    async def _async_create_device_entry(
+        self, device: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Create a config entry for one physical brewer."""
+        if self._email is None or self._password is None:
+            return self.async_abort(reason="unknown")
+
+        brewer_id = device.get("id")
+        if not isinstance(brewer_id, str):
+            return self.async_abort(reason="unknown")
+        await self.async_set_unique_id(brewer_id)
+        self._abort_if_unique_id_configured()
+        return self.async_create_entry(
+            title=self._device_name(device),
+            data={
+                "email": self._email,
+                "password": self._password,
+                "brewer_id": brewer_id,
+            },
+        )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -64,7 +127,7 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             email = user_input["email"]
             password = user_input["password"]
             try:
-                await _try_login(self.hass, email, password)
+                devices = await _try_login(self.hass, email, password)
             except Exception as err:
                 errors["base"] = _login_error_key(err)
                 if errors["base"] == "unknown":
@@ -72,15 +135,59 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     _LOGGER.debug("Authentication failed: %s", err)
             else:
-                await self.async_set_unique_id(email.lower())
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=f"Fellow Aiden ({email})",
-                    data={"email": email, "password": password},
-                )
+                self._email = email
+                self._password = password
+                self._available_devices = devices
+                configured_ids = self._configured_brewer_ids()
+                available_devices = [
+                    device
+                    for device in devices
+                    if device.get("id") not in configured_ids
+                ]
+                if not available_devices:
+                    return self.async_abort(reason="all_brewers_configured")
+
+                self._available_devices = available_devices
+                if len(available_devices) == 1:
+                    return await self._async_create_device_entry(
+                        available_devices[0]
+                    )
+                return await self.async_step_device()
 
         return self.async_show_form(
             step_id="user", data_schema=USER_SCHEMA, errors=errors
+        )
+
+    async def async_step_device(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Let the user choose which unconfigured brewer to add."""
+        if not self._available_devices:
+            return self.async_abort(reason="unknown")
+
+        devices_by_id: dict[str, dict[str, Any]] = {}
+        for device in self._available_devices:
+            brewer_id = device.get("id")
+            if isinstance(brewer_id, str):
+                devices_by_id[brewer_id] = device
+        if user_input is not None:
+            selected_device = devices_by_id.get(user_input["brewer_id"])
+            if selected_device is None:
+                return self.async_abort(reason="unknown")
+            return await self._async_create_device_entry(selected_device)
+
+        return self.async_show_form(
+            step_id="device",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("brewer_id"): vol.In(
+                        {
+                            brewer_id: self._device_name(device)
+                            for brewer_id, device in devices_by_id.items()
+                        }
+                    )
+                }
+            ),
         )
 
     # -- Reauthentication ---------------------------------------------------
@@ -90,6 +197,7 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle a reauth trigger (credentials expired)."""
         self._reauth_email = entry_data["email"]
+        self._reauth_brewer_id = entry_data.get("brewer_id")
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
@@ -102,7 +210,16 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._reauth_email is None:
                 return self.async_abort(reason="unknown")
             try:
-                await _try_login(self.hass, self._reauth_email, password)
+                devices = await _try_login(
+                    self.hass, self._reauth_email, password
+                )
+                if self._reauth_brewer_id and not any(
+                    device.get("id") == self._reauth_brewer_id
+                    for device in devices
+                ):
+                    raise FellowNoSupportedDeviceError(
+                        "The configured brewer is not available on this account."
+                    )
             except Exception as err:
                 errors["base"] = _login_error_key(err)
                 if errors["base"] == "unknown":
@@ -110,8 +227,6 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     _LOGGER.debug("Re-authentication failed: %s", err)
             else:
-                await self.async_set_unique_id(self._reauth_email.lower())
-                self._abort_if_unique_id_mismatch(reason="wrong_account")
                 return self.async_update_reload_and_abort(
                     self._get_reauth_entry(),
                     data_updates={"password": password},
@@ -139,8 +254,16 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             email = user_input["email"]
             password = user_input["password"]
+            entry = self._get_reconfigure_entry()
+            brewer_id = entry.data.get("brewer_id")
             try:
-                await _try_login(self.hass, email, password)
+                devices = await _try_login(self.hass, email, password)
+                if brewer_id and not any(
+                    device.get("id") == brewer_id for device in devices
+                ):
+                    raise FellowNoSupportedDeviceError(
+                        "The configured brewer is not available on this account."
+                    )
             except Exception as err:
                 errors["base"] = _login_error_key(err)
                 if errors["base"] == "unknown":
@@ -148,10 +271,16 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     _LOGGER.debug("Reconfigure authentication failed: %s", err)
             else:
-                await self.async_set_unique_id(email.lower())
-                self._abort_if_unique_id_mismatch(reason="wrong_account")
+                if not brewer_id:
+                    # A migrated entry that has not persisted its brewer yet is
+                    # still keyed by account email, so keep the original
+                    # account check as a fallback. Without it, reconfigure
+                    # would accept any Fellow account and silently retarget
+                    # the entry at a different physical brewer.
+                    await self.async_set_unique_id(email.lower())
+                    self._abort_if_unique_id_mismatch(reason="wrong_account")
                 return self.async_update_reload_and_abort(
-                    self._get_reconfigure_entry(),
+                    entry,
                     data_updates={"email": email, "password": password},
                 )
 

@@ -7,6 +7,8 @@ import re
 from datetime import time
 from typing import cast
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import (
@@ -15,13 +17,10 @@ from homeassistant.core import (
     ServiceResponse,
     SupportsResponse,
 )
-import voluptuous as vol
-
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, PLATFORMS, DEFAULT_PROFILE_TYPE, FellowAidenConfigEntry
+from .const import DEFAULT_PROFILE_TYPE, DOMAIN, PLATFORMS, FellowAidenConfigEntry
 from .coordinator import FellowAidenDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -86,6 +85,8 @@ def _coerce_temperature_list(value: object) -> list[float]:
     for item in raw_items:
         if item == "":
             raise vol.Invalid("Temperature list contains empty values")
+        if isinstance(item, bool) or not isinstance(item, (str, int, float)):
+            raise vol.Invalid(f"Invalid temperature value: {item}")
         try:
             temperatures.append(float(item))
         except (TypeError, ValueError) as exc:
@@ -94,6 +95,7 @@ def _coerce_temperature_list(value: object) -> list[float]:
     return temperatures
 
 CREATE_PROFILE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
+    vol.Optional("config_entry_id"): cv.string,
     vol.Optional("profile_type", default=DEFAULT_PROFILE_TYPE): vol.Coerce(int),
     vol.Required("title"): cv.string,
     vol.Required("ratio"): vol.Coerce(float),
@@ -112,6 +114,7 @@ CREATE_PROFILE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
 }))
 
 CREATE_SCHEDULE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
+    vol.Optional("config_entry_id"): cv.string,
     vol.Optional("monday", default=False): cv.boolean,
     vol.Optional("tuesday", default=False): cv.boolean,
     vol.Optional("wednesday", default=False): cv.boolean,
@@ -127,14 +130,10 @@ CREATE_SCHEDULE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
 }))
 
 
-def _get_coordinator(hass: HomeAssistant) -> FellowAidenDataUpdateCoordinator:
-    """Return the coordinator for the first loaded config entry.
-
-    When multiple entries are loaded, service calls target the first loaded
-    entry and a warning is logged.
-
-    Raises ServiceValidationError when no entry is available or loaded.
-    """
+def _get_coordinator(
+    hass: HomeAssistant, config_entry_id: str | None = None
+) -> FellowAidenDataUpdateCoordinator:
+    """Return the coordinator selected for a service call."""
     entries = hass.config_entries.async_entries(DOMAIN)
     if not entries:
         raise ServiceValidationError(
@@ -147,19 +146,37 @@ def _get_coordinator(hass: HomeAssistant) -> FellowAidenDataUpdateCoordinator:
         for entry in entries
         if entry.state is ConfigEntryState.LOADED
     ]
+
+    if config_entry_id:
+        target = next(
+            (
+                entry
+                for entry in loaded_entries
+                if entry.entry_id == config_entry_id
+            ),
+            None,
+        )
+        if target is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="target_not_loaded",
+                translation_placeholders={"config_entry_id": config_entry_id},
+            )
+        return target.runtime_data
+
+    # Ambiguity is judged from every configured entry, not just the loaded
+    # ones: with a second brewer configured but temporarily unloaded, an
+    # untargeted call would otherwise silently act on the wrong Aiden.
+    if len(entries) > 1:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="target_required",
+        )
+
     if not loaded_entries:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="not_loaded",
-        )
-
-    if len(loaded_entries) > 1:
-        loaded_entry_ids = ", ".join(entry.entry_id for entry in loaded_entries)
-        _LOGGER.warning(
-            "Multiple loaded %s entries detected (%s); using first loaded entry %s for service call",
-            DOMAIN,
-            loaded_entry_ids,
-            loaded_entries[0].entry_id,
         )
 
     return loaded_entries[0].runtime_data
@@ -191,7 +208,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register Fellow Aiden services."""
 
     async def handle_create_profile(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         data = {
             "profileType": call.data.get("profile_type", DEFAULT_PROFILE_TYPE),
             "title": call.data["title"],
@@ -225,7 +244,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_delete_profile(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         pid = call.data.get("profile_id")
         if not pid:
             raise ServiceValidationError(
@@ -242,7 +263,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_list_profiles(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         data = coordinator.data
         if not data or "profiles" not in data or not data["profiles"]:
             return {"profiles": []}
@@ -265,7 +288,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 translation_key="provide_profile_id_or_name",
             )
 
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         data = coordinator.data
         if not data or "profiles" not in data:
             raise ServiceValidationError(
@@ -294,7 +319,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return {"profile": target}
 
     async def handle_create_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         profile_input = call.data.get("profile_name") or call.data.get("profile_id")
         if not profile_input:
             raise ServiceValidationError(
@@ -364,7 +391,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_delete_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         sid = call.data.get("schedule_id")
         if not sid:
             raise ServiceValidationError(
@@ -381,7 +410,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_toggle_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         sid = call.data.get("schedule_id")
         if not sid:
             raise ServiceValidationError(
@@ -399,14 +430,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_list_schedules(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         await coordinator.async_request_refresh()
         data = coordinator.data
         schedules = data.get("schedules", []) if data else []
         return {"schedules": schedules}
 
     async def handle_debug_water_usage(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         device_config = (coordinator.data or {}).get("device_config", {})
         return {
             "water_usage_record_count": coordinator.history_manager.get_water_usage_count(),
@@ -417,7 +452,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         }
 
     async def handle_reset_water_tracking(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         device_config = (coordinator.data or {}).get("device_config", {})
         current_total = device_config.get("totalWaterVolumeL", 0)
         _LOGGER.info(
@@ -435,7 +472,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_refresh_and_log_data(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(
+            hass, call.data.get("config_entry_id")
+        )
         coordinator._next_refresh_verbose = True
         await coordinator.async_request_refresh()
         data = coordinator.data
@@ -503,9 +542,30 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> bool:
     """Set up Fellow Aiden from a config entry."""
     coordinator = FellowAidenDataUpdateCoordinator(
-        hass, entry, entry.data["email"], entry.data["password"]
+        hass,
+        entry,
+        entry.data["email"],
+        entry.data["password"],
+        entry.data.get("brewer_id"),
     )
     await coordinator.async_config_entry_first_refresh()
+
+    # Version 1 entries were keyed by account email. Persist the selected
+    # physical brewer so subsequent entries on the same account can choose a
+    # different Aiden and every poll remains pinned to the same device.
+    if "brewer_id" not in entry.data and coordinator.api:
+        brewer_id = coordinator.api.get_brewer_id()
+        if brewer_id:
+            # Pin the already-constructed client too, so the entry stays on
+            # this brewer until the next reload instead of only preferring it.
+            coordinator.brewer_id = brewer_id
+            coordinator.api.pin_brewer(brewer_id)
+            hass.config_entries.async_update_entry(
+                entry,
+                data={**entry.data, "brewer_id": brewer_id},
+                unique_id=brewer_id,
+            )
+
     entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -516,6 +576,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) 
 async def async_unload_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: FellowAidenConfigEntry
+) -> bool:
+    """Migrate account-level entries to the per-brewer config format."""
+    if entry.version > 2:
+        return False
+    if entry.version == 1:
+        hass.config_entries.async_update_entry(entry, version=2)
+    return True
 
 
 async def _async_update_options(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> None:
