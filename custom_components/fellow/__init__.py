@@ -286,6 +286,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def handle_list_profiles(call: ServiceCall) -> ServiceResponse:
         coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
+        await coordinator.async_refresh_with_resources(include_resources=True)
         data = coordinator.data
         if not data or "profiles" not in data or not data["profiles"]:
             return {"profiles": []}
@@ -443,7 +444,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def handle_list_schedules(call: ServiceCall) -> ServiceResponse:
         coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
-        await coordinator.async_request_refresh()
+        await coordinator.async_refresh_with_resources(include_resources=True)
         data = coordinator.data
         schedules = data.get("schedules", []) if data else []
         return {"schedules": schedules}
@@ -485,8 +486,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def handle_refresh_and_log_data(call: ServiceCall) -> ServiceResponse:
         coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
-        coordinator._next_refresh_verbose = True
-        await coordinator.async_request_refresh()
+        await coordinator.async_refresh_with_resources(
+            include_resources=True, verbose=True
+        )
         data = coordinator.data
         if not data:
             return {"error": "No data available after refresh"}

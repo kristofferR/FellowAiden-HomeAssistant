@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import unittest
+from unittest.mock import patch
 
 from module_loader import load_push_module
 
@@ -89,3 +90,56 @@ class PushManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("private-token", str(hass.bus.events))
         self.assertEqual(manager._store.data["persistent_ids"], ["persistent-1"])
         self.assertGreaterEqual(coordinator.listener_updates, 2)
+
+    async def test_successful_connection_resets_reconnect_backoff(self) -> None:
+        manager = self.module.FellowPushManager(FakeHass(), "account")
+        manager._retry_delay = 80
+
+        await manager._async_connection_changed(True)
+
+        self.assertEqual(manager._retry_delay, self.module._INITIAL_RETRY_SECONDS)
+        self.assertEqual(manager.status, self.module.PushStatus.CONNECTED)
+
+    async def test_rejected_credentials_trigger_fresh_registration(self) -> None:
+        module = self.module
+
+        class FakeApi:
+            def __init__(self) -> None:
+                self.tokens: list[str] = []
+
+            async def register_push_token(self, token: str) -> None:
+                self.tokens.append(token)
+
+        class FakeClient:
+            def __init__(self, manager: object) -> None:
+                self.manager = manager
+                self.existing_credentials = []
+                self.listen_count = 0
+
+            async def async_register(self, existing: object) -> object:
+                self.existing_credentials.append(existing)
+                suffix = len(self.existing_credentials)
+                return module.FcmCredentials(suffix, suffix, f"token-{suffix}")
+
+            async def async_listen(self, *_args: object) -> None:
+                self.listen_count += 1
+                if self.listen_count == 1:
+                    raise module.FcmAuthenticationError("rejected")
+                self.manager.detach("entry-1")
+
+        hass = FakeHass()
+        manager = self.module.FellowPushManager(hass, "account")
+        coordinator = FakeCoordinator()
+        coordinator.api = FakeApi()
+        manager.attach("entry-1", coordinator)
+        client = FakeClient(manager)
+
+        with (
+            patch.object(self.module, "FcmClient", return_value=client),
+            patch.object(manager, "_async_retry_delay", return_value=None) as retry,
+        ):
+            await manager._async_run()
+
+        self.assertEqual(client.existing_credentials, [None, None])
+        self.assertEqual(client.listen_count, 2)
+        retry.assert_awaited_once_with()

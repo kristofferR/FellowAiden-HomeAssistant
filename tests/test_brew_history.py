@@ -43,3 +43,36 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.manager.get_water_usage_count(), 2)
         self.assertEqual(self.manager.get_water_usage_for_period(1), 0.75)
         self.assertEqual(self.manager.get_profile_usage_stats(), {"Guided": 2})
+
+    async def test_partial_counters_do_not_reset_history_baseline(self) -> None:
+        await self.manager.async_update_data(
+            {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
+        )
+
+        await self.manager.async_update_data({"totalBrewingCycles": 10}, [])
+        await self.manager.async_update_data({"totalWaterVolumeL": 5000}, [])
+        await self.manager.async_update_data(
+            {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
+        )
+
+        self.assertEqual(self.manager.get_brew_history_count(), 0)
+        self.assertEqual(self.manager.get_water_usage_count(), 0)
+        self.assertEqual(self.manager._last_total_brews, 10)
+        self.assertEqual(self.manager._last_total_water, 5000)
+
+    async def test_detects_when_fresh_profiles_are_needed(self) -> None:
+        await self.manager.async_update_data(
+            {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
+        )
+
+        self.assertFalse(
+            await self.manager.async_has_new_brew(
+                {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}
+            )
+        )
+        self.assertTrue(
+            await self.manager.async_has_new_brew(
+                {"totalBrewingCycles": 11, "totalWaterVolumeL": 5500}
+            )
+        )
+        self.assertFalse(await self.manager.async_has_new_brew({}))

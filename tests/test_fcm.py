@@ -252,6 +252,33 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(self.module._first_int(heartbeat_fields, 2), 4)
 
+    async def test_listener_distinguishes_rejected_android_credentials(self) -> None:
+        login_error = self.module._field_bytes(3, "rejected")
+        server_data = bytes((self.module.MCS_VERSION,))
+        server_data += self.module._frame(
+            self.module._MCS_LOGIN_RESPONSE, login_error
+        )
+        reader = FakeReader(server_data)
+        writer = FakeWriter()
+
+        with (
+            patch.object(
+                self.module.asyncio,
+                "to_thread",
+                return_value=object(),
+            ),
+            patch.object(
+                self.module.asyncio,
+                "open_connection",
+                return_value=(reader, writer),
+            ),
+            self.assertRaises(self.module.FcmAuthenticationError),
+        ):
+            await self.module.FcmClient(FakeSession([])).async_listen(
+                self.module.FcmCredentials(1, 2, "token"),
+                lambda _message: None,
+            )
+
     async def test_rejects_oversized_frames_before_reading_payload(self) -> None:
         length = self.module._encode_varint(self.module._MAX_FRAME_SIZE + 1)
         reader = FakeReader(bytes((8,)) + length)

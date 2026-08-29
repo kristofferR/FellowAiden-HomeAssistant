@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -14,6 +15,20 @@ from .const import HISTORY_RETENTION_DAYS, MIN_HISTORICAL_DATA_FOR_ACCURACY
 from .profile_resolution import resolve_current_profile
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _nonnegative_counter(value: Any, *, integral: bool = False) -> int | float | None:
+    """Return a valid API counter without treating absence as zero."""
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
+        return None
+    if integral:
+        return int(value) if float(value).is_integer() else None
+    return value
 
 
 class BrewHistoryManager:
@@ -87,8 +102,15 @@ class BrewHistoryManager:
         if not self._data_loaded:
             await self.async_load_history()
 
-        current_total_brews = device_config.get("totalBrewingCycles", 0)
-        current_total_water = device_config.get("totalWaterVolumeL", 0)
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        current_total_water = _nonnegative_counter(
+            device_config.get("totalWaterVolumeL")
+        )
+        if current_total_brews is None or current_total_water is None:
+            _LOGGER.debug("Skipping history update because counters are unavailable")
+            return
         brew_start_time = device_config.get("brewStartTime")
         brew_end_time = device_config.get("brewEndTime")
 
@@ -190,6 +212,19 @@ class BrewHistoryManager:
 
             # Save updated history
             await self._async_save_history()
+
+    async def async_has_new_brew(self, device_config: dict[str, Any]) -> bool:
+        """Return whether fresh profiles are needed for brew attribution."""
+        if not self._data_loaded:
+            await self.async_load_history()
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        return bool(
+            self._tracking_initialized
+            and current_total_brews is not None
+            and current_total_brews > self._last_total_brews
+        )
 
     def _clean_old_records(self, cutoff_date: datetime) -> None:
         """Remove records older than cutoff date."""

@@ -15,7 +15,13 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN, EVENT_CLOUD_PUSH, PUSH_MANAGERS
-from .fcm import FcmClient, FcmCredentials, FcmError, FcmMessage
+from .fcm import (
+    FcmAuthenticationError,
+    FcmClient,
+    FcmCredentials,
+    FcmError,
+    FcmMessage,
+)
 from .fellow_aiden import FellowApiError, FellowAuthError, FellowConnectionError
 
 if TYPE_CHECKING:
@@ -60,6 +66,7 @@ class FellowPushManager:
         self._task: asyncio.Task[None] | None = None
         self._refresh_task: asyncio.Task[None] | None = None
         self._refresh_pending = False
+        self._retry_delay = _INITIAL_RETRY_SECONDS
 
     @property
     def connected(self) -> bool:
@@ -128,6 +135,8 @@ class FellowPushManager:
         raise RuntimeError("No authenticated Fellow API client is available")
 
     async def _async_connection_changed(self, connected: bool) -> None:
+        if connected:
+            self._retry_delay = _INITIAL_RETRY_SECONDS
         self._set_status(PushStatus.CONNECTED if connected else PushStatus.CONNECTING)
 
     async def _async_message(self, message: FcmMessage) -> None:
@@ -169,26 +178,23 @@ class FellowPushManager:
             if any(isinstance(result, Exception) for result in results):
                 _LOGGER.debug("A coordinator refresh after Fellow push failed")
 
-    async def _async_retry_delay(self, delay: float) -> float:
+    async def _async_retry_delay(self) -> None:
         self._set_status(PushStatus.RETRYING)
-        await asyncio.sleep(delay + random.uniform(0, delay * 0.2))
-        return min(delay * 2, _MAX_RETRY_SECONDS)
+        await asyncio.sleep(
+            self._retry_delay + random.uniform(0, self._retry_delay * 0.2)
+        )
+        self._retry_delay = min(self._retry_delay * 2, _MAX_RETRY_SECONDS)
 
-    async def _async_run(self) -> None:
-        """Register once, then reconnect the long-lived MCS socket as needed."""
-        stored = await self._store.async_load()
-        self._credentials = FcmCredentials.from_dict(stored)
-        client = FcmClient(async_get_clientsession(self.hass))
-        retry_delay = _INITIAL_RETRY_SECONDS
+    async def _async_register(self, client: FcmClient) -> bool:
+        """Register Android credentials and the resulting Fellow token."""
         registration_failures = 0
-
         while self.active:
             self._set_status(PushStatus.REGISTERING)
             try:
                 self._credentials = await client.async_register(self._credentials)
                 await self._store.async_save(self._credentials.to_dict())
                 await self._async_register_with_fellow(self._credentials.fcm_token)
-                break
+                return True
             except asyncio.CancelledError:
                 raise
             except (
@@ -204,27 +210,48 @@ class FellowPushManager:
                     err,
                 )
                 registration_failures += 1
-                retry_delay = await self._async_retry_delay(retry_delay)
+                await self._async_retry_delay()
+        return False
 
-        retry_delay = _INITIAL_RETRY_SECONDS
-        while self.active and self._credentials:
-            self._set_status(PushStatus.CONNECTING)
-            try:
-                await client.async_listen(
-                    self._credentials,
-                    self._async_message,
-                    self._async_connection_changed,
-                )
-            except asyncio.CancelledError:
-                raise
-            except FcmError as err:
-                self.reconnect_count += 1
-                log = _LOGGER.warning if self.reconnect_count == 1 else _LOGGER.debug
-                log(
-                    "Fellow cloud push disconnected; polling remains active: %s",
-                    err,
-                )
-                retry_delay = await self._async_retry_delay(retry_delay)
+    async def _async_run(self) -> None:
+        """Register once, then reconnect the long-lived MCS socket as needed."""
+        stored = await self._store.async_load()
+        self._credentials = FcmCredentials.from_dict(stored)
+        client = FcmClient(async_get_clientsession(self.hass))
+        while self.active:
+            if not await self._async_register(client):
+                return
+
+            while self.active and self._credentials:
+                self._set_status(PushStatus.CONNECTING)
+                try:
+                    await client.async_listen(
+                        self._credentials,
+                        self._async_message,
+                        self._async_connection_changed,
+                    )
+                except asyncio.CancelledError:
+                    raise
+                except FcmAuthenticationError as err:
+                    self.reconnect_count += 1
+                    _LOGGER.warning(
+                        "Fellow cloud push credentials were rejected; registering again: %s",
+                        err,
+                    )
+                    self._credentials = None
+                    await self._store.async_save({})
+                    await self._async_retry_delay()
+                    break
+                except FcmError as err:
+                    self.reconnect_count += 1
+                    log = (
+                        _LOGGER.warning if self.reconnect_count == 1 else _LOGGER.debug
+                    )
+                    log(
+                        "Fellow cloud push disconnected; polling remains active: %s",
+                        err,
+                    )
+                    await self._async_retry_delay()
 
 
 def _account_key(email: str) -> str:

@@ -63,6 +63,10 @@ class FcmConnectionError(FcmError):
     """Raised when the long-lived MCS connection fails."""
 
 
+class FcmAuthenticationError(FcmConnectionError):
+    """Raised when Google rejects stored Android credentials."""
+
+
 class FcmProtocolError(FcmError):
     """Raised for malformed or unexpected MCS data."""
 
@@ -525,7 +529,7 @@ class FcmClient:
                 if tag != _MCS_LOGIN_RESPONSE:
                     raise FcmProtocolError("MCS did not return a login response")
                 if _first_bytes(_parse_fields(login_payload), 3) is not None:
-                    raise FcmConnectionError("Google rejected the MCS login")
+                    raise FcmAuthenticationError("Google rejected the MCS login")
             except FcmError:
                 raise
             except (

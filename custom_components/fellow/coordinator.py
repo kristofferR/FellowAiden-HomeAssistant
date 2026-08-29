@@ -56,6 +56,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.history_manager = BrewHistoryManager(hass, entry.entry_id)
         self.push_manager: FellowPushManager | None = None
         self._next_refresh_verbose = False
+        self._force_resource_refresh = False
         self._last_resource_refresh = monotonic()
 
         # Get update interval from options or use default
@@ -120,21 +121,43 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             _LOGGER.debug("Fetching device data")
             await self.api.fetch_device()
+            device_config = self.api.get_device_config() or {}
+            new_brew = await self.history_manager.async_has_new_brew(device_config)
             now = monotonic()
-            if now - self._last_resource_refresh >= RESOURCE_UPDATE_INTERVAL_SECONDS:
+            force_resource_refresh = self._force_resource_refresh
+            self._force_resource_refresh = False
+            resource_refresh_needed = (
+                force_resource_refresh
+                or new_brew
+                or now - self._last_resource_refresh
+                >= RESOURCE_UPDATE_INTERVAL_SECONDS
+            )
+            resources_refreshed = False
+            if resource_refresh_needed:
                 _LOGGER.debug("Refreshing profiles and schedules")
-                self._last_resource_refresh = now
                 try:
                     await self.api.refresh_resources()
+                    self._last_resource_refresh = now
+                    resources_refreshed = True
                 except FellowAuthError:
                     raise
-                except Exception:
+                except Exception as err:
+                    if force_resource_refresh:
+                        raise UpdateFailed(
+                            f"Profile and schedule refresh failed: {err}"
+                        ) from err
                     _LOGGER.warning(
                         "Profile and schedule refresh failed; using cached data",
                         exc_info=True,
                     )
+            if new_brew and not resources_refreshed:
+                _LOGGER.warning(
+                    "Deferring brew history update until profiles can be refreshed"
+                )
         except FellowAuthError as err:
             raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+        except UpdateFailed:
+            raise
         except FellowConnectionError as err:
             raise UpdateFailed(f"Device fetch failed: {err}") from err
         except FellowNoSupportedDeviceError as err:
@@ -197,12 +220,21 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Update historical data with the new data (non-fatal)
         _LOGGER.debug("Updating historical data")
         try:
-            await self.history_manager.async_update_data(device_config, profiles)
+            if not new_brew or resources_refreshed:
+                await self.history_manager.async_update_data(device_config, profiles)
         except Exception:
             _LOGGER.warning("Failed to update historical data", exc_info=True)
 
         _LOGGER.debug("Data update completed successfully")
         return result
+
+    async def async_refresh_with_resources(
+        self, *, include_resources: bool = False, verbose: bool = False
+    ) -> None:
+        """Refresh coordinator data with optional uncached resources."""
+        self._force_resource_refresh |= include_resources
+        self._next_refresh_verbose |= verbose
+        await self.async_request_refresh()
 
     async def async_create_profile(self, profile_data: dict[str, Any]) -> None:
         """Create a new brew profile and refresh coordinator data."""
