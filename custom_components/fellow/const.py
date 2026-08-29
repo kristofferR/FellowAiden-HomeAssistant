@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -22,8 +23,21 @@ RESOURCE_UPDATE_INTERVAL_SECONDS = 60
 PUSH_CONNECTED_POLL_INTERVAL_SECONDS = 60
 DEFAULT_ENABLE_CLOUD_PUSH = True
 CONF_ENABLE_CLOUD_PUSH = "enable_cloud_push"
+CONF_UPDATE_INTERVAL_SECONDS = "update_interval_seconds"
+LEGACY_CONF_UPDATE_INTERVAL_MINUTES = "update_interval_minutes"
 EVENT_CLOUD_PUSH = "fellow_cloud_push"
 PUSH_MANAGERS = "push_managers"
+
+
+def get_update_interval_seconds(options: Mapping[str, Any]) -> int:
+    """Return the configured interval, preserving the version 1 minute option."""
+    seconds = options.get(CONF_UPDATE_INTERVAL_SECONDS)
+    if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
+        return int(seconds)
+    minutes = options.get(LEGACY_CONF_UPDATE_INTERVAL_MINUTES)
+    if isinstance(minutes, (int, float)) and not isinstance(minutes, bool):
+        return int(minutes * 60)
+    return DEFAULT_UPDATE_INTERVAL_SECONDS
 
 
 # Historical data constants

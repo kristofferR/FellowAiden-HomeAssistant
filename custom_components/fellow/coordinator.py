@@ -19,9 +19,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .brew_history import BrewHistoryManager
 from .const import (
-    DEFAULT_UPDATE_INTERVAL_SECONDS,
     PUSH_CONNECTED_POLL_INTERVAL_SECONDS,
     RESOURCE_UPDATE_INTERVAL_SECONDS,
+    get_update_interval_seconds,
 )
 from .fellow_aiden import (
     FellowAiden,
@@ -60,9 +60,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._last_resource_refresh = monotonic()
 
         # Get update interval from options or use default
-        update_interval_seconds = entry.options.get(
-            "update_interval_seconds", DEFAULT_UPDATE_INTERVAL_SECONDS
-        )
+        update_interval_seconds = get_update_interval_seconds(entry.options)
         self._configured_update_interval_seconds = update_interval_seconds
 
         super().__init__(

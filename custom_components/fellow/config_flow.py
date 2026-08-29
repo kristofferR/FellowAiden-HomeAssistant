@@ -19,10 +19,11 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_ENABLE_CLOUD_PUSH,
+    CONF_UPDATE_INTERVAL_SECONDS,
     DEFAULT_ENABLE_CLOUD_PUSH,
-    DEFAULT_UPDATE_INTERVAL_SECONDS,
     DOMAIN,
     MIN_UPDATE_INTERVAL_SECONDS,
+    get_update_interval_seconds,
 )
 from .fellow_aiden import (
     FellowAiden,
@@ -320,15 +321,13 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            interval = user_input.get("update_interval_seconds")
+            interval = user_input.get(CONF_UPDATE_INTERVAL_SECONDS)
             if interval is not None and interval < MIN_UPDATE_INTERVAL_SECONDS:
-                errors["update_interval_seconds"] = "too_fast"
+                errors[CONF_UPDATE_INTERVAL_SECONDS] = "too_fast"
             else:
                 return self.async_create_entry(title="", data=user_input)
 
-        current_interval = self.config_entry.options.get(
-            "update_interval_seconds", DEFAULT_UPDATE_INTERVAL_SECONDS
-        )
+        current_interval = get_update_interval_seconds(self.config_entry.options)
         cloud_push_enabled = self.config_entry.options.get(
             CONF_ENABLE_CLOUD_PUSH, DEFAULT_ENABLE_CLOUD_PUSH
         )
@@ -338,7 +337,7 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        "update_interval_seconds",
+                        CONF_UPDATE_INTERVAL_SECONDS,
                         default=current_interval,
                     ): vol.All(
                         vol.Coerce(int),

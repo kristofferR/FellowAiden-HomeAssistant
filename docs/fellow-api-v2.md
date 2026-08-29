@@ -5,8 +5,8 @@ Assistant integration. They intentionally exclude application source,
 captures, account data, device identifiers, tokens, and copied payloads.
 
 The API is an undocumented mobile interface and can change without notice.
-All operations use bearer authentication and are scoped to a selected Aiden
-brewer.
+Authenticated operations use bearer authentication and are scoped to a
+selected Aiden brewer. Login exchanges account credentials for those tokens.
 
 ## Authentication and inventory
 
