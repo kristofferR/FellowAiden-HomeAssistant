@@ -292,7 +292,7 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
             async def drain(self) -> None:
                 self.drain_count += 1
                 if self.drain_count == 2:
-                    raise ConnectionResetError("ack failed")
+                    raise ConnectionResetError
                 await super().drain()
 
         app_data = module._field_bytes(1, "type")

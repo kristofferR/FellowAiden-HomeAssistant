@@ -261,7 +261,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "type": event_type,
                     "config_entry_id": self.entry_id,
                     "device_id": brewer_id,
-                    "phase": brew_phase(device_config),
+                    "phase": brew_phase(event_device_config),
                 },
             )
 

@@ -261,6 +261,9 @@ class BrewHistoryManager:
         end_timestamp = observed_timing.end_timestamp
         brew_record.update(
             {
+                "timestamp": dt_util.as_local(
+                    dt_util.utc_from_timestamp(end_timestamp)
+                ).isoformat(),
                 "start_time": dt_util.as_local(
                     dt_util.utc_from_timestamp(start_timestamp)
                 ).isoformat(),

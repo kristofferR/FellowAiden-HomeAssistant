@@ -258,6 +258,7 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertEqual(self.manager.get_last_brew_duration(), 120)
+        self.assertEqual(self.manager.get_last_brew_time(), finished)
         self.assertEqual(
             self.manager._brew_history[-1]["duration_source"], "observed_cycle"
         )
