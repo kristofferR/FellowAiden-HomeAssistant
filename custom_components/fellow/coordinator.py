@@ -86,7 +86,11 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if connected
             else self._configured_update_interval_seconds
         )
-        self.update_interval = timedelta(seconds=interval)
+        update_interval = timedelta(seconds=interval)
+        if self.update_interval != update_interval:
+            self.update_interval = update_interval
+            if self._listeners:
+                self._schedule_refresh()
         self.async_update_listeners()
 
     async def async_config_entry_first_refresh(self) -> None:

@@ -110,8 +110,8 @@ def can_start_brew(device_config: dict[str, Any]) -> bool:
         and is_brewing(device_config) is False
         and device_config.get("lidClosed") is True
         and is_missing_water(device_config) is False
-        and device_config.get("cleaning") is not True
-        and device_config.get("rinsing") is not True
+        and device_config.get("cleaning") is False
+        and device_config.get("rinsing") is False
         and (single_basket or batch_ready)
     )
 

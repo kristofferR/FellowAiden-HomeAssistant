@@ -161,6 +161,16 @@ class TelemetryTests(unittest.TestCase):
         self.assertTrue(self.module.can_start_brew(ready))
         self.assertFalse(self.module.can_start_brew({**ready, "lidClosed": False}))
         self.assertFalse(
+            self.module.can_start_brew(
+                {key: value for key, value in ready.items() if key != "cleaning"}
+            )
+        )
+        self.assertFalse(
+            self.module.can_start_brew(
+                {key: value for key, value in ready.items() if key != "rinsing"}
+            )
+        )
+        self.assertFalse(
             self.module.can_start_brew({**ready, "singleBrewBasketPresent": False})
         )
         self.assertTrue(

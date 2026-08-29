@@ -154,8 +154,7 @@
       "drip_finish": "A brew entered drip finish",
       "brew_completed": "A brew completed",
       "cleaning_started": "Cleaning started",
-      "rinsing_started": "Rinsing started",
-      "cloud_notification": "A Fellow cloud notification arrived"
+      "rinsing_started": "Rinsing started"
     }
   },
   "services": {

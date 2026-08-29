@@ -183,9 +183,10 @@ cold-brew settings when present.
 ### Device automation triggers
 
 The device automation picker exposes brew started, paused for water, resumed,
-drip finish, completed, cleaning started, rinsing started, and Fellow cloud
-notification triggers. The same state transitions fire a `fellow_device_event`
-bus event with `type`, `config_entry_id`, `device_id`, and `phase`.
+drip finish, completed, cleaning started, and rinsing started triggers. The same
+state transitions fire a `fellow_device_event` bus event with `type`,
+`config_entry_id`, `device_id`, and `phase`. Account-scoped notifications remain
+available through the `fellow_cloud_push` event described above.
 
 ### Services
 

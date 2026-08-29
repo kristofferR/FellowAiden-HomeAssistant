@@ -10,11 +10,10 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, EVENT_CLOUD_PUSH, EVENT_DEVICE
+from .const import DOMAIN, EVENT_DEVICE
 from .telemetry import DEVICE_EVENT_TYPES
 
-CLOUD_NOTIFICATION = "cloud_notification"
-TRIGGER_TYPES = (*DEVICE_EVENT_TYPES, CLOUD_NOTIFICATION)
+TRIGGER_TYPES = DEVICE_EVENT_TYPES
 TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES)}
 )
@@ -57,23 +56,15 @@ async def async_attach_trigger(
     """Attach a lifecycle trigger to the corresponding HA bus event."""
     entry_ids = _entry_ids_for_device(hass, config[CONF_DEVICE_ID])
     trigger_type = config[CONF_TYPE]
-    event_name = (
-        EVENT_CLOUD_PUSH if trigger_type == CLOUD_NOTIFICATION else EVENT_DEVICE
-    )
     trigger_data = trigger_info["trigger_data"]
     job = HassJob(action)
 
     @callback
     def _handle_event(event: Event) -> None:
-        if event_name == EVENT_CLOUD_PUSH:
-            event_entry_ids = set(event.data.get("config_entry_ids", []))
-            matches = bool(entry_ids & event_entry_ids)
-        else:
-            matches = (
-                event.data.get("config_entry_id") in entry_ids
-                and event.data.get("type") == trigger_type
-            )
-        if not matches:
+        if (
+            event.data.get("config_entry_id") not in entry_ids
+            or event.data.get("type") != trigger_type
+        ):
             return
         hass.async_run_hass_job(
             job,
@@ -88,4 +79,4 @@ async def async_attach_trigger(
             event.context,
         )
 
-    return hass.bus.async_listen(event_name, _handle_event)
+    return hass.bus.async_listen(EVENT_DEVICE, _handle_event)
