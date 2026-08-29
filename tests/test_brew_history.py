@@ -172,6 +172,55 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(self.manager.get_last_brew_duration(), 120)
 
+    async def test_timing_is_attached_when_counter_advances_during_brew(self) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        midway = datetime.fromtimestamp(1788012338, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        baseline = {
+            "totalBrewingCycles": 10,
+            "totalWaterVolumeL": 5000,
+            "state": None,
+        }
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(baseline, [])
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "state": {"value": "p1"},
+                    "brewStartTime": str(int(started.timestamp())),
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=midway):
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "state": {"value": "p2"},
+                    "brewStartTime": str(int(started.timestamp())),
+                },
+                [],
+            )
+        self.assertNotIn("duration_seconds", self.manager._brew_history[-1])
+
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "brewStartTime": str(int(started.timestamp())),
+                    "brewEndTime": str(int(finished.timestamp())),
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_last_brew_duration(), 120)
+        self.assertEqual(
+            self.manager._brew_history[-1]["duration_source"], "observed_cycle"
+        )
+
     async def test_failed_profile_refresh_does_not_defer_cycle_timing(self) -> None:
         started = datetime.fromtimestamp(1788012278, UTC)
         finished = datetime.fromtimestamp(1788012398, UTC)

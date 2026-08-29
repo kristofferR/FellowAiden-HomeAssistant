@@ -117,7 +117,7 @@ class PushManagerTests(unittest.IsolatedAsyncioTestCase):
             async def async_register(self, existing: object) -> object:
                 self.existing_credentials.append(existing)
                 if len(self.existing_credentials) == 1:
-                    raise module.FcmRegistrationError("rejected")
+                    raise module.FcmRegistrationRejectedError("rejected")
                 return module.FcmCredentials(3, 4, "fresh-token")
 
         manager = module.FellowPushManager(FakeHass(), "account")
@@ -143,6 +143,39 @@ class PushManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(saved[0], {})
         self.assertEqual(saved[-1]["fcm_token"], "fresh-token")
         self.assertEqual(coordinator.api.tokens, ["fresh-token"])
+        retry.assert_awaited_once_with()
+
+    async def test_transient_registration_failure_preserves_credentials(self) -> None:
+        module = self.module
+
+        class FakeApi:
+            async def register_push_token(self, _token: str) -> None:
+                return None
+
+        class FakeClient:
+            def __init__(self) -> None:
+                self.existing_credentials: list[object] = []
+
+            async def async_register(self, existing: object) -> object:
+                self.existing_credentials.append(existing)
+                if len(self.existing_credentials) == 1:
+                    raise module.FcmError("network failure")
+                return existing
+
+        manager = module.FellowPushManager(FakeHass(), "account")
+        coordinator = FakeCoordinator()
+        coordinator.api = FakeApi()
+        manager.attach("entry-1", coordinator)
+        credentials = module.FcmCredentials(1, 2, "token", ["persistent-id"])
+        manager._credentials = credentials
+        client = FakeClient()
+
+        with patch.object(manager, "_async_retry_delay", return_value=None) as retry:
+            registered = await manager._async_register(client)
+
+        self.assertTrue(registered)
+        self.assertEqual(client.existing_credentials, [credentials, credentials])
+        self.assertEqual(manager._store.data["persistent_ids"], ["persistent-id"])
         retry.assert_awaited_once_with()
 
     async def test_rejected_credentials_trigger_fresh_registration(self) -> None:

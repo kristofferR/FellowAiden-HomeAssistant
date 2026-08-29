@@ -56,11 +56,15 @@ class FcmError(Exception):
 
 
 class FcmRegistrationError(FcmError):
-    """Raised when Google rejects check-in or app registration."""
+    """Raised when Google check-in or app registration is malformed."""
+
+
+class FcmRegistrationRejectedError(FcmRegistrationError):
+    """Raised when Google explicitly rejects registration credentials."""
 
 
 class FcmConnectionError(FcmError):
-    """Raised when the long-lived MCS connection fails."""
+    """Raised when Google registration or the long-lived MCS connection fails."""
 
 
 class FcmAuthenticationError(FcmConnectionError):
@@ -378,7 +382,13 @@ class FcmClient:
                 )
                 if not 200 <= checkin_response.status < 300:
                     checkin_response.release()
-                    raise FcmRegistrationError(
+                    error_type = (
+                        FcmRegistrationRejectedError
+                        if 400 <= checkin_response.status < 500
+                        and checkin_response.status not in {408, 429}
+                        else FcmConnectionError
+                    )
+                    raise error_type(
                         f"Google check-in failed with HTTP {checkin_response.status}"
                     )
                 android_id, security_token = _parse_checkin_response(
@@ -411,7 +421,13 @@ class FcmClient:
                 )
                 if not 200 <= registration_response.status < 300:
                     registration_response.release()
-                    raise FcmRegistrationError(
+                    error_type = (
+                        FcmRegistrationRejectedError
+                        if 400 <= registration_response.status < 500
+                        and registration_response.status not in {408, 429}
+                        else FcmConnectionError
+                    )
+                    raise error_type(
                         "Google app registration failed with HTTP "
                         f"{registration_response.status}"
                     )
@@ -421,12 +437,14 @@ class FcmClient:
         except FcmError:
             raise
         except (aiohttp.ClientError, TimeoutError, OSError, ssl.SSLError) as err:
-            raise FcmRegistrationError("Unable to register with Google FCM") from err
+            raise FcmConnectionError("Unable to register with Google FCM") from err
 
         token = parsed.get("token", [None])[0]
         if not token:
             error = parsed.get("Error", ["unknown error"])[0]
-            raise FcmRegistrationError(f"Google rejected app registration: {error}")
+            raise FcmRegistrationRejectedError(
+                f"Google rejected app registration: {error}"
+            )
         return FcmCredentials(
             android_id=android_id,
             security_token=security_token,

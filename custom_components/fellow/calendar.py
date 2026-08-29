@@ -24,7 +24,7 @@ PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     entry: FellowAidenConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -76,8 +76,8 @@ class AidenScheduleCalendar(FellowAidenBaseEntity, CalendarEntity):
         """Return the next enabled scheduled brew."""
         data = self.coordinator.data or {}
         occurrence = next_schedule_occurrence(
-            data.get("schedules", []),
-            data.get("profiles", []),
+            data.get("schedules") or [],
+            data.get("profiles") or [],
             dt_util.now(),
             self._timezone(),
         )
@@ -85,7 +85,7 @@ class AidenScheduleCalendar(FellowAidenBaseEntity, CalendarEntity):
 
     async def async_get_events(
         self,
-        hass: HomeAssistant,
+        _hass: HomeAssistant,
         start_date: datetime,
         end_date: datetime,
     ) -> list[CalendarEvent]:
@@ -94,8 +94,8 @@ class AidenScheduleCalendar(FellowAidenBaseEntity, CalendarEntity):
         return [
             self._event_from_occurrence(occurrence)
             for occurrence in schedule_occurrences(
-                data.get("schedules", []),
-                data.get("profiles", []),
+                data.get("schedules") or [],
+                data.get("profiles") or [],
                 start_date,
                 end_date,
                 self._timezone(),

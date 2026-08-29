@@ -699,3 +699,21 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["amountOfWater"], 500)
         self.assertEqual(session.request_kwargs[0]["params"], {"confirm": "true"})
         self.assertNotIn("json", session.request_kwargs[0])
+
+    async def test_remote_start_does_not_retry_transient_status(self) -> None:
+        start_url = f"{self.base_url}/devices/aiden-1/start"
+        api, session = self._api(
+            {
+                ("patch", start_url): [
+                    FakeResponse(503, {"message": "Unavailable"}),
+                    FakeResponse(200, {"amountOfWater": 500}),
+                ]
+            },
+            brewer_id="aiden-1",
+        )
+        api._token = "access-token"
+
+        with self.assertRaises(self.module.FellowApiError):
+            await api.start_brew()
+
+        self.assertEqual(session.requests, [("patch", start_url)])

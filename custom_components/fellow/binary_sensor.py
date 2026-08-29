@@ -152,6 +152,7 @@ class FellowPushConnectionBinarySensor(FellowAidenBaseEntity, BinarySensorEntity
         entry: FellowAidenConfigEntry,
     ) -> None:
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}-push-connected"
 
     @property

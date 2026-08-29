@@ -234,6 +234,7 @@ class AidenLastCloudPushSensor(FellowAidenBaseEntity, SensorEntity):
         entry: ConfigEntry,
     ) -> None:
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}-last-cloud-push"
 
     @property
@@ -370,6 +371,7 @@ class AidenLastBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
         entry: ConfigEntry,
     ) -> None:
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_translation_key = "last_brew_duration"
         self._attr_unique_id = f"{entry.entry_id}-last_brew_duration"
         self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
@@ -754,6 +756,7 @@ class AidenBrewPhaseSensor(FellowAidenBaseEntity, SensorEntity):
         entry: ConfigEntry,
     ) -> None:
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_translation_key = "brew_phase"
         self._attr_unique_id = f"{entry.entry_id}-brew-phase"
         self._attr_device_class = SensorDeviceClass.ENUM
@@ -796,8 +799,8 @@ class AidenNextScheduledBrewSensor(FellowAidenBaseEntity, SensorEntity):
             data.get("device_config", {}), self.coordinator.hass.config.time_zone
         )
         return next_schedule_occurrence(
-            data.get("schedules", []),
-            data.get("profiles", []),
+            data.get("schedules") or [],
+            data.get("profiles") or [],
             dt_util.now(),
             timezone,
         )
@@ -812,7 +815,7 @@ class AidenNextScheduledBrewSensor(FellowAidenBaseEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Expose the schedule details useful to automations."""
         data = self.coordinator.data or {}
-        schedules = data.get("schedules", [])
+        schedules = data.get("schedules") or []
         attrs: dict[str, Any] = {
             "enabled_schedules": sum(
                 schedule.get("enabled") is True for schedule in schedules
@@ -839,6 +842,7 @@ class AidenConnectionTimestampSensor(FellowAidenBaseEntity, SensorEntity):
         entry: ConfigEntry,
     ) -> None:
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_translation_key = "cloud_connection_time"
         self._attr_unique_id = f"{entry.entry_id}-connection-timestamp"
         self._attr_device_class = SensorDeviceClass.TIMESTAMP

@@ -125,6 +125,35 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(registration["data"]["cert"], self.module.FELLOW_CERT_SHA1)
         self.assertNotIn("fellow-fcm-token", str(session.requests[0]))
 
+    async def test_registration_transport_failure_is_a_connection_error(self) -> None:
+        module = self.module
+
+        class FailingSession:
+            async def request(self, *_args: object, **_kwargs: object) -> object:
+                raise module.aiohttp.ClientError("network failure")
+
+        with self.assertRaises(module.FcmConnectionError):
+            await module.FcmClient(FailingSession()).async_register(
+                module.FcmCredentials(1, 2, "existing-token", ["persistent-id"])
+            )
+
+    async def test_explicit_registration_rejection_is_distinct(self) -> None:
+        android_id = 123456
+        security_token = 789012
+        checkin = self.module._field_fixed64(7, android_id)
+        checkin += self.module._field_fixed64(8, security_token)
+        client = self.module.FcmClient(
+            FakeSession(
+                [
+                    FakeResponse(200, checkin),
+                    FakeResponse(200, "Error=AUTHENTICATION_FAILED"),
+                ]
+            )
+        )
+
+        with self.assertRaises(self.module.FcmRegistrationRejectedError):
+            await client.async_register()
+
     def test_login_replays_only_recent_persistent_ids(self) -> None:
         credentials = self.module.FcmCredentials(
             android_id=1,
@@ -255,9 +284,7 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
     async def test_listener_distinguishes_rejected_android_credentials(self) -> None:
         login_error = self.module._field_bytes(3, "rejected")
         server_data = bytes((self.module.MCS_VERSION,))
-        server_data += self.module._frame(
-            self.module._MCS_LOGIN_RESPONSE, login_error
-        )
+        server_data += self.module._frame(self.module._MCS_LOGIN_RESPONSE, login_error)
         reader = FakeReader(server_data)
         writer = FakeWriter()
 

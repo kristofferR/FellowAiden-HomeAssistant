@@ -50,8 +50,9 @@ def brew_phase(device_config: dict[str, Any]) -> str:
     value = state.get("value")
     if not isinstance(value, str):
         return "unknown"
-    if value.startswith("p") and value[1:].isdigit():
-        pulse_number = int(value[1:])
+    pulse_suffix = value[1:]
+    if value.startswith("p") and pulse_suffix.isascii() and pulse_suffix.isdigit():
+        pulse_number = int(pulse_suffix)
         if 1 <= pulse_number <= 10:
             return f"pulse_{pulse_number}"
     return _BREW_PHASE_CODES.get(value, "unknown")

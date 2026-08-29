@@ -139,6 +139,7 @@ class FellowAiden:
         url: str,
         *,
         authenticated: bool = True,
+        retry_statuses: bool = True,
         **kwargs: Any,
     ) -> aiohttp.ClientResponse:
         """HTTP request with automatic retries on server errors."""
@@ -158,7 +159,10 @@ class FellowAiden:
                 raise FellowConnectionError(
                     f"Request failed for {method.upper()} {url}: {err}"
                 ) from err
-            if response.status not in self._TRANSIENT_HTTP_STATUSES:
+            if (
+                response.status not in self._TRANSIENT_HTTP_STATUSES
+                or not retry_statuses
+            ):
                 return response
             if (
                 response.status not in self._RETRY_STATUSES
@@ -818,7 +822,10 @@ class FellowAiden:
         """Start the brewer's configured Instant Brew recipe."""
         start_url = self.BASE_URL + self.API_START_BREW.format(id=self._brewer_id)
         response = await self._request_with_reauth(
-            "patch", start_url, params={"confirm": "true"}
+            "patch",
+            start_url,
+            params={"confirm": "true"},
+            retry_statuses=False,
         )
         await self._ensure_success(response, "Remote brew start")
         parsed = await self._parse_response(response)

@@ -21,7 +21,7 @@ from .fcm import (
     FcmCredentials,
     FcmError,
     FcmMessage,
-    FcmRegistrationError,
+    FcmRegistrationRejectedError,
 )
 from .fellow_aiden import FellowApiError, FellowAuthError, FellowConnectionError
 
@@ -198,7 +198,7 @@ class FellowPushManager:
                 return True
             except asyncio.CancelledError:
                 raise
-            except FcmRegistrationError as err:
+            except FcmRegistrationRejectedError as err:
                 log = _LOGGER.warning if registration_failures == 0 else _LOGGER.debug
                 log(
                     "Google rejected Fellow push credentials; registering fresh: %s",

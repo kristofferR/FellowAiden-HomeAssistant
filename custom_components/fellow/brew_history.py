@@ -189,6 +189,40 @@ class BrewHistoryManager:
             return False
         return self._attribute_profile(brew_record, profiles, device_config)
 
+    def _attach_observed_timing(
+        self,
+        current_total_brews: int,
+        observed_timing: tuple[int, int, int] | None,
+    ) -> bool:
+        """Attach completed-cycle timing even if its counter advanced earlier."""
+        if observed_timing is None:
+            return False
+        brew_record = next(
+            (
+                record
+                for record in reversed(self._brew_history)
+                if record.get("total_brews_at_time") == current_total_brews
+            ),
+            None,
+        )
+        if brew_record is None:
+            return False
+
+        start_timestamp, end_timestamp, duration = observed_timing
+        brew_record.update(
+            {
+                "start_time": dt_util.as_local(
+                    dt_util.utc_from_timestamp(start_timestamp)
+                ).isoformat(),
+                "end_time": dt_util.as_local(
+                    dt_util.utc_from_timestamp(end_timestamp)
+                ).isoformat(),
+                "duration_seconds": duration,
+                "duration_source": "observed_cycle",
+            }
+        )
+        return True
+
     async def async_update_data(
         self, device_config: dict[str, Any], profiles: list[dict[str, Any]]
     ) -> None:
@@ -289,27 +323,17 @@ class BrewHistoryManager:
                     "total_water_at_time": current_total_water,
                 }
 
-                if observed_timing is not None and i == new_brews - 1:
-                    start_timestamp, end_timestamp, duration = observed_timing
-                    brew_record.update(
-                        {
-                            "start_time": dt_util.as_local(
-                                dt_util.utc_from_timestamp(start_timestamp)
-                            ).isoformat(),
-                            "end_time": dt_util.as_local(
-                                dt_util.utc_from_timestamp(end_timestamp)
-                            ).isoformat(),
-                            "duration_seconds": duration,
-                            "duration_source": "observed_cycle",
-                        }
-                    )
-
                 self._attribute_profile(brew_record, profiles, device_config)
 
                 self._brew_history.append(brew_record)
 
             self._last_total_brews = current_total_brews
             data_changed = True
+
+        data_changed = (
+            self._attach_observed_timing(current_total_brews, observed_timing)
+            or data_changed
+        )
 
         data_changed = (
             self._attribute_latest_unresolved_brew(
