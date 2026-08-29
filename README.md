@@ -35,6 +35,7 @@ This is a custom integration that brings your coffee brewer into the Home Assist
   - **Analytics:** Daily/weekly/monthly water usage tracking, brew patterns, and timing insights.
   - **Binary sensors** for brewing, lid status, missing water, baskets inserted, etc.
 - **Device Info:** Displays firmware, SKU, serial number, elevation, Wi-Fi and Bluetooth inventory, plus cloud connection state.
+- **Cloud Push:** Receives the same Firebase data messages as the Fellow Android app, refreshes state immediately, and exposes connection diagnostics.
 - **Brew Management:** 
   - Create, list, delete, and manage brew profiles from Home Assistant
   - Schedule management
@@ -114,15 +115,18 @@ After installation, go to **Settings > Devices & Services > Fellow Aiden > Confi
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
-| Update interval | 10 s | 10-300 s | How often the integration polls live device state. Lower values give faster updates but increase network traffic. |
+| Cloud push | On | On/Off | Register a private Android FCM receiver for immediate cloud-triggered updates. |
+| Update interval | 10 s | 10-300 s | Fallback polling interval while push is unavailable. Connected push uses a 60-second safety poll. |
 
 ---
 
 ## How data is updated
 
-The integration uses Fellow's v2 cloud API. It polls the lightweight device-detail route at a configurable interval (default 10 seconds), while profiles and schedules refresh separately every 60 seconds. Historical brew and water usage data is tracked locally and kept for 365 days.
+The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. A 60-second safety poll remains active while push is connected. If push disconnects or is disabled, live state returns to the configurable polling interval (default 10 seconds). Profiles and schedules refresh separately every 60 seconds. Historical brew and water usage data is tracked locally and kept for 365 days.
 
-There is no local connection. The Fellow app uses Firebase Cloud Messaging, but FCM does not provide a supported server-side receiver for Home Assistant. All integration data goes through Fellow's cloud API.
+Receiver credentials and tokens are kept in Home Assistant's private storage and are excluded from diagnostics and logs. Each data message also fires a `fellow_cloud_push` event with `config_entry_ids`, `category`, and the FCM `data` mapping, so automations can react to notification types that Fellow adds without waiting for an integration update.
+
+There is no local brewer connection. Both push messages and refreshed device state travel through Fellow's cloud services.
 
 ---
 
@@ -236,7 +240,7 @@ automation:
 ## Known limitations
 
 - No direct brew start: v2 advertises remote brewing, but the observed cancellation endpoint did not reliably stop a running brew. The integration does not expose an unsafe start-only control.
-- No native cloud push: Fellow registers the mobile app with Firebase Cloud Messaging. Home Assistant cannot receive those app messages through a supported server API, so the integration uses fast polling.
+- Cloud push uses Fellow's Android Firebase registration flow, which is an undocumented mobile protocol. The integration automatically reconnects and retains polling as the source-of-truth fallback.
 - Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
 

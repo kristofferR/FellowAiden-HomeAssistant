@@ -60,6 +60,7 @@ class FellowAiden:
     API_PROFILE = "/devices/{id}/profiles/{pid}"
     API_PROFILE_SHARE = "/devices/{id}/profiles/{pid}/share"
     API_SHARED_PROFILE = "/shared/{drop_type}/{pid}"
+    API_FIREBASE_NOTIFICATIONS = "/firebase/notifications"
     HEADERS: ClassVar[dict[str, str]] = {
         "User-Agent": "Fellow/5 CFNetwork/1568.300.101 Darwin/24.2.0",
     }
@@ -762,6 +763,17 @@ class FellowAiden:
         )
         await self._ensure_success(response, f"Device setting update ({setting})")
         return await response.read()
+
+    async def register_push_token(self, fcm_token: str) -> None:
+        """Register an Android FCM token with the Fellow account."""
+        if not fcm_token:
+            raise ValueError("FCM token cannot be empty")
+        response = await self._request_with_reauth(
+            "post",
+            self.BASE_URL + self.API_FIREBASE_NOTIFICATIONS,
+            json={"fcmToken": fcm_token},
+        )
+        await self._ensure_success(response, "Push notification registration")
 
     async def toggle_schedule(self, sid: str, enabled: bool) -> bool:
         """Enable or disable a schedule."""

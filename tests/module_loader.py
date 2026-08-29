@@ -287,8 +287,8 @@ def _install_homeassistant_stubs() -> None:
     storage = types.ModuleType("homeassistant.helpers.storage")
 
     class Store:
-        def __init__(self, hass: Any, version: int, key: str) -> None:
-            del hass, version, key
+        def __init__(self, hass: Any, version: int, key: str, **kwargs: Any) -> None:
+            del hass, version, key, kwargs
             self.data: Any = None
 
         async def async_load(self) -> Any:
@@ -296,6 +296,12 @@ def _install_homeassistant_stubs() -> None:
 
         async def async_save(self, data: Any) -> None:
             self.data = data
+
+        def async_delay_save(
+            self, data_func: Callable[[], Any], delay: float = 0
+        ) -> None:
+            del delay
+            self.data = data_func()
 
     storage.Store = Store
     sys.modules["homeassistant.helpers.storage"] = storage
@@ -386,6 +392,42 @@ def load_fellow_utility_module(
     module = _load_module(
         f"custom_components.fellow.{module_name}",
         ROOT / "custom_components" / "fellow" / f"{module_name}.py",
+    )
+    return module, lambda: _restore_modules(snapshot)
+
+
+def load_fcm_module() -> tuple[types.ModuleType, Callable[[], None]]:
+    """Load the pure FCM transport with an aiohttp type stub."""
+    snapshot = _snapshot_modules()
+    _clear_modules()
+    _install_aiohttp_stub()
+    _install_package_placeholders()
+    module = _load_module(
+        "custom_components.fellow.fcm",
+        ROOT / "custom_components" / "fellow" / "fcm.py",
+    )
+    return module, lambda: _restore_modules(snapshot)
+
+
+def load_push_module() -> tuple[types.ModuleType, Callable[[], None]]:
+    """Load the Home Assistant push manager with lightweight stubs."""
+    snapshot = _snapshot_modules()
+    _clear_modules()
+    _install_aiohttp_stub()
+    _install_pydantic_stub()
+    _install_homeassistant_stubs()
+    _install_package_placeholders()
+    _load_module(
+        "custom_components.fellow.const",
+        ROOT / "custom_components" / "fellow" / "const.py",
+    )
+    _load_module(
+        "custom_components.fellow.fcm",
+        ROOT / "custom_components" / "fellow" / "fcm.py",
+    )
+    module = _load_module(
+        "custom_components.fellow.push",
+        ROOT / "custom_components" / "fellow" / "push.py",
     )
     return module, lambda: _restore_modules(snapshot)
 

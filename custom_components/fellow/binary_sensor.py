@@ -70,7 +70,7 @@ async def async_setup_entry(
     """Set up Fellow Aiden binary sensors."""
     coordinator = entry.runtime_data
 
-    entities: list[FellowAidenBinarySensor] = []
+    entities: list[BinarySensorEntity] = []
     for key, device_class, translation_key, category, enabled_default in BINARY_SENSORS:
         entities.append(
             FellowAidenBinarySensor(
@@ -83,6 +83,9 @@ async def async_setup_entry(
                 enabled_default=enabled_default,
             )
         )
+
+    if coordinator.push_manager:
+        entities.append(FellowPushConnectionBinarySensor(coordinator, entry))
 
     async_add_entities(entities, True)
 
@@ -135,3 +138,37 @@ class FellowAidenBinarySensor(FellowAidenBaseEntity, BinarySensorEntity):
             return not raw_value
 
         return raw_value
+
+
+class FellowPushConnectionBinarySensor(FellowAidenBaseEntity, BinarySensorEntity):
+    """Report whether the account's Android cloud-push socket is connected."""
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "push_connected"
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: FellowAidenConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}-push-connected"
+
+    @property
+    def is_on(self) -> bool:
+        """Return whether Google MCS has accepted the receiver login."""
+        manager = self.coordinator.push_manager
+        return bool(manager and manager.connected)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str | int]:
+        """Expose useful connection diagnostics without receiver credentials."""
+        manager = self.coordinator.push_manager
+        if manager is None:
+            return {"status": "disabled"}
+        return {
+            "status": manager.status.value,
+            "messages_received": manager.message_count,
+            "reconnections": manager.reconnect_count,
+        }

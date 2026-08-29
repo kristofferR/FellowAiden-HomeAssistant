@@ -17,14 +17,16 @@
       "average_brew_duration": { "default": "mdi:timer" },
       "most_popular_profile": { "default": "mdi:star" },
       "current_profile": { "default": "mdi:coffee" },
-      "basket": { "default": "mdi:basket" }
+      "basket": { "default": "mdi:basket" },
+      "last_cloud_push": { "default": "mdi:message-badge-outline" }
     },
     "binary_sensor": {
       "brewing": { "default": "mdi:coffee-maker" },
       "carafe_inserted": { "default": "mdi:coffee-maker-outline" },
       "heater": { "default": "mdi:fire" },
       "lid": { "default": "mdi:door" },
-      "missing_water": { "default": "mdi:water-off" }
+      "missing_water": { "default": "mdi:water-off" },
+      "push_connected": { "default": "mdi:cloud-check-outline" }
     },
     "select": {
       "profiles": { "default": "mdi:format-list-bulleted" }

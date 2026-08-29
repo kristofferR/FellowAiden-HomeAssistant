@@ -596,3 +596,17 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         await api.authenticate()
 
         self.assertTrue(await api.delete_profile_by_id("p1"))
+
+    async def test_registers_fcm_token_with_authenticated_v2_endpoint(self) -> None:
+        push_url = f"{self.base_url}/firebase/notifications"
+        api, session = self._api({("post", push_url): [FakeResponse(201, {})]})
+        api._token = "access-token"
+
+        await api.register_push_token("fcm-token")
+
+        self.assertEqual(session.requests, [("post", push_url)])
+        self.assertEqual(session.request_kwargs[0]["json"], {"fcmToken": "fcm-token"})
+        self.assertEqual(
+            session.request_kwargs[0]["headers"]["Authorization"],
+            "Bearer access-token",
+        )

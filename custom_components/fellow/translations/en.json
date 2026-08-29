@@ -61,12 +61,14 @@
     "step": {
       "init": {
         "title": "Fellow Aiden options",
-        "description": "Adjust polling settings. Changing the interval restarts the integration.",
+        "description": "Adjust cloud push and fallback polling. Changes restart the integration.",
         "data": {
-          "update_interval_seconds": "Update interval (seconds)"
+          "update_interval_seconds": "Update interval (seconds)",
+          "enable_cloud_push": "Enable cloud push"
         },
         "data_description": {
-          "update_interval_seconds": "How often to poll live brewer state. Minimum and default 10 seconds. Profiles and schedules refresh every 60 seconds."
+          "update_interval_seconds": "How often to poll live brewer state when push is unavailable. Minimum and default 10 seconds. Connected push uses a 60-second safety poll.",
+          "enable_cloud_push": "Receive the same Firebase data messages as the Fellow Android app for immediate refreshes."
         }
       }
     },
@@ -110,7 +112,8 @@
         }
       },
       "cloud_connection_time": { "name": "Cloud connection time" },
-      "basket": { "name": "Basket" }
+      "basket": { "name": "Basket" },
+      "last_cloud_push": { "name": "Last cloud push" }
     },
     "binary_sensor": {
       "brewing": { "name": "Brewing" },
@@ -125,7 +128,8 @@
       "rinsing": { "name": "Rinsing" },
       "cloud_connected": { "name": "Cloud connection" },
       "firmware_update": { "name": "Firmware update available" },
-      "unsynced_changes": { "name": "Unsynced changes" }
+      "unsynced_changes": { "name": "Unsynced changes" },
+      "push_connected": { "name": "Cloud push connection" }
     },
     "select": {
       "profiles": { "name": "Profiles" }
