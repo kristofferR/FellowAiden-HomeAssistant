@@ -1,0 +1,4443 @@
+{
+  "app_version": "1.4.5",
+  "api_host": "l8qtmnc692.execute-api.us-west-2.amazonaws.com",
+  "privacy": "Schemas and field names only; all scalar values are omitted.",
+  "entries": [
+    {
+      "method": "POST",
+      "path": "/v2/auth/login",
+      "query_names": [],
+      "auth": "public",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 201,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 2
+    },
+    {
+      "method": "POST",
+      "path": "/v2/auth/refresh-token",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 201,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v2/auth/refresh-token",
+      "query_names": [],
+      "auth": "public",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 401,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "awsStatus": {
+              "type": "null"
+            },
+            "batchBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "brewEndTime": {
+              "type": "string"
+            },
+            "brewStartTime": {
+              "type": "string"
+            },
+            "brewing": {
+              "type": "boolean"
+            },
+            "brewingProfileId": {
+              "type": "null"
+            },
+            "brewingWaterTemperatureC": {
+              "type": "null"
+            },
+            "brewingWaterVolumeMl": {
+              "type": "integer"
+            },
+            "carafePresent": {
+              "type": "boolean"
+            },
+            "chimeVolume": {
+              "type": "integer"
+            },
+            "cleaning": {
+              "type": "boolean"
+            },
+            "connectionTimestamp": {
+              "type": "string"
+            },
+            "deletedAt": {
+              "type": "null"
+            },
+            "deviceTimezone": {
+              "type": "string"
+            },
+            "displayClock": {
+              "type": "boolean"
+            },
+            "displayClock24hrMode": {
+              "type": "boolean"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "doBrew": {
+              "type": "boolean"
+            },
+            "doBrewCancel": {
+              "type": "null"
+            },
+            "doCancel": {
+              "type": "boolean"
+            },
+            "doClean": {
+              "type": "null"
+            },
+            "doContinue": {
+              "type": "null"
+            },
+            "doRinse": {
+              "type": "null"
+            },
+            "doUpgrade": {
+              "type": "null"
+            },
+            "doUpgradeRedirect": {
+              "type": "null"
+            },
+            "doUpgradeSchedule": {
+              "type": "null"
+            },
+            "elevation": {
+              "type": "integer"
+            },
+            "enabledFlags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "firmwareCommittish": {
+              "type": "null"
+            },
+            "firmwareUpgradeRequired": {
+              "type": "boolean"
+            },
+            "firmwareVersion": {
+              "type": "string"
+            },
+            "gameHighScore": {
+              "type": "null"
+            },
+            "heaterOn": {
+              "type": "boolean"
+            },
+            "hiddenProfiles": {
+              "type": "object",
+              "properties": {
+                "drops": {
+                  "type": "boolean"
+                },
+                "plocal1": {
+                  "type": "boolean"
+                },
+                "plocal2": {
+                  "type": "boolean"
+                },
+                "plocal3": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "ibSelectedProfileId": {
+              "type": "string"
+            },
+            "ibWaterQuantity": {
+              "type": "integer"
+            },
+            "id": {
+              "type": "string"
+            },
+            "isAdvanceMode": {
+              "type": "boolean"
+            },
+            "isConnected": {
+              "type": "boolean"
+            },
+            "languageCode": {
+              "type": "string"
+            },
+            "lidClosed": {
+              "type": "boolean"
+            },
+            "metricUnit": {
+              "type": "boolean"
+            },
+            "missingWater": {
+              "type": "boolean"
+            },
+            "preciseUnit": {
+              "type": "boolean"
+            },
+            "pumpOn": {
+              "type": "boolean"
+            },
+            "rinsing": {
+              "type": "boolean"
+            },
+            "serialNumber": {
+              "type": "string"
+            },
+            "setInitDone": {
+              "type": "boolean"
+            },
+            "showerHeadPresent": {
+              "type": "boolean"
+            },
+            "singleBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "state": {
+              "type": "null"
+            },
+            "totalBrewingCycles": {
+              "type": "integer"
+            },
+            "totalWaterVolumeL": {
+              "type": "integer"
+            },
+            "unsynced": {
+              "type": "array",
+              "items": null
+            },
+            "upgradeUrl": {
+              "type": "null"
+            },
+            "version": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "observations": 5
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "awsStatus": {
+              "type": "null"
+            },
+            "batchBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "brewEndTime": {
+              "type": "string"
+            },
+            "brewStartTime": {
+              "type": "string"
+            },
+            "brewing": {
+              "type": "boolean"
+            },
+            "brewingProfileId": {
+              "type": "string"
+            },
+            "brewingWaterTemperatureC": {
+              "type": "null"
+            },
+            "brewingWaterVolumeMl": {
+              "type": "integer"
+            },
+            "carafePresent": {
+              "type": "boolean"
+            },
+            "chimeVolume": {
+              "type": "integer"
+            },
+            "cleaning": {
+              "type": "boolean"
+            },
+            "connectionTimestamp": {
+              "type": "string"
+            },
+            "deletedAt": {
+              "type": "null"
+            },
+            "deviceTimezone": {
+              "type": "string"
+            },
+            "displayClock": {
+              "type": "boolean"
+            },
+            "displayClock24hrMode": {
+              "type": "boolean"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "doBrew": {
+              "type": "boolean"
+            },
+            "doBrewCancel": {
+              "type": "null"
+            },
+            "doCancel": {
+              "type": "boolean"
+            },
+            "doClean": {
+              "type": "null"
+            },
+            "doContinue": {
+              "type": "null"
+            },
+            "doRinse": {
+              "type": "null"
+            },
+            "doUpgrade": {
+              "type": "null"
+            },
+            "doUpgradeRedirect": {
+              "type": "null"
+            },
+            "doUpgradeSchedule": {
+              "type": "null"
+            },
+            "elevation": {
+              "type": "integer"
+            },
+            "enabledFlags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "firmwareCommittish": {
+              "type": "null"
+            },
+            "firmwareUpgradeRequired": {
+              "type": "boolean"
+            },
+            "firmwareVersion": {
+              "type": "string"
+            },
+            "gameHighScore": {
+              "type": "null"
+            },
+            "heaterOn": {
+              "type": "boolean"
+            },
+            "hiddenProfiles": {
+              "type": "object",
+              "properties": {
+                "drops": {
+                  "type": "boolean"
+                },
+                "plocal1": {
+                  "type": "boolean"
+                },
+                "plocal2": {
+                  "type": "boolean"
+                },
+                "plocal3": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "ibSelectedProfileId": {
+              "type": "string"
+            },
+            "ibWaterQuantity": {
+              "type": "integer"
+            },
+            "id": {
+              "type": "string"
+            },
+            "isAdvanceMode": {
+              "type": "boolean"
+            },
+            "isConnected": {
+              "type": "boolean"
+            },
+            "languageCode": {
+              "type": "string"
+            },
+            "lidClosed": {
+              "type": "boolean"
+            },
+            "metricUnit": {
+              "type": "boolean"
+            },
+            "missingWater": {
+              "type": "boolean"
+            },
+            "preciseUnit": {
+              "type": "boolean"
+            },
+            "pumpOn": {
+              "type": "boolean"
+            },
+            "rinsing": {
+              "type": "boolean"
+            },
+            "serialNumber": {
+              "type": "string"
+            },
+            "setInitDone": {
+              "type": "boolean"
+            },
+            "showerHeadPresent": {
+              "type": "boolean"
+            },
+            "singleBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "state": {
+              "type": "object",
+              "properties": {
+                "batch_brew_basket_present": {
+                  "type": "boolean"
+                },
+                "carafe_present": {
+                  "type": "boolean"
+                },
+                "error": {
+                  "type": "null"
+                },
+                "lid_closed": {
+                  "type": "boolean"
+                },
+                "missing_water": {
+                  "type": "boolean"
+                },
+                "shower_head_present": {
+                  "type": "boolean"
+                },
+                "single_brew_basket_present": {
+                  "type": "boolean"
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            },
+            "totalBrewingCycles": {
+              "type": "integer"
+            },
+            "totalWaterVolumeL": {
+              "type": "integer"
+            },
+            "unsynced": {
+              "type": "array",
+              "items": null
+            },
+            "upgradeUrl": {
+              "type": "null"
+            },
+            "version": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "observations": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "awsStatus": {
+              "type": "null"
+            },
+            "batchBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "brewEndTime": {
+              "type": "string"
+            },
+            "brewStartTime": {
+              "type": "string"
+            },
+            "brewing": {
+              "type": "boolean"
+            },
+            "brewingProfileId": {
+              "type": "string"
+            },
+            "brewingWaterTemperatureC": {
+              "type": "null"
+            },
+            "brewingWaterVolumeMl": {
+              "type": "integer"
+            },
+            "carafePresent": {
+              "type": "boolean"
+            },
+            "chimeVolume": {
+              "type": "integer"
+            },
+            "cleaning": {
+              "type": "boolean"
+            },
+            "connectionTimestamp": {
+              "type": "string"
+            },
+            "deletedAt": {
+              "type": "null"
+            },
+            "deviceTimezone": {
+              "type": "string"
+            },
+            "displayClock": {
+              "type": "boolean"
+            },
+            "displayClock24hrMode": {
+              "type": "boolean"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "doBrew": {
+              "type": "boolean"
+            },
+            "doBrewCancel": {
+              "type": "null"
+            },
+            "doCancel": {
+              "type": "boolean"
+            },
+            "doClean": {
+              "type": "null"
+            },
+            "doContinue": {
+              "type": "null"
+            },
+            "doRinse": {
+              "type": "null"
+            },
+            "doUpgrade": {
+              "type": "null"
+            },
+            "doUpgradeRedirect": {
+              "type": "null"
+            },
+            "doUpgradeSchedule": {
+              "type": "null"
+            },
+            "elevation": {
+              "type": "integer"
+            },
+            "enabledFlags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "firmwareCommittish": {
+              "type": "null"
+            },
+            "firmwareUpgradeRequired": {
+              "type": "boolean"
+            },
+            "firmwareVersion": {
+              "type": "string"
+            },
+            "gameHighScore": {
+              "type": "null"
+            },
+            "heaterOn": {
+              "type": "boolean"
+            },
+            "hiddenProfiles": {
+              "type": "object",
+              "properties": {
+                "drops": {
+                  "type": "boolean"
+                },
+                "plocal1": {
+                  "type": "boolean"
+                },
+                "plocal2": {
+                  "type": "boolean"
+                },
+                "plocal3": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "ibSelectedProfileId": {
+              "type": "string"
+            },
+            "ibWaterQuantity": {
+              "type": "integer"
+            },
+            "id": {
+              "type": "string"
+            },
+            "isAdvanceMode": {
+              "type": "boolean"
+            },
+            "isConnected": {
+              "type": "boolean"
+            },
+            "languageCode": {
+              "type": "string"
+            },
+            "lidClosed": {
+              "type": "boolean"
+            },
+            "metricUnit": {
+              "type": "boolean"
+            },
+            "missingWater": {
+              "type": "boolean"
+            },
+            "preciseUnit": {
+              "type": "boolean"
+            },
+            "pumpOn": {
+              "type": "boolean"
+            },
+            "rinsing": {
+              "type": "boolean"
+            },
+            "serialNumber": {
+              "type": "string"
+            },
+            "setInitDone": {
+              "type": "boolean"
+            },
+            "showerHeadPresent": {
+              "type": "boolean"
+            },
+            "singleBrewBasketPresent": {
+              "type": "boolean"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "state": {
+              "type": "null"
+            },
+            "totalBrewingCycles": {
+              "type": "integer"
+            },
+            "totalWaterVolumeL": {
+              "type": "integer"
+            },
+            "unsynced": {
+              "type": "array",
+              "items": null
+            },
+            "upgradeUrl": {
+              "type": "null"
+            },
+            "version": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "observations": 9
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 304,
+      "response_content_type": "application/json",
+      "response_schema": null,
+      "observations": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "awsStatus": {
+            "type": "null"
+          },
+          "batchBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "brewEndTime": {
+            "type": "string"
+          },
+          "brewStartTime": {
+            "type": "string"
+          },
+          "brewing": {
+            "type": "boolean"
+          },
+          "brewingProfileId": {
+            "type": "null"
+          },
+          "brewingWaterTemperatureC": {
+            "type": "null"
+          },
+          "brewingWaterVolumeMl": {
+            "type": "integer"
+          },
+          "btMacAddress": {
+            "type": "null"
+          },
+          "carafePresent": {
+            "type": "boolean"
+          },
+          "chimeVolume": {
+            "type": "integer"
+          },
+          "cleaning": {
+            "type": "boolean"
+          },
+          "connectionTimestamp": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceTimezone": {
+            "type": "string"
+          },
+          "displayClock": {
+            "type": "boolean"
+          },
+          "displayClock24hrMode": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "doBrew": {
+            "type": "boolean"
+          },
+          "doBrewCancel": {
+            "type": "null"
+          },
+          "doCancel": {
+            "type": "boolean"
+          },
+          "doClean": {
+            "type": "null"
+          },
+          "doContinue": {
+            "type": "null"
+          },
+          "doRinse": {
+            "type": "null"
+          },
+          "doUpgrade": {
+            "type": "null"
+          },
+          "doUpgradeRedirect": {
+            "type": "null"
+          },
+          "doUpgradeSchedule": {
+            "type": "null"
+          },
+          "elevation": {
+            "type": "integer"
+          },
+          "enabledFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "firmwareCommittish": {
+            "type": "null"
+          },
+          "firmwareUpgradeRequired": {
+            "type": "boolean"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "gameHighScore": {
+            "type": "null"
+          },
+          "heaterOn": {
+            "type": "boolean"
+          },
+          "hiddenProfiles": {
+            "type": "object",
+            "properties": {
+              "drops": {
+                "type": "boolean"
+              },
+              "plocal1": {
+                "type": "boolean"
+              },
+              "plocal2": {
+                "type": "boolean"
+              },
+              "plocal3": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ibSelectedProfileId": {
+            "type": "string"
+          },
+          "ibWaterQuantity": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isAdvanceMode": {
+            "type": "boolean"
+          },
+          "isConnected": {
+            "type": "boolean"
+          },
+          "languageCode": {
+            "type": "string"
+          },
+          "lidClosed": {
+            "type": "boolean"
+          },
+          "localIpAddress": {
+            "type": "null"
+          },
+          "metricUnit": {
+            "type": "boolean"
+          },
+          "missingWater": {
+            "type": "boolean"
+          },
+          "preciseUnit": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "batchPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "batchPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "batchPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "batchPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "bloomDuration": {
+                  "type": "integer"
+                },
+                "bloomEnabled": {
+                  "type": "boolean"
+                },
+                "bloomRatio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "bloomTemperature": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "deviceId": {
+                  "type": "string",
+                  "optional": true
+                },
+                "duration": {
+                  "type": [
+                    "integer",
+                    "null",
+                    "number"
+                  ]
+                },
+                "folder": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "instantBrew": {
+                  "type": "boolean"
+                },
+                "isDefaultProfile": {
+                  "type": "boolean"
+                },
+                "lastGBQuantity": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "lastUsedTime": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "overallTemperature": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "profileType": {
+                  "type": "integer"
+                },
+                "ratio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "ssPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "ssPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "ssPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "ssPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "synced": {
+                  "type": "boolean",
+                  "optional": true
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "publicIpAddress": {
+            "type": "null"
+          },
+          "pumpOn": {
+            "type": "boolean"
+          },
+          "rinsing": {
+            "type": "boolean"
+          },
+          "schedules": {
+            "type": "array",
+            "items": null
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "setInitDone": {
+            "type": "boolean"
+          },
+          "showerHeadPresent": {
+            "type": "boolean"
+          },
+          "singleBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "state": {
+            "type": "null"
+          },
+          "totalBrewingCycles": {
+            "type": "integer"
+          },
+          "totalWaterVolumeL": {
+            "type": "integer"
+          },
+          "unsynced": {
+            "type": "array",
+            "items": null
+          },
+          "upgradeUrl": {
+            "type": "null"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "wifiMacAddress": {
+            "type": "string"
+          },
+          "wifiSsid": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 26
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "awsStatus": {
+            "type": "null"
+          },
+          "batchBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "brewEndTime": {
+            "type": "string"
+          },
+          "brewStartTime": {
+            "type": "string"
+          },
+          "brewing": {
+            "type": "boolean"
+          },
+          "brewingProfileId": {
+            "type": "string"
+          },
+          "brewingWaterTemperatureC": {
+            "type": "null"
+          },
+          "brewingWaterVolumeMl": {
+            "type": "integer"
+          },
+          "btMacAddress": {
+            "type": "null"
+          },
+          "carafePresent": {
+            "type": "boolean"
+          },
+          "chimeVolume": {
+            "type": "integer"
+          },
+          "cleaning": {
+            "type": "boolean"
+          },
+          "connectionTimestamp": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceTimezone": {
+            "type": "string"
+          },
+          "displayClock": {
+            "type": "boolean"
+          },
+          "displayClock24hrMode": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "doBrew": {
+            "type": "boolean"
+          },
+          "doBrewCancel": {
+            "type": "null"
+          },
+          "doCancel": {
+            "type": "boolean"
+          },
+          "doClean": {
+            "type": "null"
+          },
+          "doContinue": {
+            "type": "null"
+          },
+          "doRinse": {
+            "type": "null"
+          },
+          "doUpgrade": {
+            "type": "null"
+          },
+          "doUpgradeRedirect": {
+            "type": "null"
+          },
+          "doUpgradeSchedule": {
+            "type": "null"
+          },
+          "elevation": {
+            "type": "integer"
+          },
+          "enabledFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "firmwareCommittish": {
+            "type": "null"
+          },
+          "firmwareUpgradeRequired": {
+            "type": "boolean"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "gameHighScore": {
+            "type": "null"
+          },
+          "heaterOn": {
+            "type": "boolean"
+          },
+          "hiddenProfiles": {
+            "type": "object",
+            "properties": {
+              "drops": {
+                "type": "boolean"
+              },
+              "plocal1": {
+                "type": "boolean"
+              },
+              "plocal2": {
+                "type": "boolean"
+              },
+              "plocal3": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ibSelectedProfileId": {
+            "type": "string"
+          },
+          "ibWaterQuantity": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isAdvanceMode": {
+            "type": "boolean"
+          },
+          "isConnected": {
+            "type": "boolean"
+          },
+          "languageCode": {
+            "type": "string"
+          },
+          "lidClosed": {
+            "type": "boolean"
+          },
+          "localIpAddress": {
+            "type": "null"
+          },
+          "metricUnit": {
+            "type": "boolean"
+          },
+          "missingWater": {
+            "type": "boolean"
+          },
+          "preciseUnit": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "batchPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "batchPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "batchPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "batchPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "bloomDuration": {
+                  "type": "integer"
+                },
+                "bloomEnabled": {
+                  "type": "boolean"
+                },
+                "bloomRatio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "bloomTemperature": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "deviceId": {
+                  "type": "string",
+                  "optional": true
+                },
+                "duration": {
+                  "type": [
+                    "integer",
+                    "null",
+                    "number"
+                  ]
+                },
+                "folder": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "instantBrew": {
+                  "type": "boolean"
+                },
+                "isDefaultProfile": {
+                  "type": "boolean"
+                },
+                "lastGBQuantity": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "lastUsedTime": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "overallTemperature": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "profileType": {
+                  "type": "integer"
+                },
+                "ratio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "ssPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "ssPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "ssPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "ssPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "synced": {
+                  "type": "boolean",
+                  "optional": true
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "publicIpAddress": {
+            "type": "null"
+          },
+          "pumpOn": {
+            "type": "boolean"
+          },
+          "rinsing": {
+            "type": "boolean"
+          },
+          "schedules": {
+            "type": "array",
+            "items": null
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "setInitDone": {
+            "type": "boolean"
+          },
+          "showerHeadPresent": {
+            "type": "boolean"
+          },
+          "singleBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "state": {
+            "type": "object",
+            "properties": {
+              "batch_brew_basket_present": {
+                "type": "boolean"
+              },
+              "carafe_present": {
+                "type": "boolean"
+              },
+              "error": {
+                "type": "null"
+              },
+              "lid_closed": {
+                "type": "boolean"
+              },
+              "missing_water": {
+                "type": "boolean"
+              },
+              "shower_head_present": {
+                "type": "boolean"
+              },
+              "single_brew_basket_present": {
+                "type": "boolean"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          },
+          "totalBrewingCycles": {
+            "type": "integer"
+          },
+          "totalWaterVolumeL": {
+            "type": "integer"
+          },
+          "unsynced": {
+            "type": "array",
+            "items": null
+          },
+          "upgradeUrl": {
+            "type": "null"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "wifiMacAddress": {
+            "type": "string"
+          },
+          "wifiSsid": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 20
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "awsStatus": {
+            "type": "null"
+          },
+          "batchBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "brewEndTime": {
+            "type": "string"
+          },
+          "brewStartTime": {
+            "type": "string"
+          },
+          "brewing": {
+            "type": "boolean"
+          },
+          "brewingProfileId": {
+            "type": "string"
+          },
+          "brewingWaterTemperatureC": {
+            "type": "null"
+          },
+          "brewingWaterVolumeMl": {
+            "type": "integer"
+          },
+          "btMacAddress": {
+            "type": "null"
+          },
+          "carafePresent": {
+            "type": "boolean"
+          },
+          "chimeVolume": {
+            "type": "integer"
+          },
+          "cleaning": {
+            "type": "boolean"
+          },
+          "connectionTimestamp": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceTimezone": {
+            "type": "string"
+          },
+          "displayClock": {
+            "type": "boolean"
+          },
+          "displayClock24hrMode": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "doBrew": {
+            "type": "boolean"
+          },
+          "doBrewCancel": {
+            "type": "null"
+          },
+          "doCancel": {
+            "type": "boolean"
+          },
+          "doClean": {
+            "type": "null"
+          },
+          "doContinue": {
+            "type": "null"
+          },
+          "doRinse": {
+            "type": "null"
+          },
+          "doUpgrade": {
+            "type": "null"
+          },
+          "doUpgradeRedirect": {
+            "type": "null"
+          },
+          "doUpgradeSchedule": {
+            "type": "null"
+          },
+          "elevation": {
+            "type": "integer"
+          },
+          "enabledFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "firmwareCommittish": {
+            "type": "null"
+          },
+          "firmwareUpgradeRequired": {
+            "type": "boolean"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "gameHighScore": {
+            "type": "null"
+          },
+          "heaterOn": {
+            "type": "boolean"
+          },
+          "hiddenProfiles": {
+            "type": "object",
+            "properties": {
+              "drops": {
+                "type": "boolean"
+              },
+              "plocal1": {
+                "type": "boolean"
+              },
+              "plocal2": {
+                "type": "boolean"
+              },
+              "plocal3": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ibSelectedProfileId": {
+            "type": "string"
+          },
+          "ibWaterQuantity": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isAdvanceMode": {
+            "type": "boolean"
+          },
+          "isConnected": {
+            "type": "boolean"
+          },
+          "languageCode": {
+            "type": "string"
+          },
+          "lidClosed": {
+            "type": "boolean"
+          },
+          "localIpAddress": {
+            "type": "null"
+          },
+          "metricUnit": {
+            "type": "boolean"
+          },
+          "missingWater": {
+            "type": "boolean"
+          },
+          "preciseUnit": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "batchPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "batchPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "batchPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "batchPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "bloomDuration": {
+                  "type": "integer"
+                },
+                "bloomEnabled": {
+                  "type": "boolean"
+                },
+                "bloomRatio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "bloomTemperature": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "deviceId": {
+                  "type": "string",
+                  "optional": true
+                },
+                "duration": {
+                  "type": [
+                    "integer",
+                    "null",
+                    "number"
+                  ]
+                },
+                "folder": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "instantBrew": {
+                  "type": "boolean"
+                },
+                "isDefaultProfile": {
+                  "type": "boolean"
+                },
+                "lastGBQuantity": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "lastUsedTime": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "overallTemperature": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "profileType": {
+                  "type": "integer"
+                },
+                "ratio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "ssPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "ssPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "ssPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "ssPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "synced": {
+                  "type": "boolean",
+                  "optional": true
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "publicIpAddress": {
+            "type": "null"
+          },
+          "pumpOn": {
+            "type": "boolean"
+          },
+          "rinsing": {
+            "type": "boolean"
+          },
+          "schedules": {
+            "type": "array",
+            "items": null
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "setInitDone": {
+            "type": "boolean"
+          },
+          "showerHeadPresent": {
+            "type": "boolean"
+          },
+          "singleBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "state": {
+            "type": "null"
+          },
+          "totalBrewingCycles": {
+            "type": "integer"
+          },
+          "totalWaterVolumeL": {
+            "type": "integer"
+          },
+          "unsynced": {
+            "type": "array",
+            "items": null
+          },
+          "upgradeUrl": {
+            "type": "null"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "wifiMacAddress": {
+            "type": "string"
+          },
+          "wifiSsid": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 112
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "awsStatus": {
+            "type": "null"
+          },
+          "batchBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "brewEndTime": {
+            "type": "string"
+          },
+          "brewStartTime": {
+            "type": "string"
+          },
+          "brewing": {
+            "type": "boolean"
+          },
+          "brewingProfileId": {
+            "type": "string"
+          },
+          "brewingWaterTemperatureC": {
+            "type": "null"
+          },
+          "brewingWaterVolumeMl": {
+            "type": "integer"
+          },
+          "btMacAddress": {
+            "type": "null"
+          },
+          "carafePresent": {
+            "type": "boolean"
+          },
+          "chimeVolume": {
+            "type": "integer"
+          },
+          "cleaning": {
+            "type": "boolean"
+          },
+          "connectionTimestamp": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceTimezone": {
+            "type": "string"
+          },
+          "displayClock": {
+            "type": "boolean"
+          },
+          "displayClock24hrMode": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "doBrew": {
+            "type": "boolean"
+          },
+          "doBrewCancel": {
+            "type": "null"
+          },
+          "doCancel": {
+            "type": "boolean"
+          },
+          "doClean": {
+            "type": "null"
+          },
+          "doContinue": {
+            "type": "null"
+          },
+          "doRinse": {
+            "type": "null"
+          },
+          "doUpgrade": {
+            "type": "null"
+          },
+          "doUpgradeRedirect": {
+            "type": "null"
+          },
+          "doUpgradeSchedule": {
+            "type": "null"
+          },
+          "elevation": {
+            "type": "integer"
+          },
+          "enabledFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "firmwareCommittish": {
+            "type": "null"
+          },
+          "firmwareUpgradeRequired": {
+            "type": "boolean"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "gameHighScore": {
+            "type": "null"
+          },
+          "heaterOn": {
+            "type": "boolean"
+          },
+          "hiddenProfiles": {
+            "type": "object",
+            "properties": {
+              "drops": {
+                "type": "boolean"
+              },
+              "plocal1": {
+                "type": "boolean"
+              },
+              "plocal2": {
+                "type": "boolean"
+              },
+              "plocal3": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ibSelectedProfileId": {
+            "type": "string"
+          },
+          "ibWaterQuantity": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isAdvanceMode": {
+            "type": "boolean"
+          },
+          "isConnected": {
+            "type": "boolean"
+          },
+          "languageCode": {
+            "type": "string"
+          },
+          "lidClosed": {
+            "type": "boolean"
+          },
+          "localIpAddress": {
+            "type": "null"
+          },
+          "metricUnit": {
+            "type": "boolean"
+          },
+          "missingWater": {
+            "type": "boolean"
+          },
+          "preciseUnit": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "batchPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "batchPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "batchPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "batchPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "bloomDuration": {
+                  "type": "integer"
+                },
+                "bloomEnabled": {
+                  "type": "boolean"
+                },
+                "bloomRatio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "bloomTemperature": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "deviceId": {
+                  "type": "string",
+                  "optional": true
+                },
+                "duration": {
+                  "type": [
+                    "integer",
+                    "null",
+                    "number"
+                  ]
+                },
+                "folder": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "instantBrew": {
+                  "type": "boolean"
+                },
+                "isDefaultProfile": {
+                  "type": "boolean"
+                },
+                "lastGBQuantity": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "lastUsedTime": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "overallTemperature": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "profileType": {
+                  "type": "integer"
+                },
+                "ratio": {
+                  "type": [
+                    "integer",
+                    "number"
+                  ]
+                },
+                "ssPulseTemperatures": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "ssPulsesEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "ssPulsesInterval": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "ssPulsesNumber": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "synced": {
+                  "type": "boolean",
+                  "optional": true
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "publicIpAddress": {
+            "type": "null"
+          },
+          "pumpOn": {
+            "type": "boolean"
+          },
+          "rinsing": {
+            "type": "boolean"
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "amountOfWater": {
+                  "type": "integer"
+                },
+                "days": {
+                  "type": "array",
+                  "items": {
+                    "type": "boolean"
+                  }
+                },
+                "deviceId": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "profile": {
+                  "type": "object",
+                  "properties": {
+                    "batchPulseTemperatures": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "batchPulsesEnabled": {
+                      "type": "boolean"
+                    },
+                    "batchPulsesInterval": {
+                      "type": "null"
+                    },
+                    "batchPulsesNumber": {
+                      "type": "integer"
+                    },
+                    "bloomDuration": {
+                      "type": "integer"
+                    },
+                    "bloomEnabled": {
+                      "type": "boolean"
+                    },
+                    "bloomRatio": {
+                      "type": "integer"
+                    },
+                    "bloomTemperature": {
+                      "type": "integer"
+                    },
+                    "duration": {
+                      "type": "integer"
+                    },
+                    "folder": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "instantBrew": {
+                      "type": "boolean"
+                    },
+                    "isDefaultProfile": {
+                      "type": "boolean"
+                    },
+                    "lastGBQuantity": {
+                      "type": "null"
+                    },
+                    "lastUsedTime": {
+                      "type": "null"
+                    },
+                    "overallTemperature": {
+                      "type": "integer"
+                    },
+                    "profileType": {
+                      "type": "integer"
+                    },
+                    "ratio": {
+                      "type": "integer"
+                    },
+                    "ssPulseTemperatures": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "ssPulsesEnabled": {
+                      "type": "boolean"
+                    },
+                    "ssPulsesInterval": {
+                      "type": "integer"
+                    },
+                    "ssPulsesNumber": {
+                      "type": "integer"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "profileId": {
+                  "type": "string"
+                },
+                "secondFromStartOfTheDay": {
+                  "type": "integer"
+                },
+                "userNotifiedAt": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "setInitDone": {
+            "type": "boolean"
+          },
+          "showerHeadPresent": {
+            "type": "boolean"
+          },
+          "singleBrewBasketPresent": {
+            "type": "boolean"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "state": {
+            "type": "null"
+          },
+          "totalBrewingCycles": {
+            "type": "integer"
+          },
+          "totalWaterVolumeL": {
+            "type": "integer"
+          },
+          "unsynced": {
+            "type": "array",
+            "items": null
+          },
+          "upgradeUrl": {
+            "type": "null"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "wifiMacAddress": {
+            "type": "string"
+          },
+          "wifiSsid": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 26
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}",
+      "query_names": [
+        "dataType"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 401,
+      "response_content_type": "application/json",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 11
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "doCancel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "status": 400,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "path": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/profiles",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "batchPulseTemperatures": {
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "batchPulsesEnabled": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "batchPulsesInterval": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "batchPulsesNumber": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "bloomDuration": {
+              "type": "integer"
+            },
+            "bloomEnabled": {
+              "type": "boolean"
+            },
+            "bloomRatio": {
+              "type": [
+                "integer",
+                "number"
+              ]
+            },
+            "bloomTemperature": {
+              "type": [
+                "integer",
+                "number"
+              ]
+            },
+            "deletedAt": {
+              "type": "null",
+              "optional": true
+            },
+            "device": {
+              "type": "null",
+              "optional": true
+            },
+            "deviceId": {
+              "type": [
+                "null",
+                "string"
+              ],
+              "optional": true
+            },
+            "duration": {
+              "type": [
+                "integer",
+                "null",
+                "number"
+              ]
+            },
+            "folder": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "instantBrew": {
+              "type": "boolean"
+            },
+            "isDefaultProfile": {
+              "type": "boolean"
+            },
+            "lastGBQuantity": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "lastUsedTime": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "overallTemperature": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "profileType": {
+              "type": "integer"
+            },
+            "ratio": {
+              "type": [
+                "integer",
+                "number"
+              ]
+            },
+            "scheduledAt": {
+              "type": "string",
+              "optional": true
+            },
+            "schedules": {
+              "type": "array",
+              "items": null,
+              "optional": true
+            },
+            "ssPulseTemperatures": {
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "ssPulsesEnabled": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "ssPulsesInterval": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "ssPulsesNumber": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "optional": true
+            },
+            "synced": {
+              "type": "boolean",
+              "optional": true
+            },
+            "title": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "type": "string",
+              "optional": true
+            }
+          }
+        }
+      },
+      "observations": 60
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/profiles",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 401,
+      "response_content_type": "application/json",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v2/devices/{id}/profiles",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 201,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "null"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "POST",
+      "path": "/v2/devices/{id}/profiles",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 401,
+      "response_content_type": "application/json",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 202,
+      "response_content_type": "application/json",
+      "response_schema": null,
+      "observations": 3
+    },
+    {
+      "method": "DELETE",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 401,
+      "response_content_type": "application/json",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "null"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "null"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "null"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "null"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "null"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "number"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/profiles/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "boolean"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "number"
+          },
+          "bloomTemperature": {
+            "type": "number"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "null"
+          },
+          "lastUsedTime": {
+            "type": "null"
+          },
+          "overallTemperature": {
+            "type": "integer"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "boolean"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/schedules",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "array",
+        "items": null
+      },
+      "observations": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/schedules",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 304,
+      "response_content_type": "application/json",
+      "response_schema": null,
+      "observations": 7
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/schedules",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 401,
+      "response_content_type": "application/json",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "POST",
+      "path": "/v2/devices/{id}/schedules",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "secondFromStartOfTheDay": {
+            "type": "integer"
+          }
+        }
+      },
+      "status": 201,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "batchPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "batchPulsesEnabled": {
+                "type": "boolean"
+              },
+              "batchPulsesInterval": {
+                "type": "null"
+              },
+              "batchPulsesNumber": {
+                "type": "integer"
+              },
+              "bloomDuration": {
+                "type": "integer"
+              },
+              "bloomEnabled": {
+                "type": "boolean"
+              },
+              "bloomRatio": {
+                "type": "integer"
+              },
+              "bloomTemperature": {
+                "type": "integer"
+              },
+              "duration": {
+                "type": "integer"
+              },
+              "folder": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "instantBrew": {
+                "type": "boolean"
+              },
+              "isDefaultProfile": {
+                "type": "boolean"
+              },
+              "lastGBQuantity": {
+                "type": "null"
+              },
+              "lastUsedTime": {
+                "type": "null"
+              },
+              "overallTemperature": {
+                "type": "integer"
+              },
+              "profileType": {
+                "type": "integer"
+              },
+              "ratio": {
+                "type": "integer"
+              },
+              "ssPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "ssPulsesEnabled": {
+                "type": "boolean"
+              },
+              "ssPulsesInterval": {
+                "type": "integer"
+              },
+              "ssPulsesNumber": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "secondFromStartOfTheDay": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "userNotifiedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/v2/devices/{id}/schedules/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 202,
+      "response_content_type": "application/json",
+      "response_schema": null,
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/schedules/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "secondFromStartOfTheDay": {
+            "type": "integer"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "batchPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "batchPulsesEnabled": {
+                "type": "boolean"
+              },
+              "batchPulsesInterval": {
+                "type": "null"
+              },
+              "batchPulsesNumber": {
+                "type": "integer"
+              },
+              "bloomDuration": {
+                "type": "integer"
+              },
+              "bloomEnabled": {
+                "type": "boolean"
+              },
+              "bloomRatio": {
+                "type": "integer"
+              },
+              "bloomTemperature": {
+                "type": "integer"
+              },
+              "duration": {
+                "type": "integer"
+              },
+              "folder": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "instantBrew": {
+                "type": "boolean"
+              },
+              "isDefaultProfile": {
+                "type": "boolean"
+              },
+              "lastGBQuantity": {
+                "type": "null"
+              },
+              "lastUsedTime": {
+                "type": "null"
+              },
+              "overallTemperature": {
+                "type": "integer"
+              },
+              "profileType": {
+                "type": "integer"
+              },
+              "ratio": {
+                "type": "integer"
+              },
+              "ssPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "ssPulsesEnabled": {
+                "type": "boolean"
+              },
+              "ssPulsesInterval": {
+                "type": "integer"
+              },
+              "ssPulsesNumber": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "secondFromStartOfTheDay": {
+            "type": "integer"
+          },
+          "userNotifiedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/schedules/{id}",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "batchPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "batchPulsesEnabled": {
+                "type": "boolean"
+              },
+              "batchPulsesInterval": {
+                "type": "null"
+              },
+              "batchPulsesNumber": {
+                "type": "integer"
+              },
+              "bloomDuration": {
+                "type": "integer"
+              },
+              "bloomEnabled": {
+                "type": "boolean"
+              },
+              "bloomRatio": {
+                "type": "integer"
+              },
+              "bloomTemperature": {
+                "type": "integer"
+              },
+              "duration": {
+                "type": "integer"
+              },
+              "folder": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "instantBrew": {
+                "type": "boolean"
+              },
+              "isDefaultProfile": {
+                "type": "boolean"
+              },
+              "lastGBQuantity": {
+                "type": "null"
+              },
+              "lastUsedTime": {
+                "type": "null"
+              },
+              "overallTemperature": {
+                "type": "integer"
+              },
+              "profileType": {
+                "type": "integer"
+              },
+              "ratio": {
+                "type": "integer"
+              },
+              "ssPulseTemperatures": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "ssPulsesEnabled": {
+                "type": "boolean"
+              },
+              "ssPulsesInterval": {
+                "type": "integer"
+              },
+              "ssPulsesNumber": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "secondFromStartOfTheDay": {
+            "type": "integer"
+          },
+          "userNotifiedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/start",
+      "query_names": [
+        "confirm"
+      ],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "amountOfWater": {
+            "type": "integer"
+          },
+          "batchPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "batchPulsesEnabled": {
+            "type": "null"
+          },
+          "batchPulsesInterval": {
+            "type": "integer"
+          },
+          "batchPulsesNumber": {
+            "type": "integer"
+          },
+          "bloomDuration": {
+            "type": "integer"
+          },
+          "bloomEnabled": {
+            "type": "boolean"
+          },
+          "bloomRatio": {
+            "type": "integer"
+          },
+          "bloomTemperature": {
+            "type": "integer"
+          },
+          "deletedAt": {
+            "type": "null"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "null"
+          },
+          "folder": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instantBrew": {
+            "type": "boolean"
+          },
+          "isDefaultProfile": {
+            "type": "boolean"
+          },
+          "lastGBQuantity": {
+            "type": "integer"
+          },
+          "lastUsedTime": {
+            "type": "integer"
+          },
+          "overallTemperature": {
+            "type": "null"
+          },
+          "profileType": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "integer"
+          },
+          "ssPulseTemperatures": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "ssPulsesEnabled": {
+            "type": "null"
+          },
+          "ssPulsesInterval": {
+            "type": "integer"
+          },
+          "ssPulsesNumber": {
+            "type": "integer"
+          },
+          "synced": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/v2/devices/{id}/stop",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 400,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v2/devices/{id}/updates",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "isUpdateAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "POST",
+      "path": "/v2/firebase/notifications",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": "application/json",
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "fcmToken": {
+            "type": "string"
+          }
+        }
+      },
+      "status": 201,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "affected": {
+            "type": "integer"
+          },
+          "generatedMaps": {
+            "type": "array",
+            "items": null
+          },
+          "raw": {
+            "type": "array",
+            "items": null
+          }
+        }
+      },
+      "observations": 1
+    },
+    {
+      "method": "GET",
+      "path": "/v2/users/profile",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 200,
+      "response_content_type": "application/json; charset=utf-8",
+      "response_schema": {
+        "type": "object",
+        "properties": {
+          "acceptsMarketing": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isEventNotificationsEnabled": {
+            "type": "boolean"
+          },
+          "isReminderNotificationsEnabled": {
+            "type": "boolean"
+          },
+          "isUpdateNotificationsEnabled": {
+            "type": "boolean"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "observations": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v2/users/profile",
+      "query_names": [],
+      "auth": "bearer",
+      "request_content_type": null,
+      "request_schema": null,
+      "status": 304,
+      "response_content_type": "application/json",
+      "response_schema": null,
+      "observations": 7
+    }
+  ]
+}

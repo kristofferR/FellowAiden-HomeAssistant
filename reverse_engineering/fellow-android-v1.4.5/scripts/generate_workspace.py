@@ -6,11 +6,10 @@ import os
 import re
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from typing import Any
-import xml.etree.ElementTree as ET
-
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 
@@ -230,7 +229,7 @@ def run(cmd: list[str], cwd: Path | None = None, capture: bool = False) -> str:
 def adb_has_target(adb_devices_output: str) -> bool:
     for raw_line in adb_devices_output.splitlines():
         line = raw_line.strip()
-        if not line or line.startswith("List of devices attached") or line.startswith("*"):
+        if not line or line.startswith(("List of devices attached", "*")):
             continue
         return True
     return False
@@ -698,6 +697,52 @@ def build_integration_current_state(service_names: list[str]) -> str:
 
 
 def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
+    runtime_statuses = {
+        "auth_login": "runtime-confirmed",
+        "auth_refresh": "runtime-confirmed",
+        "user_get": "runtime-confirmed",
+        "device_list": "runtime-confirmed",
+        "device_get": "runtime-confirmed",
+        "device_patch": "runtime-observed-error",
+        "instant_brew_start": "runtime-confirmed",
+        "brew_stop": "runtime-observed-error",
+        "device_update_check": "runtime-confirmed",
+        "profiles_list": "runtime-confirmed",
+        "profile_get": "runtime-confirmed",
+        "profile_create": "runtime-confirmed",
+        "profile_delete": "runtime-confirmed",
+        "profile_update": "runtime-confirmed",
+        "schedules_list": "runtime-confirmed",
+        "schedule_create": "runtime-confirmed",
+        "schedule_update": "runtime-confirmed",
+        "schedule_delete": "runtime-confirmed",
+        "firebase_notification_register": "runtime-confirmed",
+    }
+    runtime_notes = {
+        "auth_refresh": [
+            "Runtime observed successful HTTP 201 without refresh-token rotation and a later HTTP 401.",
+        ],
+        "device_patch": [
+            "Runtime doCancel patch returned HTTP 400 because the property is not writable.",
+        ],
+        "instant_brew_start": [
+            "Runtime no-body start with confirm=true returned HTTP 200 and initiated brewing.",
+        ],
+        "brew_stop": [
+            "Runtime returned HTTP 400 during active device telemetry; cancellation semantics remain unresolved.",
+        ],
+        "profile_create": [
+            "The captured Aiden request omitted settingsVersion.",
+        ],
+        "profile_delete": [
+            "The captured Aiden requests had no body and omitted settingsVersion.",
+        ],
+        "profile_update": [
+            "The captured Aiden requests omitted settingsVersion.",
+        ],
+    }
+    has_runtime_evidence = (RUNTIME_DIR / "sanitized_api_capture.json").exists()
+
     def endpoint(
         feature: str,
         method: str,
@@ -709,6 +754,16 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
         response_fields: list[str] | None = None,
         notes: list[str] | None = None,
     ) -> dict[str, Any]:
+        endpoint_notes = list(notes or [])
+        endpoint_evidence = [
+            f"evidence/hermes_endpoint_functions.txt (Function #{function_id})",
+        ]
+        validation_status = "static-confirmed"
+        if has_runtime_evidence and feature in runtime_statuses:
+            validation_status = runtime_statuses[feature]
+            endpoint_notes.extend(runtime_notes.get(feature, []))
+            endpoint_evidence.append("runtime/sanitized_api_capture.json")
+
         return {
             "feature": feature,
             "method": method,
@@ -716,12 +771,10 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
             "auth_mode": auth_mode,
             "request_fields": request_fields or [],
             "response_fields": response_fields or [],
-            "notes": notes or [],
+            "notes": endpoint_notes,
             "hermes_function_id": function_id,
-            "evidence": [
-                f"evidence/hermes_endpoint_functions.txt (Function #{function_id})",
-            ],
-            "validation_status": "static-confirmed",
+            "evidence": endpoint_evidence,
+            "validation_status": validation_status,
         }
 
     return {
@@ -1501,8 +1554,6 @@ def main() -> None:
                 extract_member(archive, member_name, destination)
 
     base_apk_path = GENERATED_APKS_DIR / BASE_APK_NAME
-    abi_split_path = GENERATED_APKS_DIR / ABI_SPLIT_NAME
-
     apktool_base_dir = GENERATED_APKTOOL_DIR / "base"
     if not apktool_base_dir.exists():
         run(["apktool", "d", "-f", "-o", str(apktool_base_dir), str(base_apk_path)])
@@ -1636,12 +1687,15 @@ def main() -> None:
         else "adb unavailable"
     )
     has_emulator = shutil.which("emulator") is not None
-    dynamic_report = build_dynamic_pass_report(
-        has_adb=has_adb,
-        has_emulator=has_emulator,
-        adb_devices_output=adb_devices_output,
-    )
-    write_text(RUNTIME_DIR / "dynamic_pass.md", dynamic_report)
+    sanitized_capture_path = RUNTIME_DIR / "sanitized_api_capture.json"
+    has_sanitized_runtime_capture = sanitized_capture_path.exists()
+    if not has_sanitized_runtime_capture:
+        dynamic_report = build_dynamic_pass_report(
+            has_adb=has_adb,
+            has_emulator=has_emulator,
+            adb_devices_output=adb_devices_output,
+        )
+        write_text(RUNTIME_DIR / "dynamic_pass.md", dynamic_report)
 
     manifest_ble_line = line_number(manifest_path, "android.permission.BLUETOOTH_SCAN")
     manifest_wifi_line = line_number(manifest_path, "android.permission.ACCESS_WIFI_STATE")
@@ -1690,14 +1744,16 @@ def main() -> None:
     local_protocol_map = build_local_protocol_map(evidence_refs)
     write_text(WORKSPACE / "local_protocol_map.yaml", dump_yaml(local_protocol_map) + "\n")
 
-    feature_parity_matrix = build_parity_matrix()
-    write_text(WORKSPACE / "feature_parity_matrix.md", feature_parity_matrix)
+    if not has_sanitized_runtime_capture:
+        feature_parity_matrix = build_parity_matrix()
+        write_text(WORKSPACE / "feature_parity_matrix.md", feature_parity_matrix)
 
-    capture_summary = build_capture_summary(xapk_hash)
-    write_text(EVIDENCE_DIR / "capture_summary.md", capture_summary)
+    if not has_sanitized_runtime_capture:
+        capture_summary = build_capture_summary(xapk_hash)
+        write_text(EVIDENCE_DIR / "capture_summary.md", capture_summary)
 
-    readme = build_readme(xapk_hash)
-    write_text(WORKSPACE / "README.md", readme)
+        readme = build_readme(xapk_hash)
+        write_text(WORKSPACE / "README.md", readme)
 
     verification = build_verification(
         xapk_hash=xapk_hash,
@@ -1711,7 +1767,8 @@ def main() -> None:
             else "adb is present, but no emulator/device was available locally during generation."
         ),
     )
-    write_text(WORKSPACE / "verification.md", verification)
+    if not has_sanitized_runtime_capture:
+        write_text(WORKSPACE / "verification.md", verification)
 
     print(f"Workspace generated under {WORKSPACE}")
 

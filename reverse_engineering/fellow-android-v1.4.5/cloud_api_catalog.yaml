@@ -21,7 +21,8 @@ entries:
     hermes_function_id: 14026
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #14026)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: auth_refresh
     method: POST
     path: /auth/refresh-token
@@ -33,10 +34,12 @@ entries:
       - "refreshToken?"
     notes:
       - Request sets skipAuthRefresh=true and Content-Type=application/json.
+      - Runtime observed successful HTTP 201 without refresh-token rotation and a later HTTP 401.
     hermes_function_id: 14030
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #14030)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: auth_sign_up
     method: POST
     path: /auth/sign-up
@@ -127,7 +130,8 @@ entries:
     hermes_function_id: 14059
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #14059)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: user_notifications_update
     method: PATCH
     path: /users/notifications
@@ -150,7 +154,8 @@ entries:
     hermes_function_id: 18511
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18511)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: device_get
     method: GET
     path: "/devices/{deviceId}?dataType=real"
@@ -161,7 +166,8 @@ entries:
     hermes_function_id: 18495
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18495)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: typed_device_get
     method: GET
     path: "/{deviceType}/devices/{deviceId}?dataType=real"
@@ -180,11 +186,13 @@ entries:
     request_fields:
       - patch object
     response_fields: []
-    notes: []
+    notes:
+      - Runtime doCancel patch returned HTTP 400 because the property is not writable.
     hermes_function_id: 18503
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18503)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-observed-error
   - feature: typed_device_patch
     method: PATCH
     path: "/{deviceType}/devices/{deviceId}"
@@ -215,22 +223,26 @@ entries:
     auth_mode: bearer
     request_fields: []
     response_fields: []
-    notes: []
+    notes:
+      - Runtime no-body start with confirm=true returned HTTP 200 and initiated brewing.
     hermes_function_id: 18519
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18519)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: brew_stop
     method: PATCH
     path: "/devices/{deviceId}/stop"
     auth_mode: bearer
     request_fields: []
     response_fields: []
-    notes: []
+    notes:
+      - Runtime returned HTTP 400 during active device telemetry; cancellation semantics remain unresolved.
     hermes_function_id: 18523
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18523)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-observed-error
   - feature: device_elevation_update
     method: PATCH
     path: "/{optionalDeviceTypePrefix}devices/{deviceId}"
@@ -286,7 +298,8 @@ entries:
     hermes_function_id: 18543
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #18543)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: typed_device_update_check
     method: GET
     path: "/{optionalDeviceType}/devices/{deviceId}/updates"
@@ -358,7 +371,8 @@ entries:
     hermes_function_id: 21136
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #21136)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: profile_get
     method: GET
     path: "/devices/{deviceId}/profiles/{profileId}"
@@ -369,7 +383,8 @@ entries:
     hermes_function_id: 21140
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #21140)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: profile_create
     method: POST
     path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles"
@@ -378,11 +393,13 @@ entries:
       - profile
       - settingsVersion (client-added)
     response_fields: []
-    notes: []
+    notes:
+      - The captured Aiden request omitted settingsVersion.
     hermes_function_id: 21144
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #21144)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: profile_delete
     method: DELETE
     path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles/{profileId}"
@@ -390,11 +407,13 @@ entries:
     request_fields:
       - settingsVersion (client-added delete body)
     response_fields: []
-    notes: []
+    notes:
+      - The captured Aiden requests had no body and omitted settingsVersion.
     hermes_function_id: 21148
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #21148)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: profile_set_default
     method: PATCH
     path: "/devices/{deviceId}/selectedProfile?profileId={profileId}"
@@ -414,11 +433,13 @@ entries:
       - profile
       - settingsVersion (client-added)
     response_fields: []
-    notes: []
+    notes:
+      - The captured Aiden requests omitted settingsVersion.
     hermes_function_id: 21156
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #21156)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: profile_share
     method: POST
     path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles/{profileId}/share"
@@ -475,7 +496,8 @@ entries:
     hermes_function_id: 33331
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #33331)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: schedule_create
     method: POST
     path: "/devices/{deviceId}/schedules"
@@ -487,7 +509,8 @@ entries:
     hermes_function_id: 33335
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #33335)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: schedule_update
     method: PATCH
     path: "/devices/{deviceId}/schedules/{scheduleId}"
@@ -499,7 +522,8 @@ entries:
     hermes_function_id: 33339
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #33339)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: schedule_delete
     method: DELETE
     path: "/devices/{deviceId}/schedules/{scheduleId}"
@@ -510,7 +534,8 @@ entries:
     hermes_function_id: 33343
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #33343)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
   - feature: maintenance_clean_start
     method: PATCH
     path: "/devices/{deviceId}/clean"
@@ -544,7 +569,8 @@ entries:
     hermes_function_id: 28122
     evidence:
       - "evidence/hermes_endpoint_functions.txt (Function #28122)"
-    validation_status: static-confirmed
+      - runtime/sanitized_api_capture.json
+    validation_status: runtime-confirmed
 unresolved_operations:
   - feature: maintenance_calibration_start_finish
     symbols:
