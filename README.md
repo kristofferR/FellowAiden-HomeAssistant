@@ -31,14 +31,14 @@ This is a custom integration that brings your coffee brewer into the Home Assist
 ## Features
 
 - **Real-Time Sensors:**
-  - **Sensors** for water usage, number of brews, average water per brew and more—because data is beautiful.
+  - **Sensors** for brew phase, pump, heater, connectivity, water usage, number of brews, average water per brew and more.
   - **Analytics:** Daily/weekly/monthly water usage tracking, brew patterns, and timing insights.
   - **Binary sensors** for brewing, lid status, missing water, baskets inserted, etc.
-- **Device Info:** Displays firmware version, hardware elevation (for you mountaintop dwellers), Wi-Fi and Bluetooth addresses, plus a witty sense of connectedness.
+- **Device Info:** Displays firmware, SKU, serial number, elevation, Wi-Fi and Bluetooth inventory, plus cloud connection state.
+- **Cloud Push:** Receives the same Firebase data messages as the Fellow Android app, refreshes state immediately, and exposes connection diagnostics.
 - **Brew Management:** 
   - Create, list, delete, and manage brew profiles from Home Assistant
   - Schedule management
-  - Profile selection dropdown (display-only)
 - **Services:** A collection of services for all brewing operations
 - **Smart Logging:** Detailed API logging for manual operations, quiet polling for regular updates
 - **Water Usage Tracking:** Historical tracking with reset capabilities and period-specific sensors
@@ -114,15 +114,18 @@ After installation, go to **Settings > Devices & Services > Fellow Aiden > Confi
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
-| Update interval | 60 s | 30-300 s | How often the integration polls the Fellow cloud API. Lower values give faster updates but increase network traffic. |
+| Cloud push | On | On/Off | Register a private Android FCM receiver for immediate cloud-triggered updates. |
+| Update interval | 10 s | 10-300 s | Fallback polling interval while push is unavailable. Connected push uses a 60-second safety poll. |
 
 ---
 
 ## How data is updated
 
-The integration polls Fellow's cloud API at a configurable interval (default 60 seconds). Each poll fetches the device config, brew profiles, and schedules. Historical brew and water usage data is tracked locally and kept for 365 days.
+The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. A 60-second safety poll remains active while push is connected. If push disconnects or is disabled, live state returns to the configurable polling interval (default 10 seconds). Profiles and schedules refresh separately every 60 seconds. Historical brew and water usage data is tracked locally and kept for 365 days.
 
-There is no local/push connection. All data goes through Fellow's servers.
+Receiver credentials and tokens are kept in Home Assistant's private storage and are excluded from diagnostics and logs. Each data message also fires a `fellow_cloud_push` event with `config_entry_ids`, `category`, and the FCM `data` mapping, so automations can react to notification types that Fellow adds without waiting for an integration update.
+
+There is no local brewer connection. Both push messages and refreshed device state travel through Fellow's cloud services.
 
 ---
 
@@ -149,21 +152,41 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Sensor | Total brews | Lifetime brew count. |
 | Sensor | Total water volume | Lifetime water usage in liters. |
 | Sensor | Last brew volume | Water used in the most recent brew (mL). |
-| Sensor | Last brew start/end time | Timestamps of the last brew. |
-| Sensor | Last brew duration | How long the last brew took. |
+| Sensor | Instant Brew water | Configured Instant Brew volume (mL). |
+| Sensor | Brew phase | Live bloom, pulse, drip-finish, paused, or idle phase. |
+| Sensor | Last brew end time | Cloud timestamp for brew completion. |
+| Sensor | Last brew duration | Observed cycle duration, including pauses. |
 | Sensor | Last brew time | When the last brew finished. |
 | Sensor | Water used today/this week/this month | Period water usage from local tracking. |
 | Sensor | Average water per brew | Lifetime average (mL). |
-| Sensor | Average brew duration | Historical average (minutes). |
 | Sensor | Current profile | The active or most recently used brew profile. |
+| Sensor | Next scheduled brew | Next enabled schedule, including profile, water, and repeat days. |
 | Sensor | Basket | Which basket is inserted: single serve, batch, or missing. |
 | Sensor | Chime volume | Device chime setting (diagnostic, disabled by default). |
 | Binary sensor | Brewing | Whether the brewer is running. |
 | Binary sensor | Carafe | Whether the carafe is present. |
 | Binary sensor | Heater | Whether the heater is on. |
+| Binary sensor | Pump | Whether the pump is on. |
 | Binary sensor | Lid | Whether the lid is open. |
 | Binary sensor | Missing water | Whether the water tank is empty. |
-| Select | Profiles | Dropdown of available brew profiles (display-only). |
+| Binary sensor | Cleaning / rinsing | Whether a maintenance cycle is running. |
+| Binary sensor | Cloud connection | Whether the brewer reports a cloud connection. |
+| Binary sensor | Firmware update | Whether a firmware update is required. |
+| Binary sensor | Brew error / unsynced changes | Cloud and live-state problem indicators. |
+| Calendar | Brew schedule | Enabled recurring schedules in the brewer's timezone. |
+| Button | Start Instant Brew | Starts the profile and quantity already configured for Instant Brew. |
+
+The Current profile sensor includes the resolved recipe as attributes: ratio,
+temperature, bloom settings, single-serve and batch pulse settings, and
+cold-brew settings when present.
+
+### Device automation triggers
+
+The device automation picker exposes brew started, paused for water, resumed,
+drip finish, completed, cleaning started, and rinsing started triggers. The same
+state transitions fire a `fellow_device_event` bus event with `type`,
+`config_entry_id`, `device_id`, and `phase`. Account-scoped notifications remain
+available through the `fellow_cloud_push` event described above.
 
 ### Services
 
@@ -194,13 +217,13 @@ Notify when a brew finishes:
 ```yaml
 automation:
   - alias: "Brew finished notification"
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: binary_sensor.fellow_aiden_brewer_brewing
         from: "on"
         to: "off"
-    action:
-      - service: notify.mobile_app
+    actions:
+      - action: notify.mobile_app
         data:
           title: "Coffee's ready"
           message: "Your brew just finished."
@@ -211,11 +234,11 @@ Log water usage at midnight:
 ```yaml
 automation:
   - alias: "Log water usage at midnight"
-    trigger:
-      - platform: time
+    triggers:
+      - trigger: time
         at: "00:00:00"
-    action:
-      - service: logbook.log
+    actions:
+      - action: logbook.log
         data:
           name: "Fellow Aiden"
           message: >
@@ -227,8 +250,9 @@ automation:
 
 ## Known limitations
 
-- No direct brew start: the Fellow API does not support starting a brew remotely. Use the physical controls or a schedule.
-- Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
+- Remote start uses the brewer's existing Instant Brew profile and quantity. The button is unavailable when the brewer reports offline, busy, open, out of water, or missing the required basket/carafe. A single-serve cup cannot be detected, so place one under the basket before pressing it. Remote stop remains unavailable because the observed endpoint did not reliably stop a running brew.
+- No remote profile selection: the mobile client contains a selection route, but Fellow's live Aiden gateway rejects authenticated calls to it. The integration exposes the current profile as a sensor instead of a non-functional control.
+- Cloud push uses Fellow's Android Firebase registration flow, which is an undocumented mobile protocol. The integration automatically reconnects and retains polling as the source-of-truth fallback.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
 
 ---

@@ -2,3 +2,14 @@ CLAUDE.md
 /.claude
 /.gitignore
 /__pycache__
+
+# Local API research inputs and generated evidence. Keep only rewritten,
+# generalized protocol notes under docs/ in Git.
+/reverse_engineering/
+*.apk
+*.apks
+*.xapk
+*.hbc
+*.har
+*.pcap
+*.pcapng

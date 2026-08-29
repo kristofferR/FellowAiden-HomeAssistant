@@ -31,17 +31,19 @@
     "step": {
       "init": {
         "title": "Configurar Opciones Avanzadas de Fellow Aiden",
-        "description": "Ajusta configuraciones avanzadas. Nota: Cambiar el intervalo de actualización reiniciará la integración.",
+        "description": "Ajusta las notificaciones en la nube y el sondeo de respaldo. Los cambios reiniciarán la integración.",
         "data": {
-          "update_interval_seconds": "Intervalo de Actualización (segundos)"
+          "update_interval_seconds": "Intervalo de Actualización (segundos)",
+          "enable_cloud_push": "Activar notificaciones en la nube"
         },
         "data_description": {
-          "update_interval_seconds": "Con qué frecuencia consultar la nube de Fellow Aiden (mínimo 30 segundos, predeterminado 60 segundos). Valores más bajos proporcionan datos más responsivos pero pueden afectar el rendimiento."
+          "update_interval_seconds": "Con qué frecuencia consultar el estado cuando las notificaciones no están disponibles. El mínimo y valor predeterminado son 10 segundos. Con conexión activa se usa un sondeo de seguridad de 60 segundos.",
+          "enable_cloud_push": "Recibe los mismos mensajes de datos de Firebase que la aplicación Fellow para Android y actualiza el estado de inmediato."
         }
       }
     },
     "error": {
-      "too_fast": "El intervalo de actualización debe ser de al menos 30 segundos para evitar sobrecargar los servidores de Fellow"
+      "too_fast": "El intervalo de actualización debe ser de al menos 10 segundos."
     }
   },
   "services": {
@@ -76,6 +78,10 @@
         "bloom_temperature": {
           "name": "Temperatura de Floración (°C)",
           "description": "Temperatura para la fase de floración, 50–99°C."
+        },
+        "overall_temperature": {
+          "name": "Temperatura general (°C)",
+          "description": "Temperatura predeterminada de preparación, 50–99°C. Si se omite, usa la temperatura de floración. Las temperaturas de los pulsos pueden sustituirla."
         },
         "ss_pulses_enabled": {
           "name": "Pulsos Porción Individual Habilitados",

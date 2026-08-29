@@ -1,7 +1,9 @@
 """Constants for Fellow Aiden."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -11,11 +13,32 @@ if TYPE_CHECKING:
 type FellowAidenConfigEntry = ConfigEntry[FellowAidenDataUpdateCoordinator]
 
 DOMAIN = "fellow"
-PLATFORMS = ["sensor", "select", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor", "calendar", "button"]
 
-# Update intervals
-DEFAULT_UPDATE_INTERVAL_MINUTES = 1
-MIN_UPDATE_INTERVAL_SECONDS = 30
+# Update intervals. Device state changes quickly during a brew, while profiles
+# and schedules are configuration data and can be refreshed less frequently.
+DEFAULT_UPDATE_INTERVAL_SECONDS = 10
+MIN_UPDATE_INTERVAL_SECONDS = 10
+RESOURCE_UPDATE_INTERVAL_SECONDS = 60
+PUSH_CONNECTED_POLL_INTERVAL_SECONDS = 60
+DEFAULT_ENABLE_CLOUD_PUSH = True
+CONF_ENABLE_CLOUD_PUSH = "enable_cloud_push"
+CONF_UPDATE_INTERVAL_SECONDS = "update_interval_seconds"
+LEGACY_CONF_UPDATE_INTERVAL_MINUTES = "update_interval_minutes"
+EVENT_CLOUD_PUSH = "fellow_cloud_push"
+EVENT_DEVICE = "fellow_device_event"
+PUSH_MANAGERS = "push_managers"
+
+
+def get_update_interval_seconds(options: Mapping[str, Any]) -> int:
+    """Return the configured interval, preserving the version 1 minute option."""
+    seconds = options.get(CONF_UPDATE_INTERVAL_SECONDS)
+    if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
+        return int(seconds)
+    minutes = options.get(LEGACY_CONF_UPDATE_INTERVAL_MINUTES)
+    if isinstance(minutes, (int, float)) and not isinstance(minutes, bool):
+        return int(minutes * 60)
+    return DEFAULT_UPDATE_INTERVAL_SECONDS
 
 
 # Historical data constants

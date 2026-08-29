@@ -1,17 +1,67 @@
 """Brew history data management for Fellow Aiden integration."""
+
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, NamedTuple
 
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 from homeassistant.helpers import storage
+from homeassistant.util import dt as dt_util
 
 from .const import HISTORY_RETENTION_DAYS, MIN_HISTORICAL_DATA_FOR_ACCURACY
+from .profile_resolution import resolve_current_profile
+from .telemetry import is_brewing
 
 _LOGGER = logging.getLogger(__name__)
+
+_TIMING_VERSION = 2
+_MAX_LEGACY_DURATION_SECONDS = 30 * 60
+_MAX_LEGACY_END_SKEW_SECONDS = 2 * 60
+_MAX_COMPLETION_CLOCK_SKEW_SECONDS = 5 * 60
+_MAX_OBSERVED_START_AGE_SECONDS = 30 * 60
+_MAX_PENDING_COMPLETION_AGE_SECONDS = 5 * 60
+_TRUSTED_DURATION_SOURCES = frozenset({"observed_cycle", "validated_legacy_pair"})
+_PROFILE_EVIDENCE_FIELDS = (
+    "brewingProfileId",
+    "brewStartTime",
+    "ibSelectedProfileId",
+)
+
+
+class _ObservedTiming(NamedTuple):
+    total_brews_at_time: int
+    start_timestamp: int
+    end_timestamp: int
+
+
+def _nonnegative_counter(value: Any, *, integral: bool = False) -> int | float | None:
+    """Return a valid API counter without treating absence as zero."""
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
+        return None
+    if integral:
+        return int(value) if float(value).is_integer() else None
+    return value
+
+
+def _positive_timestamp(value: Any) -> int | None:
+    """Return a positive integral Unix timestamp."""
+    if isinstance(value, bool):
+        return None
+    try:
+        timestamp = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(timestamp) or timestamp <= 0 or not timestamp.is_integer():
+        return None
+    return int(timestamp)
 
 
 class BrewHistoryManager:
@@ -27,33 +77,83 @@ class BrewHistoryManager:
         self._profile_usage: dict[str, int] = {}
         self._last_total_brews = 0
         self._last_total_water = 0
+        self._tracking_initialized = False
+        self._active_brew_start: int | None = None
+        self._active_brew_cycles: int | None = None
+        self._pending_brew_timing: _ObservedTiming | None = None
+        self._last_api_brew_start: int | None = None
         self._data_loaded = False
 
     async def async_load_history(self) -> None:
         """Load historical data from storage."""
         try:
             data = await self._store.async_load()
+            timing_migrated = False
             if data is not None:
                 self._brew_history = data.get("brew_history", [])
                 self._water_usage_history = data.get("water_usage_history", [])
                 self._profile_usage = data.get("profile_usage", {})
                 self._last_total_brews = data.get("last_total_brews", 0)
                 self._last_total_water = data.get("last_total_water", 0)
-                _LOGGER.debug("Loaded brew history: %d brews, %d water records", 
-                            len(self._brew_history), len(self._water_usage_history))
+                # Stored data from older releases already has a valid baseline,
+                # even though it predates the explicit initialization flag.
+                self._tracking_initialized = data.get("tracking_initialized", True)
+                self._active_brew_start = _positive_timestamp(
+                    data.get("active_brew_start")
+                )
+                active_cycles = _nonnegative_counter(
+                    data.get("active_brew_cycles"), integral=True
+                )
+                self._active_brew_cycles = (
+                    int(active_cycles) if active_cycles is not None else None
+                )
+                pending_timing = data.get("pending_brew_timing")
+                if isinstance(pending_timing, dict):
+                    pending_total = _nonnegative_counter(
+                        pending_timing.get("total_brews_at_time"), integral=True
+                    )
+                    pending_start = _positive_timestamp(
+                        pending_timing.get("start_timestamp")
+                    )
+                    pending_end = _positive_timestamp(
+                        pending_timing.get("end_timestamp")
+                    )
+                    if (
+                        pending_total is not None
+                        and pending_start is not None
+                        and pending_end is not None
+                        and pending_end > pending_start
+                    ):
+                        self._pending_brew_timing = _ObservedTiming(
+                            int(pending_total), pending_start, pending_end
+                        )
+                self._last_api_brew_start = _positive_timestamp(
+                    data.get("last_api_brew_start")
+                )
+                if data.get("timing_version") != _TIMING_VERSION:
+                    self._migrate_legacy_timing()
+                    timing_migrated = True
+                _LOGGER.debug(
+                    "Loaded brew history: %d brews, %d water records",
+                    len(self._brew_history),
+                    len(self._water_usage_history),
+                )
             self._data_loaded = True
-        except Exception as e:
+            if timing_migrated:
+                await self._async_save_history()
+        except Exception as e:  # noqa: BLE001 - storage failures are non-fatal
             _LOGGER.error("Failed to load brew history: %s", e)
             self._brew_history = []
             self._water_usage_history = []
             self._profile_usage = {}
+            self._tracking_initialized = False
             self._data_loaded = True
 
     async def _async_save_history(self) -> None:
         """Save historical data to storage."""
         if not self._data_loaded:
             return
-            
+
         try:
             data = {
                 "brew_history": self._brew_history,
@@ -61,87 +161,287 @@ class BrewHistoryManager:
                 "profile_usage": self._profile_usage,
                 "last_total_brews": self._last_total_brews,
                 "last_total_water": self._last_total_water,
-                "last_updated": dt_util.now().isoformat()
+                "tracking_initialized": self._tracking_initialized,
+                "active_brew_start": self._active_brew_start,
+                "active_brew_cycles": self._active_brew_cycles,
+                "pending_brew_timing": (
+                    {
+                        "total_brews_at_time": (
+                            self._pending_brew_timing.total_brews_at_time
+                        ),
+                        "start_timestamp": self._pending_brew_timing.start_timestamp,
+                        "end_timestamp": self._pending_brew_timing.end_timestamp,
+                    }
+                    if self._pending_brew_timing
+                    else None
+                ),
+                "last_api_brew_start": self._last_api_brew_start,
+                "timing_version": _TIMING_VERSION,
+                "last_updated": dt_util.now().isoformat(),
             }
             await self._store.async_save(data)
             _LOGGER.debug("Saved brew history")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - storage failures are non-fatal
             _LOGGER.error("Failed to save brew history: %s", e)
 
-    async def async_update_data(self, device_config: dict[str, Any], profiles: list[dict[str, Any]]) -> None:
+    def _attribute_profile(
+        self,
+        brew_record: dict[str, Any],
+        profiles: list[dict[str, Any]],
+        device_config: dict[str, Any],
+    ) -> bool:
+        """Attribute a profile to an unresolved brew record."""
+        if "profile_title" in brew_record:
+            return False
+
+        resolved_profile = resolve_current_profile(profiles, device_config).profile
+        if resolved_profile is None:
+            return False
+
+        profile_id = resolved_profile.get("id")
+        if isinstance(profile_id, str) and profile_id:
+            brew_record["profile_id"] = profile_id
+        profile_title = resolved_profile.get("title")
+        if not isinstance(profile_title, str) or not profile_title:
+            profile_title = "Unknown Profile"
+        brew_record["profile_title"] = profile_title
+        brew_record.pop("_profile_evidence", None)
+        self._profile_usage[profile_title] = (
+            self._profile_usage.get(profile_title, 0) + 1
+        )
+        return True
+
+    def _attribute_latest_unresolved_brew(
+        self,
+        current_total_brews: int,
+        device_config: dict[str, Any],
+        profiles: list[dict[str, Any]],
+    ) -> bool:
+        """Backfill the latest brew once fresh profile data is available."""
+        if not profiles:
+            return False
+
+        brew_record = next(
+            (
+                record
+                for record in reversed(self._brew_history)
+                if record.get("total_brews_at_time") == current_total_brews
+                and "profile_title" not in record
+            ),
+            None,
+        )
+        if brew_record is None:
+            return False
+        stored_evidence = brew_record.get("_profile_evidence")
+        evidence = (
+            stored_evidence if isinstance(stored_evidence, dict) else device_config
+        )
+        return self._attribute_profile(brew_record, profiles, evidence)
+
+    def _attach_observed_timing(
+        self,
+        observed_timing: _ObservedTiming | None,
+    ) -> bool:
+        """Attach completed-cycle timing even if its counter advanced earlier."""
+        if observed_timing is None:
+            return False
+        brew_record = next(
+            (
+                record
+                for record in reversed(self._brew_history)
+                if record.get("total_brews_at_time")
+                == observed_timing.total_brews_at_time
+            ),
+            None,
+        )
+        if brew_record is None:
+            return False
+
+        start_timestamp = observed_timing.start_timestamp
+        end_timestamp = observed_timing.end_timestamp
+        brew_record.update(
+            {
+                "timestamp": dt_util.as_local(
+                    dt_util.utc_from_timestamp(end_timestamp)
+                ).isoformat(),
+                "start_time": dt_util.as_local(
+                    dt_util.utc_from_timestamp(start_timestamp)
+                ).isoformat(),
+                "end_time": dt_util.as_local(
+                    dt_util.utc_from_timestamp(end_timestamp)
+                ).isoformat(),
+                "duration_seconds": end_timestamp - start_timestamp,
+                "duration_source": "observed_cycle",
+            }
+        )
+        return True
+
+    async def async_update_data(
+        self, device_config: dict[str, Any], profiles: list[dict[str, Any]]
+    ) -> None:
         """Update historical data with new device information."""
         # Ensure data is loaded first
         if not self._data_loaded:
             await self.async_load_history()
-            
-        current_total_brews = device_config.get("totalBrewingCycles", 0)
-        current_total_water = device_config.get("totalWaterVolumeL", 0)
-        brew_start_time = device_config.get("brewStartTime")
-        brew_end_time = device_config.get("brewEndTime")
 
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        current_total_water = _nonnegative_counter(
+            device_config.get("totalWaterVolumeL")
+        )
         now = dt_util.now()
+        now_timestamp = int(now.timestamp())
         data_changed = False
-        
-        # Initialize baselines if this is the first time we're tracking
-        # and we don't have any historical data
-        if (self._last_total_brews == 0 and self._last_total_water == 0 and 
-            len(self._brew_history) == 0 and len(self._water_usage_history) == 0):
-            _LOGGER.info("Initializing water usage tracking baseline: %d brews, %d ml water", 
-                        current_total_brews, current_total_water)
+        observed_timing: _ObservedTiming | None = None
+        api_start_present = "brewStartTime" in device_config
+        current_api_start = (
+            _positive_timestamp(device_config.get("brewStartTime"))
+            if api_start_present
+            else self._last_api_brew_start
+        )
+        brewing = is_brewing(device_config)
+
+        pending_timing = self._pending_brew_timing
+        if pending_timing is not None:
+            pending_expired = (
+                now_timestamp - pending_timing.end_timestamp
+                > _MAX_PENDING_COMPLETION_AGE_SECONDS
+                or pending_timing.end_timestamp > now_timestamp + 60
+                or (
+                    current_total_brews is not None
+                    and current_total_brews < pending_timing.total_brews_at_time - 1
+                )
+            )
+            if pending_expired:
+                self._pending_brew_timing = None
+                data_changed = True
+            elif (
+                current_total_brews is not None
+                and current_total_brews >= pending_timing.total_brews_at_time
+            ):
+                observed_timing = pending_timing
+                self._pending_brew_timing = None
+                data_changed = True
+
+        if brewing is True and self._active_brew_start is None:
+            api_start_changed = (
+                current_api_start is not None
+                and current_api_start != self._last_api_brew_start
+                and current_api_start >= now_timestamp - _MAX_OBSERVED_START_AGE_SECONDS
+                and current_api_start <= now_timestamp + 60
+            )
+            self._active_brew_start = (
+                current_api_start if api_start_changed else now_timestamp
+            )
+            cycles_at_start = current_total_brews
+            if cycles_at_start is None and self._tracking_initialized:
+                cycles_at_start = self._last_total_brews
+            self._active_brew_cycles = cycles_at_start
+            data_changed = True
+        elif brewing is False and self._active_brew_start is not None:
+            active_cycles = self._active_brew_cycles
+            if active_cycles is not None:
+                api_end = _positive_timestamp(device_config.get("brewEndTime"))
+                end_timestamp = (
+                    api_end
+                    if api_end is not None
+                    and api_end >= self._active_brew_start
+                    and abs(now_timestamp - api_end)
+                    <= _MAX_COMPLETION_CLOCK_SKEW_SECONDS
+                    else now_timestamp
+                )
+                duration = end_timestamp - self._active_brew_start
+                if duration > 0:
+                    completed_timing = _ObservedTiming(
+                        active_cycles + 1,
+                        self._active_brew_start,
+                        end_timestamp,
+                    )
+                    if (
+                        current_total_brews is not None
+                        and current_total_brews >= completed_timing.total_brews_at_time
+                    ):
+                        observed_timing = completed_timing
+                    else:
+                        self._pending_brew_timing = completed_timing
+            self._active_brew_start = None
+            self._active_brew_cycles = None
+            data_changed = True
+
+        if api_start_present and current_api_start != self._last_api_brew_start:
+            self._last_api_brew_start = current_api_start
+            data_changed = True
+
+        if current_total_brews is None or current_total_water is None:
+            _LOGGER.debug(
+                "Skipping counter history update because counters are unavailable"
+            )
+            if data_changed:
+                await self._async_save_history()
+            return
+
+        # Zero is a valid counter value. An explicit flag prevents the first
+        # brew after a zero baseline from being mistaken for initialization.
+        if not self._tracking_initialized:
+            _LOGGER.info(
+                "Initializing water usage tracking baseline: %s brews, %s ml water",
+                current_total_brews,
+                current_total_water,
+            )
             self._last_total_brews = current_total_brews
             self._last_total_water = current_total_water
+            self._tracking_initialized = True
+            await self._async_save_history()
+            return
+
+        # A factory reset or server counter reset starts a new baseline. Never
+        # turn the reset into a negative usage record.
+        if current_total_brews < self._last_total_brews:
+            self._last_total_brews = current_total_brews
             data_changed = True
-        
+        if current_total_water < self._last_total_water:
+            self._last_total_water = current_total_water
+            data_changed = True
+
         # Check if we have a new brew
         if current_total_brews > self._last_total_brews:
             new_brews = current_total_brews - self._last_total_brews
             _LOGGER.info("Detected %d new brew(s)", new_brews)
-            
+
             # Add brew record(s)
             for i in range(new_brews):
+                record_total_brews = current_total_brews - (new_brews - 1 - i)
                 brew_record = {
                     "timestamp": now.isoformat(),
-                    "total_brews_at_time": current_total_brews - (new_brews - 1 - i),
+                    "total_brews_at_time": record_total_brews,
                     "total_water_at_time": current_total_water,
                 }
-                
-                # Add timing information if available
-                if brew_start_time and brew_end_time:
-                    try:
-                        start_ts = int(brew_start_time)
-                        end_ts = int(brew_end_time)
-                        if start_ts > 0 and end_ts > 0 and start_ts < end_ts:
-                            start_dt = dt_util.as_local(dt_util.utc_from_timestamp(start_ts))
-                            end_dt = dt_util.as_local(dt_util.utc_from_timestamp(end_ts))
-                            brew_record["start_time"] = start_dt.isoformat()
-                            brew_record["end_time"] = end_dt.isoformat()
-                            brew_record["duration_seconds"] = end_ts - start_ts
-                    except (ValueError, TypeError):
-                        pass
-                
-                # Try to determine the profile used (get default or first profile)
-                if profiles:
-                    default_profile = next(
-                        (p for p in profiles if p.get("isDefaultProfile")), 
-                        profiles[0] if profiles else None
-                    )
-                    if default_profile:
-                        profile_id = default_profile.get("id")
-                        profile_title = default_profile.get("title", "Unknown Profile")
-                        brew_record["profile_id"] = profile_id
-                        brew_record["profile_title"] = profile_title
-                        
-                        # Update profile usage counter
-                        if profile_title in self._profile_usage:
-                            self._profile_usage[profile_title] += 1
-                        else:
-                            self._profile_usage[profile_title] = 1
-                
+
+                if record_total_brews == current_total_brews:
+                    profile_evidence = {
+                        key: device_config[key]
+                        for key in _PROFILE_EVIDENCE_FIELDS
+                        if device_config.get(key) is not None
+                    }
+                    if profile_evidence:
+                        brew_record["_profile_evidence"] = profile_evidence
+                    self._attribute_profile(brew_record, profiles, device_config)
+
                 self._brew_history.append(brew_record)
-            
+
             self._last_total_brews = current_total_brews
             data_changed = True
-        
+
+        data_changed = self._attach_observed_timing(observed_timing) or data_changed
+
+        data_changed = (
+            self._attribute_latest_unresolved_brew(
+                current_total_brews, device_config, profiles
+            )
+            or data_changed
+        )
+
         # Check if water usage changed
         if current_total_water > self._last_total_water:
             water_used = current_total_water - self._last_total_water
@@ -152,16 +452,94 @@ class BrewHistoryManager:
             }
             self._water_usage_history.append(water_record)
             self._last_total_water = current_total_water
-            _LOGGER.debug("Recorded water usage: %d ml", water_used)
+            _LOGGER.debug("Recorded water usage: %s ml", water_used)
             data_changed = True
-        
+
         if data_changed:
             # Clean old records based on retention policy
             cutoff_date = now - timedelta(days=HISTORY_RETENTION_DAYS)
             self._clean_old_records(cutoff_date)
-            
+
             # Save updated history
             await self._async_save_history()
+
+    def _migrate_legacy_timing(self) -> None:
+        """Keep only a plausible latest legacy pair; discard other derived timing."""
+        if not self._brew_history:
+            return
+
+        latest = self._brew_history[-1]
+        candidate = {
+            key: latest.get(key)
+            for key in ("start_time", "end_time", "duration_seconds")
+        }
+        for record in self._brew_history:
+            for key in (
+                "start_time",
+                "end_time",
+                "duration_seconds",
+                "duration_source",
+            ):
+                record.pop(key, None)
+
+        duration = _nonnegative_counter(candidate["duration_seconds"], integral=True)
+        if (
+            duration is None
+            or duration == 0
+            or duration > _MAX_LEGACY_DURATION_SECONDS
+            or latest.get("total_brews_at_time") != self._last_total_brews
+        ):
+            return
+
+        try:
+            start = datetime.fromisoformat(str(candidate["start_time"]))
+            end = datetime.fromisoformat(str(candidate["end_time"]))
+            recorded = datetime.fromisoformat(str(latest["timestamp"]))
+            paired_duration = round((end - start).total_seconds())
+            end_skew = abs((recorded - end).total_seconds())
+        except (KeyError, TypeError, ValueError):
+            return
+
+        if paired_duration != duration or end_skew > _MAX_LEGACY_END_SKEW_SECONDS:
+            return
+        latest.update(
+            {
+                **candidate,
+                "duration_seconds": int(duration),
+                "duration_source": "validated_legacy_pair",
+            }
+        )
+
+    async def async_has_new_brew(self, device_config: dict[str, Any]) -> bool:
+        """Return whether fresh profiles are needed for brew attribution."""
+        if not self._data_loaded:
+            await self.async_load_history()
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        return bool(
+            self._tracking_initialized
+            and current_total_brews is not None
+            and current_total_brews > self._last_total_brews
+        )
+
+    async def async_needs_profile_attribution(
+        self, device_config: dict[str, Any]
+    ) -> bool:
+        """Return whether the latest brew still needs fresh profile data."""
+        if not self._data_loaded:
+            await self.async_load_history()
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        return bool(
+            current_total_brews is not None
+            and any(
+                record.get("total_brews_at_time") == current_total_brews
+                and "profile_title" not in record
+                for record in reversed(self._brew_history)
+            )
+        )
 
     def _clean_old_records(self, cutoff_date: datetime) -> None:
         """Remove records older than cutoff date."""
@@ -184,25 +562,30 @@ class BrewHistoryManager:
                 return False
 
         self._brew_history = [
-            record for record in self._brew_history
-            if is_record_recent(record)
+            record for record in self._brew_history if is_record_recent(record)
         ]
 
         self._water_usage_history = [
-            record for record in self._water_usage_history
-            if is_record_recent(record)
+            record for record in self._water_usage_history if is_record_recent(record)
         ]
 
-        if len(self._brew_history) < original_brew_count or len(self._water_usage_history) < original_water_count:
-            _LOGGER.debug("Cleaned old records: %d->%d brews, %d->%d water",
-                         original_brew_count, len(self._brew_history),
-                         original_water_count, len(self._water_usage_history))
+        if (
+            len(self._brew_history) < original_brew_count
+            or len(self._water_usage_history) < original_water_count
+        ):
+            _LOGGER.debug(
+                "Cleaned old records: %d->%d brews, %d->%d water",
+                original_brew_count,
+                len(self._brew_history),
+                original_water_count,
+                len(self._water_usage_history),
+            )
 
     def get_average_time_between_brews(self) -> float | None:
         """Calculate average time between brews in hours."""
         if len(self._brew_history) < MIN_HISTORICAL_DATA_FOR_ACCURACY:
             return None
-        
+
         # Get timestamps of brews
         timestamps = []
         for record in self._brew_history:
@@ -214,23 +597,25 @@ class BrewHistoryManager:
                 timestamps.append(ts)
             except (ValueError, KeyError):
                 continue
-        
+
         if len(timestamps) < MIN_HISTORICAL_DATA_FOR_ACCURACY:
             return None
-        
+
         # Sort timestamps
         timestamps.sort()
-        
+
         # Calculate intervals
         intervals = []
         for i in range(1, len(timestamps)):
-            interval = (timestamps[i] - timestamps[i-1]).total_seconds() / 3600  # Convert to hours
+            interval = (
+                timestamps[i] - timestamps[i - 1]
+            ).total_seconds() / 3600  # Convert to hours
             if interval > 0:  # Ignore negative or zero intervals
                 intervals.append(interval)
-        
+
         if intervals:
             return round(sum(intervals) / len(intervals), 1)
-        
+
         return None
 
     def get_water_usage_for_period(self, days: int) -> float:
@@ -254,36 +639,44 @@ class BrewHistoryManager:
                         water_used = record.get("water_used_ml", 0)
                         total_water += water_used
                         matching_records += 1
-                        _LOGGER.debug("Found water usage record: %dml on %s", water_used, timestamp_str)
+                        _LOGGER.debug(
+                            "Found water usage record: %dml on %s",
+                            water_used,
+                            timestamp_str,
+                        )
                 except (ValueError, TypeError):
                     continue
 
         total_liters = round(total_water / 1000.0, 2)
-        _LOGGER.debug("Water usage for %d-day period: %d records, %dml (%sL)", days, matching_records, total_water, total_liters)
+        _LOGGER.debug(
+            "Water usage for %d-day period: %d records, %dml (%sL)",
+            days,
+            matching_records,
+            total_water,
+            total_liters,
+        )
         return total_liters
-
-    def get_average_brew_duration(self) -> float | None:
-        """Calculate average brew duration in minutes."""
-        durations = []
-        
-        for record in self._brew_history:
-            duration = record.get("duration_seconds")
-            if duration and duration > 0:
-                durations.append(duration / 60.0)  # Convert to minutes
-        
-        if durations:
-            return round(sum(durations) / len(durations), 1)
-        
-        return None
 
     def get_most_popular_profile(self) -> str | None:
         """Get the most frequently used profile."""
         if not self._profile_usage:
             return None
-        
+
         # Find profile with highest usage count
         most_used = max(self._profile_usage.items(), key=lambda x: x[1])
         return most_used[0]
+
+    def get_last_brew_duration(self) -> int | None:
+        """Return the newest duration captured from one observed brew cycle."""
+        for record in reversed(self._brew_history):
+            if record.get("duration_source") not in _TRUSTED_DURATION_SOURCES:
+                continue
+            duration = _nonnegative_counter(
+                record.get("duration_seconds"), integral=True
+            )
+            if duration is not None and duration > 0:
+                return int(duration)
+        return None
 
     def get_profile_usage_stats(self) -> dict[str, int]:
         """Get profile usage statistics."""
@@ -323,10 +716,10 @@ class BrewHistoryManager:
         """Get the timestamp of the last brew."""
         if not self._brew_history:
             return None
-        
+
         # Get the most recent brew
         latest_record = max(self._brew_history, key=lambda x: x.get("timestamp", ""))
-        
+
         try:
             dt = datetime.fromisoformat(latest_record["timestamp"])
             # Ensure timezone is set
@@ -335,23 +728,35 @@ class BrewHistoryManager:
             return dt
         except (ValueError, KeyError):
             return None
-    
+
     def debug_water_usage_history(self) -> None:
         """Debug method to log all water usage history."""
-        _LOGGER.info("Water usage history (%d records):", len(self._water_usage_history))
+        _LOGGER.info(
+            "Water usage history (%d records):", len(self._water_usage_history)
+        )
         for i, record in enumerate(self._water_usage_history):
             timestamp = record.get("timestamp", "Unknown")
             water_used = record.get("water_used_ml", 0)
             total_at_time = record.get("total_water_at_time", 0)
-            _LOGGER.info("  %d. %s: +%sml (total: %sml)", i+1, timestamp, water_used, total_at_time)
-        
+            _LOGGER.info(
+                "  %d. %s: +%sml (total: %sml)",
+                i + 1,
+                timestamp,
+                water_used,
+                total_at_time,
+            )
+
         if not self._water_usage_history:
             _LOGGER.info("  No water usage records found")
-            _LOGGER.info("  Current tracking state: last_total_water=%s", self._last_total_water)
-    
+            _LOGGER.info(
+                "  Current tracking state: last_total_water=%s", self._last_total_water
+            )
+
     async def async_reset_water_tracking(self, current_total_water: int) -> None:
         """Reset water usage tracking with a new baseline."""
-        _LOGGER.info("Resetting water usage tracking baseline to %d ml", current_total_water)
+        _LOGGER.info(
+            "Resetting water usage tracking baseline to %d ml", current_total_water
+        )
         self._water_usage_history.clear()
         self._last_total_water = current_total_water
         await self._async_save_history()

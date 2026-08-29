@@ -1,4 +1,5 @@
 """Async Fellow object to interact with Aiden brewer."""
+
 from __future__ import annotations
 
 import asyncio
@@ -6,7 +7,7 @@ import logging
 import re
 import ssl
 from difflib import SequenceMatcher
-from typing import Any
+from typing import Any, ClassVar, NamedTuple
 
 import aiohttp
 from pydantic import ValidationError
@@ -27,12 +28,23 @@ class FellowConnectionError(Exception):
     """Raised when a Fellow API request fails due to connectivity issues."""
 
 
+class FellowApiError(Exception):
+    """Raised when the Fellow API returns an invalid response."""
+
+
 class FellowNoSupportedDeviceError(Exception):
     """Raised when the account has no compatible Fellow Aiden brewer."""
 
 
 class _IncompatibleDeviceError(Exception):
     """Raised when a device candidate does not expose Aiden endpoints."""
+
+
+class ResourceRefreshResult(NamedTuple):
+    """Report which independently cached resources refreshed successfully."""
+
+    profiles: bool
+    schedules: bool
 
 
 class FellowAiden:
@@ -44,21 +56,23 @@ class FellowAiden:
     """
 
     LOGGER_NAME = "custom_components.fellow.fellow_aiden.api"
-    BASE_URL = "https://l8qtmnc692.execute-api.us-west-2.amazonaws.com/v1"
+    BASE_URL = "https://l8qtmnc692.execute-api.us-west-2.amazonaws.com/v2"
     API_AUTH = "/auth/login"
-    API_AUTH_REFRESH = "/auth/refresh"
+    API_AUTH_REFRESH = "/auth/refresh-token"
     API_DEVICES = "/devices"
     API_DEVICE = "/devices/{id}"
+    API_START_BREW = "/devices/{id}/start"
     API_SCHEDULES = "/devices/{id}/schedules"
     API_SCHEDULE = "/devices/{id}/schedules/{sid}"
     API_PROFILES = "/devices/{id}/profiles"
     API_PROFILE = "/devices/{id}/profiles/{pid}"
     API_PROFILE_SHARE = "/devices/{id}/profiles/{pid}/share"
-    API_SHARED_PROFILE = "/shared/{bid}"
-    HEADERS = {
+    API_SHARED_PROFILE = "/shared/{drop_type}/{pid}"
+    API_FIREBASE_NOTIFICATIONS = "/firebase/notifications"
+    HEADERS: ClassVar[dict[str, str]] = {
         "User-Agent": "Fellow/5 CFNetwork/1568.300.101 Darwin/24.2.0",
     }
-    SERVER_SIDE_PROFILE_FIELDS = [
+    SERVER_SIDE_PROFILE_FIELDS: ClassVar[tuple[str, ...]] = (
         "id",
         "createdAt",
         "deletedAt",
@@ -69,7 +83,18 @@ class FellowAiden:
         "folder",
         "duration",
         "lastGBQuantity",
-    ]
+    )
+    INVENTORY_FIELDS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "id",
+            "displayName",
+            "serialNumber",
+            "wifiMacAddress",
+            "btMacAddress",
+            "sku",
+            "firmwareVersion",
+        }
+    )
 
     _RETRY_STATUSES = frozenset({408, 500, 501, 502, 503, 504})
     _TRANSIENT_HTTP_STATUSES = frozenset({408, 429, 500, 501, 502, 503, 504})
@@ -82,6 +107,7 @@ class FellowAiden:
         password: str,
         session: aiohttp.ClientSession,
         brewer_id: str | None = None,
+        timezone: str = "UTC",
     ) -> None:
         """Store credentials and session.  Call ``authenticate()`` to log in."""
         self._log = logging.getLogger(self.LOGGER_NAME)
@@ -90,6 +116,7 @@ class FellowAiden:
         self._refresh_token: str | None = None
         self._email = email
         self._password = password
+        self._timezone = timezone
         self._device_config: dict[str, Any] | None = None
         self._configured_brewer_id = brewer_id
         self._brewer_id: str | None = brewer_id
@@ -112,6 +139,7 @@ class FellowAiden:
         url: str,
         *,
         authenticated: bool = True,
+        retry_statuses: bool = True,
         **kwargs: Any,
     ) -> aiohttp.ClientResponse:
         """HTTP request with automatic retries on server errors."""
@@ -131,15 +159,21 @@ class FellowAiden:
                 raise FellowConnectionError(
                     f"Request failed for {method.upper()} {url}: {err}"
                 ) from err
-            if response.status not in self._TRANSIENT_HTTP_STATUSES:
+            if (
+                response.status not in self._TRANSIENT_HTTP_STATUSES
+                or not retry_statuses
+            ):
                 return response
-            if response.status not in self._RETRY_STATUSES or attempt == self._MAX_RETRIES:
+            if (
+                response.status not in self._RETRY_STATUSES
+                or attempt == self._MAX_RETRIES
+            ):
                 parsed = await self._parse_response(response)
                 raise FellowConnectionError(
                     f"Request failed for {method.upper()} {url} ({response.status}): {parsed}"
                 )
             response.release()
-            await asyncio.sleep(min(2 ** attempt, 8))
+            await asyncio.sleep(min(2**attempt, 8))
             self._log.debug(
                 "Retry %d/%d for %s %s (status %s)",
                 attempt + 1,
@@ -184,9 +218,7 @@ class FellowAiden:
                 )
         return response
 
-    async def _parse_response(
-        self, response: aiohttp.ClientResponse
-    ) -> Any:
+    async def _parse_response(self, response: aiohttp.ClientResponse) -> Any:
         """Parse a response body as JSON, falling back to raw text."""
         try:
             return await response.json(content_type=None)
@@ -203,7 +235,7 @@ class FellowAiden:
         if 200 <= response.status < 300:
             return
         parsed = await self._parse_response(response)
-        raise Exception(f"{action} failed ({response.status}): {parsed}")
+        raise FellowApiError(f"{action} failed ({response.status}): {parsed}")
 
     # -- Authentication -----------------------------------------------------
 
@@ -226,16 +258,16 @@ class FellowAiden:
                 authenticated=False,
                 json={"refreshToken": self._refresh_token},
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - refresh must fall back to full login
             self._log.debug("Refresh token request failed", exc_info=True)
             return False
 
-        if response.status != 200:
+        if not 200 <= response.status < 300:
             self._log.debug("Refresh endpoint returned %s", response.status)
             response.release()
             return False
         parsed = await self._parse_response(response)
-        if "accessToken" not in parsed:
+        if not isinstance(parsed, dict) or "accessToken" not in parsed:
             self._log.debug("Refresh response missing accessToken")
             return False
         self._token = parsed["accessToken"]
@@ -247,9 +279,16 @@ class FellowAiden:
         """Perform email/password authentication."""
         self._log.debug("Authenticating user")
         login_url = self.BASE_URL + self.API_AUTH
-        auth_payload = {"email": self._email, "password": self._password}
+        auth_payload = {
+            "email": self._email,
+            "password": self._password,
+            "timezone": self._timezone,
+        }
         response = await self._request(
-            "post", login_url, authenticated=False, json=auth_payload,
+            "post",
+            login_url,
+            authenticated=False,
+            json=auth_payload,
         )
         if response.status in (400, 401, 403):
             response.release()
@@ -257,8 +296,12 @@ class FellowAiden:
 
         await self._ensure_success(response, "Authentication")
         parsed = await self._parse_response(response)
-        if "accessToken" not in parsed or "refreshToken" not in parsed:
-            raise Exception(f"Authentication response missing tokens: {parsed}")
+        if (
+            not isinstance(parsed, dict)
+            or "accessToken" not in parsed
+            or "refreshToken" not in parsed
+        ):
+            raise FellowApiError(f"Authentication response missing tokens: {parsed}")
 
         self._log.debug("Authentication successful")
         self._token = parsed["accessToken"]
@@ -317,10 +360,8 @@ class FellowAiden:
         parsed = await self._parse_response(response)
         self._log.debug(parsed)
         if not isinstance(parsed, list):
-            raise Exception(f"Unexpected device response payload: {parsed}")
-        device_candidates = [
-            device for device in parsed if isinstance(device, dict)
-        ]
+            raise FellowApiError(f"Unexpected device response payload: {parsed}")
+        device_candidates = [device for device in parsed if isinstance(device, dict)]
         if not device_candidates:
             raise FellowNoSupportedDeviceError(
                 "No supported Fellow Aiden brewer was found on this account."
@@ -345,16 +386,77 @@ class FellowAiden:
         return supported_devices
 
     async def fetch_device(self) -> None:
-        """Public method to re-fetch device data from the cloud."""
-        await self._fetch_device()
+        """Refresh the selected brewer using the lightweight detail route."""
+        if not self._brewer_id:
+            await self._fetch_device()
+            return
+
+        device_url = self.BASE_URL + self.API_DEVICE.format(id=self._brewer_id)
+        response = await self._request_with_reauth(
+            "get", device_url, params={"dataType": "real"}
+        )
+        if response.status == 404:
+            response.release()
+            raise FellowNoSupportedDeviceError(
+                f"Configured Fellow Aiden brewer {self._brewer_id} was not found."
+            )
+        await self._ensure_success(response, "Device detail fetch")
+        parsed = await self._parse_response(response)
+        if not isinstance(parsed, dict):
+            raise FellowApiError(f"Unexpected device detail payload: {parsed}")
+        if parsed.get("id") not in (None, self._brewer_id):
+            raise FellowApiError(
+                "Device detail response did not match the configured brewer."
+            )
+        inventory = {
+            key: value
+            for key, value in (self._device_config or {}).items()
+            if key in self.INVENTORY_FIELDS
+        }
+        self._device_config = {**inventory, **parsed}
+
+    async def refresh_resources(self) -> ResourceRefreshResult:
+        """Refresh profile and schedule caches without coupling their failures."""
+        profiles_url = self.BASE_URL + self.API_PROFILES.format(id=self._brewer_id)
+        schedules_url = self.BASE_URL + self.API_SCHEDULES.format(id=self._brewer_id)
+        profiles, schedules = await asyncio.gather(
+            self._fetch_list_resource(profiles_url, "Profile fetch"),
+            self._fetch_list_resource(schedules_url, "Schedule fetch"),
+            return_exceptions=True,
+        )
+
+        for result in (profiles, schedules):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            if isinstance(result, FellowAuthError):
+                raise result
+
+        profiles_refreshed = not isinstance(profiles, BaseException)
+        schedules_refreshed = not isinstance(schedules, BaseException)
+        if profiles_refreshed:
+            self._profiles = profiles
+        else:
+            self._log.warning("Profile refresh failed; using cached data: %s", profiles)
+        if schedules_refreshed:
+            self._schedules = schedules
+        else:
+            self._log.warning(
+                "Schedule refresh failed; using cached data: %s", schedules
+            )
+
+        if not profiles_refreshed and not schedules_refreshed:
+            failure = profiles if isinstance(profiles, Exception) else schedules
+            if isinstance(failure, Exception):
+                raise failure
+            raise FellowConnectionError("Profile and schedule refresh failed")
+
+        return ResourceRefreshResult(profiles_refreshed, schedules_refreshed)
 
     async def get_profiles(self) -> list[dict[str, Any]]:
         """Return profiles, fetching from API if not cached."""
         if self._profiles is None:
             self._log.debug("Fetching profiles")
-            profiles_url = self.BASE_URL + self.API_PROFILES.format(
-                id=self._brewer_id
-            )
+            profiles_url = self.BASE_URL + self.API_PROFILES.format(id=self._brewer_id)
             self._profiles = await self._fetch_list_resource(
                 profiles_url, "Profile fetch"
             )
@@ -419,9 +521,7 @@ class FellowAiden:
         ]
         return preferred + remaining
 
-    async def _fetch_list_resource(
-        self, url: str, action: str
-    ) -> list[dict[str, Any]]:
+    async def _fetch_list_resource(self, url: str, action: str) -> list[dict[str, Any]]:
         """Fetch a list payload from the Fellow API."""
         response = await self._request_with_reauth("get", url)
         await self._ensure_success(response, action)
@@ -430,7 +530,7 @@ class FellowAiden:
         if not isinstance(parsed, list) or any(
             not isinstance(item, dict) for item in parsed
         ):
-            raise Exception(f"Unexpected {action.lower()} payload: {parsed}")
+            raise FellowApiError(f"Unexpected {action.lower()} payload: {parsed}")
 
         self._log.debug(parsed)
         return parsed
@@ -532,24 +632,24 @@ class FellowAiden:
     async def parse_brewlink_url(self, link: str) -> dict[str, Any]:
         """Extract profile information from a shared brew link."""
         self._log.debug("Parsing shared brew link")
-        pattern = r"(?:.*?/p/)?([a-zA-Z0-9]+)/?$"
+        pattern = r"(?:.*?/p/)?([a-zA-Z0-9]+)(?:/([a-zA-Z0-9_-]+))?/?$"
         match = re.search(pattern, link)
         if not match:
             raise ValueError("Invalid profile URL or ID format")
-        brew_id = match.group(1)
+        brew_id, drop_type = match.group(1), match.group(2) or "aiden"
         self._log.debug("Brew ID: %s", brew_id)
-        shared_url = self.BASE_URL + self.API_SHARED_PROFILE.format(bid=brew_id)
+        shared_url = self.BASE_URL + self.API_SHARED_PROFILE.format(
+            drop_type=drop_type, pid=brew_id
+        )
         response = await self._request_with_reauth("get", shared_url)
         if response.status == 404:
             response.release()
             raise ValueError(f"Failed to fetch profile (ID: {brew_id})")
 
-        await self._ensure_success(
-            response, f"Shared profile fetch (ID: {brew_id})"
-        )
+        await self._ensure_success(response, f"Shared profile fetch (ID: {brew_id})")
         parsed = await self._parse_response(response)
         if not isinstance(parsed, dict):
-            raise ValueError(
+            raise FellowApiError(
                 f"Unexpected shared profile payload for ID {brew_id}: {parsed}"
             )
 
@@ -568,7 +668,7 @@ class FellowAiden:
             raise ValueError(f"Brew profile format was invalid: {err}") from err
 
         if "id" in data:
-            raise Exception(
+            raise FellowApiError(
                 "Candidate profiles must be free of server derived fields."
             )
 
@@ -579,17 +679,16 @@ class FellowAiden:
 
         parsed = await self._parse_response(response)
         if not isinstance(parsed, dict):
-            raise Exception(f"Unexpected profile creation payload: {parsed}")
+            raise FellowApiError(f"Unexpected profile creation payload: {parsed}")
         if "id" not in parsed:
-            raise Exception(f"Error in processing: {parsed}")
+            raise FellowApiError(f"Error in processing: {parsed}")
 
-        await self._fetch_device()
+        self._profiles = None
+        await self.get_profiles()
         self._log.debug("Brew profile created: %s", parsed)
         return parsed
 
-    async def update_profile(
-        self, profile_id: str, data: dict[str, Any]
-    ) -> bool:
+    async def update_profile(self, profile_id: str, data: dict[str, Any]) -> bool:
         """Update an existing profile by ID."""
         self._log.debug("Updating brew profile %s: %s", profile_id, data)
         try:
@@ -600,7 +699,7 @@ class FellowAiden:
 
         if not await self._is_valid_profile_id(profile_id):
             ids = await self._get_profile_ids()
-            raise Exception(
+            raise FellowApiError(
                 f"Profile with ID {profile_id} does not exist. Valid profiles: {ids}"
             )
 
@@ -614,7 +713,8 @@ class FellowAiden:
         response = await self._request_with_reauth("patch", update_url, json=data)
         await self._ensure_success(response, f"Profile update ({profile_id})")
 
-        await self._fetch_device()
+        self._profiles = None
+        await self.get_profiles()
         self._log.debug("Profile %s updated successfully", profile_id)
         return True
 
@@ -636,7 +736,7 @@ class FellowAiden:
 
         parsed = await self._parse_response(response)
         if "link" not in parsed:
-            raise Exception(f"Error in processing: {parsed}")
+            raise FellowApiError(f"Error in processing: {parsed}")
 
         self._log.debug("Share link generated: %s", parsed)
         return parsed["link"]
@@ -664,35 +764,30 @@ class FellowAiden:
             CoffeeSchedule.model_validate(data)
         except ValidationError as err:
             self._log.error("Brew schedule format was invalid: %s", err)
-            raise ValueError(
-                f"Brew schedule format was invalid: {err}"
-            ) from err
+            raise ValueError(f"Brew schedule format was invalid: {err}") from err
 
         if "id" in data:
-            raise Exception(
+            raise FellowApiError(
                 "Candidate schedules must be free of server derived fields."
             )
 
         self._log.debug("Brew schedule passed checks")
-        schedule_url = self.BASE_URL + self.API_SCHEDULES.format(
-            id=self._brewer_id
-        )
-        response = await self._request_with_reauth(
-            "post", schedule_url, json=data
-        )
+        schedule_url = self.BASE_URL + self.API_SCHEDULES.format(id=self._brewer_id)
+        response = await self._request_with_reauth("post", schedule_url, json=data)
         await self._ensure_success(response, "Schedule creation")
 
         parsed = await self._parse_response(response)
         if not isinstance(parsed, dict):
-            raise Exception(f"Unexpected schedule creation payload: {parsed}")
+            raise FellowApiError(f"Unexpected schedule creation payload: {parsed}")
         if "id" not in parsed:
             message = parsed.get("message", "Unable to get error message.")
             if "Profile could not be found" in message:
                 ids = await self._get_profile_ids()
                 message += f" Valid profiles: {ids}"
-            raise Exception(f"Error in processing: {message}")
+            raise FellowApiError(f"Error in processing: {message}")
 
-        await self._fetch_device()
+        self._schedules = None
+        await self.get_schedules()
         self._log.debug("Brew schedule created: %s", parsed)
         return parsed
 
@@ -701,9 +796,7 @@ class FellowAiden:
         self._log.debug("Deleting schedule")
         if not await self._is_valid_schedule_id(sid):
             ids = await self._get_schedule_ids()
-            raise Exception(
-                f"Schedule does not exist. Valid schedules: {ids}"
-            )
+            raise FellowApiError(f"Schedule does not exist. Valid schedules: {ids}")
         delete_url = self.BASE_URL + self.API_SCHEDULE.format(
             id=self._brewer_id, sid=sid
         )
@@ -722,18 +815,40 @@ class FellowAiden:
         response = await self._request_with_reauth(
             "patch", patch_url, json={setting: value}
         )
-        await self._ensure_success(
-            response, f"Device setting update ({setting})"
-        )
+        await self._ensure_success(response, f"Device setting update ({setting})")
         return await response.read()
+
+    async def start_brew(self) -> dict[str, Any]:
+        """Start the brewer's configured Instant Brew recipe."""
+        start_url = self.BASE_URL + self.API_START_BREW.format(id=self._brewer_id)
+        response = await self._request_with_reauth(
+            "patch",
+            start_url,
+            params={"confirm": "true"},
+            retry_statuses=False,
+        )
+        await self._ensure_success(response, "Remote brew start")
+        parsed = await self._parse_response(response)
+        if not isinstance(parsed, dict):
+            raise FellowApiError(f"Unexpected remote brew response: {parsed}")
+        return parsed
+
+    async def register_push_token(self, fcm_token: str) -> None:
+        """Register an Android FCM token with the Fellow account."""
+        if not fcm_token:
+            raise ValueError("FCM token cannot be empty")
+        response = await self._request_with_reauth(
+            "post",
+            self.BASE_URL + self.API_FIREBASE_NOTIFICATIONS,
+            json={"fcmToken": fcm_token},
+        )
+        await self._ensure_success(response, "Push notification registration")
 
     async def toggle_schedule(self, sid: str, enabled: bool) -> bool:
         """Enable or disable a schedule."""
         if not await self._is_valid_schedule_id(sid):
             ids = await self._get_schedule_ids()
-            raise Exception(
-                f"Schedule does not exist. Valid schedules: {ids}"
-            )
+            raise FellowApiError(f"Schedule does not exist. Valid schedules: {ids}")
         patch_url = self.BASE_URL + self.API_SCHEDULE.format(
             id=self._brewer_id, sid=sid
         )

@@ -1,8 +1,9 @@
 """Config flow for Fellow Aiden."""
+
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -16,7 +17,14 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .const import DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, MIN_UPDATE_INTERVAL_SECONDS
+from .const import (
+    CONF_ENABLE_CLOUD_PUSH,
+    CONF_UPDATE_INTERVAL_SECONDS,
+    DEFAULT_ENABLE_CLOUD_PUSH,
+    DOMAIN,
+    MIN_UPDATE_INTERVAL_SECONDS,
+    get_update_interval_seconds,
+)
 from .fellow_aiden import (
     FellowAiden,
     FellowAuthError,
@@ -26,10 +34,21 @@ from .fellow_aiden import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
+def _time_zone(hass: HomeAssistant) -> str:
+    """Return Home Assistant's IANA timezone for the v2 login payload."""
+    config = getattr(hass, "config", None)
+    return getattr(config, "time_zone", None) or "UTC"
+
+
 USER_SCHEMA = vol.Schema(
     {
-        vol.Required("email"): TextSelector(TextSelectorConfig(type=TextSelectorType.EMAIL)),
-        vol.Required("password"): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+        vol.Required("email"): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.EMAIL)
+        ),
+        vol.Required("password"): TextSelector(
+            TextSelectorConfig(type=TextSelectorType.PASSWORD)
+        ),
     }
 )
 
@@ -39,7 +58,7 @@ async def _try_login(
 ) -> list[dict[str, Any]]:
     """Authenticate and return every supported brewer on the account."""
     session = async_get_clientsession(hass)
-    api = FellowAiden(email, password, session)
+    api = FellowAiden(email, password, session, timezone=_time_zone(hass))
     await api.authenticate(fetch_device=False)
     return await api.get_supported_devices()
 
@@ -149,9 +168,7 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 self._available_devices = available_devices
                 if len(available_devices) == 1:
-                    return await self._async_create_device_entry(
-                        available_devices[0]
-                    )
+                    return await self._async_create_device_entry(available_devices[0])
                 return await self.async_step_device()
 
         return self.async_show_form(
@@ -210,12 +227,9 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._reauth_email is None:
                 return self.async_abort(reason="unknown")
             try:
-                devices = await _try_login(
-                    self.hass, self._reauth_email, password
-                )
+                devices = await _try_login(self.hass, self._reauth_email, password)
                 if self._reauth_brewer_id and not any(
-                    device.get("id") == self._reauth_brewer_id
-                    for device in devices
+                    device.get("id") == self._reauth_brewer_id for device in devices
                 ):
                     raise FellowNoSupportedDeviceError(
                         "The configured brewer is not available on this account."
@@ -299,7 +313,7 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options (polling interval)."""
+    """Handle cloud push and polling options."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -307,14 +321,15 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            interval = user_input.get("update_interval_seconds")
+            interval = user_input.get(CONF_UPDATE_INTERVAL_SECONDS)
             if interval is not None and interval < MIN_UPDATE_INTERVAL_SECONDS:
-                errors["update_interval_seconds"] = "too_fast"
+                errors[CONF_UPDATE_INTERVAL_SECONDS] = "too_fast"
             else:
                 return self.async_create_entry(title="", data=user_input)
 
-        current_interval = self.config_entry.options.get(
-            "update_interval_seconds", DEFAULT_UPDATE_INTERVAL_MINUTES * 60
+        current_interval = get_update_interval_seconds(self.config_entry.options)
+        cloud_push_enabled = self.config_entry.options.get(
+            CONF_ENABLE_CLOUD_PUSH, DEFAULT_ENABLE_CLOUD_PUSH
         )
 
         return self.async_show_form(
@@ -322,12 +337,16 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        "update_interval_seconds",
+                        CONF_UPDATE_INTERVAL_SECONDS,
                         default=current_interval,
                     ): vol.All(
                         vol.Coerce(int),
                         vol.Range(min=MIN_UPDATE_INTERVAL_SECONDS, max=300),
                     ),
+                    vol.Optional(
+                        CONF_ENABLE_CLOUD_PUSH,
+                        default=cloud_push_enabled,
+                    ): bool,
                 }
             ),
             errors=errors,

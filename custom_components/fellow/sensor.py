@@ -1,6 +1,6 @@
 import logging
+from datetime import datetime, timezone
 from typing import Any
-from datetime import datetime
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -8,15 +8,27 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTime, UnitOfVolume
+from homeassistant.const import UnitOfLength, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, TIMESTAMP_2024_01_01, MIN_VALID_YEAR, MIN_HISTORICAL_DATA_FOR_ACCURACY, FellowAidenConfigEntry
-from .coordinator import FellowAidenDataUpdateCoordinator
 from .base_entity import FellowAidenBaseEntity
+from .const import (
+    MIN_HISTORICAL_DATA_FOR_ACCURACY,
+    MIN_VALID_YEAR,
+    TIMESTAMP_2024_01_01,
+    FellowAidenConfigEntry,
+)
+from .coordinator import FellowAidenDataUpdateCoordinator
+from .profile_resolution import profile_recipe_attributes, resolve_current_profile
+from .schedule_helpers import (
+    ScheduleOccurrence,
+    next_schedule_occurrence,
+    schedule_timezone,
+)
+from .telemetry import BREW_PHASES, brew_phase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,21 +37,72 @@ PARALLEL_UPDATES = 0
 # Standard sensors: (api_key, translation_key, unit, device_class, state_class, entity_category, disabled_default)
 STANDARD_SENSORS = [
     ("chimeVolume", "chime_volume", None, None, None, EntityCategory.DIAGNOSTIC, True),
-    ("totalBrewingCycles", "total_brews", None, None, SensorStateClass.TOTAL_INCREASING, None, False),
-    ("totalWaterVolumeL", "total_water_volume", UnitOfVolume.LITERS, SensorDeviceClass.VOLUME, SensorStateClass.TOTAL_INCREASING, None, False),
-    ("brewingWaterVolumeMl", "last_brew_volume", UnitOfVolume.MILLILITERS, SensorDeviceClass.VOLUME, None, None, False),
+    (
+        "totalBrewingCycles",
+        "total_brews",
+        None,
+        None,
+        SensorStateClass.TOTAL_INCREASING,
+        None,
+        False,
+    ),
+    (
+        "totalWaterVolumeL",
+        "total_water_volume",
+        UnitOfVolume.LITERS,
+        SensorDeviceClass.VOLUME,
+        SensorStateClass.TOTAL_INCREASING,
+        None,
+        False,
+    ),
+    (
+        "brewingWaterVolumeMl",
+        "last_brew_volume",
+        UnitOfVolume.MILLILITERS,
+        SensorDeviceClass.VOLUME,
+        None,
+        None,
+        False,
+    ),
+    (
+        "ibWaterQuantity",
+        "instant_brew_water",
+        UnitOfVolume.MILLILITERS,
+        SensorDeviceClass.VOLUME,
+        None,
+        None,
+        False,
+    ),
+    (
+        "deviceTimezone",
+        "device_timezone",
+        None,
+        None,
+        None,
+        EntityCategory.DIAGNOSTIC,
+        True,
+    ),
+    (
+        "elevation",
+        "elevation",
+        UnitOfLength.METERS,
+        SensorDeviceClass.DISTANCE,
+        None,
+        EntityCategory.DIAGNOSTIC,
+        True,
+    ),
 ]
 
 # Brew time sensors: (api_key, translation_key)
 BREW_TIME_SENSORS = [
-    ("brewStartTime", "last_brew_start_time"),
     ("brewEndTime", "last_brew_end_time"),
 ]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: FellowAidenConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors for the Fellow Aiden integration."""
     _LOGGER.debug("Setting up sensors for entry %s", entry.entry_id)
@@ -52,7 +115,15 @@ async def async_setup_entry(
     entities: list[SensorEntity] = []
 
     # Standard sensors from device config
-    for key, translation_key, unit, device_class, state_class, category, disabled in STANDARD_SENSORS:
+    for (
+        key,
+        translation_key,
+        unit,
+        device_class,
+        state_class,
+        category,
+        disabled,
+    ) in STANDARD_SENSORS:
         entities.append(
             AidenSensor(
                 coordinator=coordinator,
@@ -69,10 +140,7 @@ async def async_setup_entry(
 
     # Initialize derived sensor: Average Water per Brew
     entities.append(
-        AidenAverageWaterPerBrewSensor(
-            coordinator=coordinator,
-            entry=entry
-        )
+        AidenAverageWaterPerBrewSensor(coordinator=coordinator, entry=entry)
     )
 
     # Brew time sensors
@@ -86,26 +154,25 @@ async def async_setup_entry(
             )
         )
 
-    # Initialize the Last Brew Duration sensor immediately after brew time sensors
-    entities.append(
-        AidenLastBrewDurationSensor(
-            coordinator=coordinator,
-            entry=entry
-        )
-    )
-
     # Analytics sensors
-    entities.extend([
-        AidenAverageTimeBetweenBrewsSensor(coordinator, entry),
-        AidenLastBrewTimeSensor(coordinator, entry),
-        AidenTotalWaterTodaySensor(coordinator, entry),
-        AidenTotalWaterWeekSensor(coordinator, entry),
-        AidenTotalWaterMonthSensor(coordinator, entry),
-        AidenAverageBrewDurationSensor(coordinator, entry),
-        AidenMostPopularProfileSensor(coordinator, entry),
-        AidenCurrentProfileSensor(coordinator, entry),
-        AidenBasketSensor(coordinator, entry),
-    ])
+    entities.extend(
+        [
+            AidenAverageTimeBetweenBrewsSensor(coordinator, entry),
+            AidenLastBrewTimeSensor(coordinator, entry),
+            AidenLastBrewDurationSensor(coordinator, entry),
+            AidenTotalWaterTodaySensor(coordinator, entry),
+            AidenTotalWaterWeekSensor(coordinator, entry),
+            AidenTotalWaterMonthSensor(coordinator, entry),
+            AidenMostPopularProfileSensor(coordinator, entry),
+            AidenCurrentProfileSensor(coordinator, entry),
+            AidenBrewPhaseSensor(coordinator, entry),
+            AidenConnectionTimestampSensor(coordinator, entry),
+            AidenBasketSensor(coordinator, entry),
+            AidenNextScheduledBrewSensor(coordinator, entry),
+        ]
+    )
+    if coordinator.push_manager:
+        entities.append(AidenLastCloudPushSensor(coordinator, entry))
 
     _LOGGER.debug("Adding %d sensor entities", len(entities))
     async_add_entities(entities, update_before_add=True)
@@ -152,6 +219,41 @@ class AidenSensor(FellowAidenBaseEntity, SensorEntity):
             return round(value / 1000.0, 2)  # API field is misnamed; value is in mL
 
         return value
+
+
+class AidenLastCloudPushSensor(FellowAidenBaseEntity, SensorEntity):
+    """Timestamp of the last Fellow FCM invalidation received by HA."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "last_cloud_push"
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_unique_id = f"{entry.entry_id}-last-cloud-push"
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the most recently received message timestamp."""
+        manager = self.coordinator.push_manager
+        return manager.last_message_at if manager else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str | int]:
+        """Expose receiver counters without tokens or Android credentials."""
+        manager = self.coordinator.push_manager
+        if manager is None:
+            return {"status": "disabled"}
+        return {
+            "status": manager.status.value,
+            "messages_received": manager.message_count,
+            "reconnections": manager.reconnect_count,
+        }
 
 
 class AidenAverageWaterPerBrewSensor(FellowAidenBaseEntity, SensorEntity):
@@ -225,58 +327,6 @@ class AidenBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
             return None
 
 
-class AidenLastBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
-    """Duration of the last brew, derived from end minus start timestamps."""
-
-    def __init__(
-        self,
-        coordinator: FellowAidenDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        super().__init__(coordinator)
-        self._entry_id = entry.entry_id
-        self._attr_translation_key = "last_brew_duration"
-        self._attr_unique_id = f"{entry.entry_id}-last_brew_duration"
-        self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
-        self._attr_device_class = SensorDeviceClass.DURATION
-
-    @property
-    def native_value(self) -> int | None:
-        """Compute and return the duration of the last brew cycle."""
-        data = self.coordinator.data
-        if not data:
-            return None
-        device_config = data.get("device_config", {})
-        start_time_str = device_config.get("brewStartTime")
-        end_time_str = device_config.get("brewEndTime")
-
-        if not start_time_str or not end_time_str:
-            return None
-
-        try:
-            start_timestamp = int(start_time_str)
-            end_timestamp = int(end_time_str)
-
-            # Validate timestamps to avoid negative durations or epoch times
-            if start_timestamp == 0 or end_timestamp == 0:
-                return None
-            if start_timestamp < TIMESTAMP_2024_01_01:  # Timestamp before 2024-01-01
-                return None
-            if end_timestamp < TIMESTAMP_2024_01_01:
-                return None
-
-            duration = end_timestamp - start_timestamp
-
-            if duration < 0:
-                _LOGGER.warning("End time precedes start time for the last brew cycle.")
-                return None
-
-            return duration
-        except (ValueError, TypeError) as error:
-            _LOGGER.error("Error calculating brew duration: %s", error)
-            return None
-
-
 class AidenAverageTimeBetweenBrewsSensor(FellowAidenBaseEntity, SensorEntity):
     """Rough estimate of average time between brews, from historical data."""
 
@@ -305,9 +355,32 @@ class AidenAverageTimeBetweenBrewsSensor(FellowAidenBaseEntity, SensorEntity):
         history_count = self.coordinator.history_manager.get_brew_history_count()
         return {
             "historical_brews": history_count,
-            "accuracy": "High - based on actual historical data" if history_count >= MIN_HISTORICAL_DATA_FOR_ACCURACY else "Low - insufficient historical data",
-            "note": f"Calculated from {history_count} recorded brews"
+            "accuracy": "High - based on actual historical data"
+            if history_count >= MIN_HISTORICAL_DATA_FOR_ACCURACY
+            else "Low - insufficient historical data",
+            "note": f"Calculated from {history_count} recorded brews",
         }
+
+
+class AidenLastBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
+    """Duration of the latest brew cycle observed from start through completion."""
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_translation_key = "last_brew_duration"
+        self._attr_unique_id = f"{entry.entry_id}-last_brew_duration"
+        self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
+        self._attr_device_class = SensorDeviceClass.DURATION
+
+    @property
+    def native_value(self) -> int | None:
+        """Return a trusted observed duration, never an unpaired API subtraction."""
+        return self.coordinator.history_manager.get_last_brew_duration()
 
 
 class AidenLastBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
@@ -334,7 +407,7 @@ class AidenLastBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
             if historical_time.tzinfo is None:
                 return dt_util.as_local(historical_time)
             return historical_time
-            
+
         # Fallback to device data
         data = self.coordinator.data
         if not data:
@@ -347,7 +420,9 @@ class AidenLastBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
 
         try:
             timestamp_int = int(end_time_str)
-            if timestamp_int == 0 or timestamp_int < TIMESTAMP_2024_01_01:  # Before 2024
+            if (
+                timestamp_int == 0 or timestamp_int < TIMESTAMP_2024_01_01
+            ):  # Before 2024
                 return None
             # Create timezone-aware datetime
             return dt_util.utc_from_timestamp(timestamp_int)
@@ -378,12 +453,14 @@ class AidenTotalWaterTodaySensor(FellowAidenBaseEntity, SensorEntity):
         # IMPORTANT: Only use historical tracking data, never fallback to device totals
         water_usage = self.coordinator.history_manager.get_water_usage_for_period(1)
         _LOGGER.debug("Water usage today from history: %s L", water_usage)
-        
+
         # Ensure we never accidentally return device lifetime totals
         if water_usage is None or water_usage < 0:
-            _LOGGER.warning("Invalid water usage value from history manager, returning 0.0")
+            _LOGGER.warning(
+                "Invalid water usage value from history manager, returning 0.0"
+            )
             return 0.0
-            
+
         return water_usage
 
     @property
@@ -392,8 +469,10 @@ class AidenTotalWaterTodaySensor(FellowAidenBaseEntity, SensorEntity):
         water_records = self.coordinator.history_manager.get_water_usage_count()
         return {
             "historical_records": water_records,
-            "accuracy": "High - based on actual usage tracking" if water_records > 0 else "Low - no historical data yet",
-            "note": f"Calculated from {water_records} water usage records"
+            "accuracy": "High - based on actual usage tracking"
+            if water_records > 0
+            else "Low - no historical data yet",
+            "note": f"Calculated from {water_records} water usage records",
         }
 
 
@@ -419,12 +498,14 @@ class AidenTotalWaterWeekSensor(FellowAidenBaseEntity, SensorEntity):
         # IMPORTANT: Only use historical tracking data, never fallback to device totals
         water_usage = self.coordinator.history_manager.get_water_usage_for_period(7)
         _LOGGER.debug("Water usage this week from history: %s L", water_usage)
-        
+
         # Ensure we never accidentally return device lifetime totals
         if water_usage is None or water_usage < 0:
-            _LOGGER.warning("Invalid water usage value from history manager, returning 0.0")
+            _LOGGER.warning(
+                "Invalid water usage value from history manager, returning 0.0"
+            )
             return 0.0
-            
+
         return water_usage
 
     @property
@@ -435,8 +516,10 @@ class AidenTotalWaterWeekSensor(FellowAidenBaseEntity, SensorEntity):
         return {
             "historical_records": water_records,
             "brews_this_week": brew_count,
-            "accuracy": "High - based on actual usage tracking" if water_records > 0 else "Low - no historical data yet",
-            "note": f"Calculated from {water_records} water usage records"
+            "accuracy": "High - based on actual usage tracking"
+            if water_records > 0
+            else "Low - no historical data yet",
+            "note": f"Calculated from {water_records} water usage records",
         }
 
 
@@ -462,12 +545,14 @@ class AidenTotalWaterMonthSensor(FellowAidenBaseEntity, SensorEntity):
         # IMPORTANT: Only use historical tracking data, never fallback to device totals
         water_usage = self.coordinator.history_manager.get_water_usage_for_period(30)
         _LOGGER.debug("Water usage this month from history: %s L", water_usage)
-        
+
         # Ensure we never accidentally return device lifetime totals
         if water_usage is None or water_usage < 0:
-            _LOGGER.warning("Invalid water usage value from history manager, returning 0.0")
+            _LOGGER.warning(
+                "Invalid water usage value from history manager, returning 0.0"
+            )
             return 0.0
-            
+
         return water_usage
 
     @property
@@ -478,71 +563,10 @@ class AidenTotalWaterMonthSensor(FellowAidenBaseEntity, SensorEntity):
         return {
             "historical_records": water_records,
             "brews_this_month": brew_count,
-            "accuracy": "High - based on actual usage tracking" if water_records > 0 else "Low - no historical data yet",
-            "note": f"Calculated from {water_records} water usage records"
-        }
-
-
-class AidenAverageBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
-    """Average brew duration across historical data, with last-brew fallback."""
-
-    def __init__(
-        self,
-        coordinator: FellowAidenDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        super().__init__(coordinator)
-        self._entry_id = entry.entry_id
-        self._attr_translation_key = "average_brew_duration"
-        self._attr_unique_id = f"{entry.entry_id}-avg_brew_duration"
-        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
-        self._attr_device_class = SensorDeviceClass.DURATION
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the average brew duration using historical data."""
-        historical_avg = self.coordinator.history_manager.get_average_brew_duration()
-        if historical_avg is not None:
-            return historical_avg
-            
-        # Fallback to last brew duration if no historical data
-        data = self.coordinator.data
-        if not data:
-            return None
-        device_config = data.get("device_config", {})
-        start_time_str = device_config.get("brewStartTime")
-        end_time_str = device_config.get("brewEndTime")
-
-        if not start_time_str or not end_time_str:
-            return None
-
-        try:
-            start_timestamp = int(start_time_str)
-            end_timestamp = int(end_time_str)
-
-            if start_timestamp == 0 or end_timestamp == 0:
-                return None
-            if start_timestamp < TIMESTAMP_2024_01_01 or end_timestamp < TIMESTAMP_2024_01_01:
-                return None
-
-            duration_seconds = end_timestamp - start_timestamp
-            if duration_seconds < 0:
-                return None
-
-            return round(duration_seconds / 60.0, 1)  # Convert to minutes
-        except (ValueError, TypeError) as error:
-            _LOGGER.error("Error calculating brew duration: %s", error)
-            return None
-
-    @property
-    def extra_state_attributes(self) -> dict:
-        """Return additional attributes."""
-        brew_records = self.coordinator.history_manager.get_brew_history_count()
-        historical_avg = self.coordinator.history_manager.get_average_brew_duration()
-        return {
-            "historical_brews": brew_records,
-            "accuracy": "High - based on historical averages" if historical_avg else "Low - using last brew only",
-            "note": f"Calculated from {brew_records} recorded brews" if historical_avg else "Fallback to last brew duration"
+            "accuracy": "High - based on actual usage tracking"
+            if water_records > 0
+            else "Low - no historical data yet",
+            "note": f"Calculated from {water_records} water usage records",
         }
 
 
@@ -568,20 +592,19 @@ class AidenMostPopularProfileSensor(FellowAidenBaseEntity, SensorEntity):
         most_popular = self.coordinator.history_manager.get_most_popular_profile()
         if most_popular:
             return most_popular
-            
+
         # Fallback to default or first profile
         data = self.coordinator.data
         if not data or "profiles" not in data or not data["profiles"]:
             return "No profiles available"
-        
+
         # Look for default profile first
         default_profile = next(
-            (p for p in data["profiles"] if p.get("isDefaultProfile")), 
-            None
+            (p for p in data["profiles"] if p.get("isDefaultProfile")), None
         )
         if default_profile:
             return default_profile.get("title", "Default Profile")
-        
+
         # Otherwise return the first profile
         return data["profiles"][0].get("title", "Profile 1")
 
@@ -592,12 +615,12 @@ class AidenMostPopularProfileSensor(FellowAidenBaseEntity, SensorEntity):
         total_profiles = len(data.get("profiles", [])) if data else 0
         profile_stats = self.coordinator.history_manager.get_profile_usage_stats()
         most_popular = self.coordinator.history_manager.get_most_popular_profile()
-        
+
         attrs = {
             "total_profiles": total_profiles,
             "profile_usage_stats": profile_stats,
         }
-        
+
         if most_popular and profile_stats:
             attrs["accuracy"] = "High - based on actual usage tracking"
             attrs["note"] = f"Based on {sum(profile_stats.values())} recorded brews"
@@ -605,7 +628,7 @@ class AidenMostPopularProfileSensor(FellowAidenBaseEntity, SensorEntity):
         else:
             attrs["accuracy"] = "Low - using default/first profile"
             attrs["note"] = "No historical usage data available yet"
-            
+
         return attrs
 
 
@@ -639,55 +662,16 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
 
     def _compute_current_profile(self) -> tuple[str | None, str, str]:
         """Run the actual detection logic."""
-        data = self.coordinator.data
+        data = self.coordinator.data or {}
+        profiles = data.get("profiles", [])
+        device_config = data.get("device_config", {})
+        resolution = resolve_current_profile(profiles, device_config)
+        if resolution.title is not None:
+            return resolution.title, resolution.method, resolution.confidence
 
-        if data and "profiles" in data and data["profiles"]:
-            # Method 1: Check against the "ibSelectedProfileId" field, if set.
-            device_config = data.get("device_config")
-            if device_config:
-                selected_profile_id = device_config.get("ibSelectedProfileId")
-                if selected_profile_id:
-                    selected_profile = next(
-                        (p for p in data["profiles"] if p.get("id") == selected_profile_id),
-                        None
-                    )
-                    if selected_profile:
-                        return selected_profile.get("title", "Selected Profile"), "Selected Profile Id", "very_high"
-
-            # Method 2: Check for most recently used profile by lastUsedTime
-            profiles_with_last_used = []
-            for profile in data["profiles"]:
-                last_used = profile.get("lastUsedTime")
-                if last_used and last_used != "0":
-                    try:
-                        last_used_timestamp = int(last_used)
-                        if last_used_timestamp > 0:
-                            profiles_with_last_used.append((profile, last_used_timestamp))
-                    except (ValueError, TypeError):
-                        continue
-
-            if profiles_with_last_used:
-                profiles_with_last_used.sort(key=lambda x: x[1], reverse=True)
-                most_recent_profile = profiles_with_last_used[0][0]
-                return most_recent_profile.get("title", "Recent Profile"), "Recent Profile", "very_high"
-
-        # Method 3: Check for default profile flag
-        if data and "profiles" in data and data["profiles"]:
-            default_profile = next(
-                (p for p in data["profiles"] if p.get("isDefaultProfile")),
-                None
-            )
-            if default_profile:
-                return default_profile.get("title", "Default Profile"), "Default Profile", "medium"
-
-        # Method 4: Use most popular profile from history
         most_popular = self.coordinator.history_manager.get_most_popular_profile()
         if most_popular:
             return most_popular, "historical_usage", "low_medium"
-
-        # Method 5: Fallback to first available profile
-        if data and "profiles" in data and data["profiles"]:
-            return data["profiles"][0].get("title", "Profile 1"), "first_available", "low"
 
         return "No profiles available", "unknown", "low"
 
@@ -715,7 +699,9 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
                     try:
                         last_used_timestamp = int(last_used)
                         if last_used_timestamp > 0:
-                            profiles_with_last_used.append((profile, last_used_timestamp))
+                            profiles_with_last_used.append(
+                                (profile, last_used_timestamp)
+                            )
                     except (ValueError, TypeError):
                         continue
 
@@ -723,7 +709,9 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
                 profiles_with_last_used.sort(key=lambda x: x[1], reverse=True)
                 most_recent_timestamp = profiles_with_last_used[0][1]
                 try:
-                    last_used_dt = dt_util.as_local(dt_util.utc_from_timestamp(most_recent_timestamp))
+                    last_used_dt = dt_util.as_local(
+                        dt_util.utc_from_timestamp(most_recent_timestamp)
+                    )
                     last_used_time = last_used_dt.isoformat()
                 except (ValueError, OSError, OverflowError):
                     pass
@@ -733,6 +721,13 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
             "detection_method": detection_method,
             "confidence": confidence,
         }
+
+        if data:
+            resolution = resolve_current_profile(
+                data.get("profiles", []), data.get("device_config", {})
+            )
+            if resolution.profile:
+                attrs.update(profile_recipe_attributes(resolution.profile))
 
         # Add last used time if available
         if last_used_time:
@@ -752,10 +747,132 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
         return attrs
 
 
+class AidenBrewPhaseSensor(FellowAidenBaseEntity, SensorEntity):
+    """Current v2 brew phase."""
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_translation_key = "brew_phase"
+        self._attr_unique_id = f"{entry.entry_id}-brew-phase"
+        self._attr_device_class = SensorDeviceClass.ENUM
+        self._attr_options = list(BREW_PHASES)
+
+    @property
+    def native_value(self) -> str:
+        """Return the normalized current phase."""
+        data = self.coordinator.data or {}
+        return brew_phase(data.get("device_config", {}))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the raw state code for future protocol discoveries."""
+        data = self.coordinator.data or {}
+        state = data.get("device_config", {}).get("state")
+        if not isinstance(state, dict) or not isinstance(state.get("value"), str):
+            return {}
+        return {"raw_phase": state["value"]}
+
+
+class AidenNextScheduledBrewSensor(FellowAidenBaseEntity, SensorEntity):
+    """Timestamp and recipe summary for the next enabled schedule."""
+
+    _attr_translation_key = "next_scheduled_brew"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_unique_id = f"{entry.entry_id}-next-scheduled-brew"
+
+    def _occurrence(self) -> ScheduleOccurrence | None:
+        data = self.coordinator.data or {}
+        timezone = schedule_timezone(
+            data.get("device_config", {}), self.coordinator.hass.config.time_zone
+        )
+        return next_schedule_occurrence(
+            data.get("schedules") or [],
+            data.get("profiles") or [],
+            dt_util.now(),
+            timezone,
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the next scheduled brew time."""
+        occurrence = self._occurrence()
+        return occurrence.start if occurrence else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the schedule details useful to automations."""
+        data = self.coordinator.data or {}
+        schedules = data.get("schedules") or []
+        attrs: dict[str, Any] = {
+            "enabled_schedules": sum(
+                schedule.get("enabled") is True for schedule in schedules
+            )
+        }
+        occurrence = self._occurrence()
+        if occurrence:
+            attrs.update(
+                {
+                    "profile": occurrence.profile_title,
+                    "water_ml": occurrence.water_ml,
+                    "repeat_days": list(occurrence.repeat_days),
+                }
+            )
+        return attrs
+
+
+class AidenConnectionTimestampSensor(FellowAidenBaseEntity, SensorEntity):
+    """Last cloud connection time reported by the brewer."""
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_translation_key = "cloud_connection_time"
+        self._attr_unique_id = f"{entry.entry_id}-connection-timestamp"
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        self._attr_entity_registry_enabled_default = False
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Convert the API's millisecond Unix timestamp to UTC."""
+        data = self.coordinator.data or {}
+        raw_value = data.get("device_config", {}).get("connectionTimestamp")
+        try:
+            timestamp = int(raw_value)
+        except (TypeError, ValueError):
+            return None
+        if timestamp > 10_000_000_000:
+            timestamp /= 1000
+        try:
+            value = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        except (OSError, OverflowError, ValueError):
+            return None
+        return value if value.year >= MIN_VALID_YEAR else None
+
+
 class AidenBasketSensor(FellowAidenBaseEntity, SensorEntity):
     """Which basket is inserted: single serve, batch brew, or missing."""
 
-    def __init__(self, coordinator: FellowAidenDataUpdateCoordinator, entry: ConfigEntry) -> None:
+    def __init__(
+        self, coordinator: FellowAidenDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         super().__init__(coordinator)
         self._entry_id = entry.entry_id
         self._attr_translation_key = "basket"
