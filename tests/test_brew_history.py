@@ -221,6 +221,90 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
             self.manager._brew_history[-1]["duration_source"], "observed_cycle"
         )
 
+    async def test_timing_waits_for_counter_after_brew_finishes(self) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        counter_updated = datetime.fromtimestamp(1788012408, UTC)
+        baseline = {
+            "totalBrewingCycles": 10,
+            "totalWaterVolumeL": 5000,
+            "state": None,
+        }
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(baseline, [])
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "state": {"value": "p1"},
+                    "brewStartTime": str(int(started.timestamp())),
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "brewStartTime": str(int(started.timestamp())),
+                    "brewEndTime": str(int(finished.timestamp())),
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_brew_history_count(), 0)
+        self.assertIsNotNone(self.manager._pending_brew_timing)
+
+        with patch.object(self.module.dt_util, "now", return_value=counter_updated):
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "brewStartTime": str(int(started.timestamp())),
+                    "brewEndTime": str(int(finished.timestamp())),
+                },
+                [],
+            )
+
+        self.assertIsNone(self.manager._pending_brew_timing)
+        self.assertEqual(self.manager.get_last_brew_duration(), 120)
+
+    async def test_pending_timing_expires_before_an_unrelated_counter_change(
+        self,
+    ) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        expired = datetime.fromtimestamp(
+            int(finished.timestamp())
+            + self.module._MAX_PENDING_COMPLETION_AGE_SECONDS
+            + 1,
+            UTC,
+        )
+        baseline = {
+            "totalBrewingCycles": 10,
+            "totalWaterVolumeL": 5000,
+            "state": None,
+        }
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(baseline, [])
+            await self.manager.async_update_data(
+                {**baseline, "state": {"value": "p1"}}, []
+            )
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(baseline, [])
+        with patch.object(self.module.dt_util, "now", return_value=expired):
+            await self.manager.async_update_data(baseline, [])
+            await self.manager.async_update_data(
+                {
+                    **baseline,
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                },
+                [],
+            )
+
+        self.assertIsNone(self.manager._pending_brew_timing)
+        self.assertIsNone(self.manager.get_last_brew_duration())
+
     async def test_failed_profile_refresh_does_not_defer_cycle_timing(self) -> None:
         started = datetime.fromtimestamp(1788012278, UTC)
         finished = datetime.fromtimestamp(1788012398, UTC)

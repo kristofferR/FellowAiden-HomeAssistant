@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import math
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, NamedTuple
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import storage
@@ -22,7 +22,14 @@ _MAX_LEGACY_DURATION_SECONDS = 30 * 60
 _MAX_LEGACY_END_SKEW_SECONDS = 2 * 60
 _MAX_COMPLETION_CLOCK_SKEW_SECONDS = 5 * 60
 _MAX_OBSERVED_START_AGE_SECONDS = 30 * 60
+_MAX_PENDING_COMPLETION_AGE_SECONDS = 5 * 60
 _TRUSTED_DURATION_SOURCES = frozenset({"observed_cycle", "validated_legacy_pair"})
+
+
+class _ObservedTiming(NamedTuple):
+    total_brews_at_time: int
+    start_timestamp: int
+    end_timestamp: int
 
 
 def _nonnegative_counter(value: Any, *, integral: bool = False) -> int | float | None:
@@ -68,6 +75,7 @@ class BrewHistoryManager:
         self._tracking_initialized = False
         self._active_brew_start: int | None = None
         self._active_brew_cycles: int | None = None
+        self._pending_brew_timing: _ObservedTiming | None = None
         self._last_api_brew_start: int | None = None
         self._data_loaded = False
 
@@ -94,6 +102,26 @@ class BrewHistoryManager:
                 self._active_brew_cycles = (
                     int(active_cycles) if active_cycles is not None else None
                 )
+                pending_timing = data.get("pending_brew_timing")
+                if isinstance(pending_timing, dict):
+                    pending_total = _nonnegative_counter(
+                        pending_timing.get("total_brews_at_time"), integral=True
+                    )
+                    pending_start = _positive_timestamp(
+                        pending_timing.get("start_timestamp")
+                    )
+                    pending_end = _positive_timestamp(
+                        pending_timing.get("end_timestamp")
+                    )
+                    if (
+                        pending_total is not None
+                        and pending_start is not None
+                        and pending_end is not None
+                        and pending_end > pending_start
+                    ):
+                        self._pending_brew_timing = _ObservedTiming(
+                            int(pending_total), pending_start, pending_end
+                        )
                 self._last_api_brew_start = _positive_timestamp(
                     data.get("last_api_brew_start")
                 )
@@ -131,6 +159,17 @@ class BrewHistoryManager:
                 "tracking_initialized": self._tracking_initialized,
                 "active_brew_start": self._active_brew_start,
                 "active_brew_cycles": self._active_brew_cycles,
+                "pending_brew_timing": (
+                    {
+                        "total_brews_at_time": (
+                            self._pending_brew_timing.total_brews_at_time
+                        ),
+                        "start_timestamp": self._pending_brew_timing.start_timestamp,
+                        "end_timestamp": self._pending_brew_timing.end_timestamp,
+                    }
+                    if self._pending_brew_timing
+                    else None
+                ),
                 "last_api_brew_start": self._last_api_brew_start,
                 "timing_version": _TIMING_VERSION,
                 "last_updated": dt_util.now().isoformat(),
@@ -191,8 +230,7 @@ class BrewHistoryManager:
 
     def _attach_observed_timing(
         self,
-        current_total_brews: int,
-        observed_timing: tuple[int, int, int] | None,
+        observed_timing: _ObservedTiming | None,
     ) -> bool:
         """Attach completed-cycle timing even if its counter advanced earlier."""
         if observed_timing is None:
@@ -201,14 +239,16 @@ class BrewHistoryManager:
             (
                 record
                 for record in reversed(self._brew_history)
-                if record.get("total_brews_at_time") == current_total_brews
+                if record.get("total_brews_at_time")
+                == observed_timing.total_brews_at_time
             ),
             None,
         )
         if brew_record is None:
             return False
 
-        start_timestamp, end_timestamp, duration = observed_timing
+        start_timestamp = observed_timing.start_timestamp
+        end_timestamp = observed_timing.end_timestamp
         brew_record.update(
             {
                 "start_time": dt_util.as_local(
@@ -217,7 +257,7 @@ class BrewHistoryManager:
                 "end_time": dt_util.as_local(
                     dt_util.utc_from_timestamp(end_timestamp)
                 ).isoformat(),
-                "duration_seconds": duration,
+                "duration_seconds": end_timestamp - start_timestamp,
                 "duration_source": "observed_cycle",
             }
         )
@@ -241,13 +281,29 @@ class BrewHistoryManager:
             _LOGGER.debug("Skipping history update because counters are unavailable")
             return
         now = dt_util.now()
+        now_timestamp = int(now.timestamp())
         data_changed = False
-        observed_timing: tuple[int, int, int] | None = None
+        observed_timing: _ObservedTiming | None = None
         current_api_start = _positive_timestamp(device_config.get("brewStartTime"))
         brewing = is_brewing(device_config)
 
+        pending_timing = self._pending_brew_timing
+        if pending_timing is not None:
+            pending_expired = (
+                now_timestamp - pending_timing.end_timestamp
+                > _MAX_PENDING_COMPLETION_AGE_SECONDS
+                or pending_timing.end_timestamp > now_timestamp + 60
+                or current_total_brews < pending_timing.total_brews_at_time - 1
+            )
+            if pending_expired:
+                self._pending_brew_timing = None
+                data_changed = True
+            elif current_total_brews >= pending_timing.total_brews_at_time:
+                observed_timing = pending_timing
+                self._pending_brew_timing = None
+                data_changed = True
+
         if brewing is True and self._active_brew_start is None:
-            now_timestamp = int(now.timestamp())
             api_start_changed = (
                 current_api_start is not None
                 and current_api_start != self._last_api_brew_start
@@ -261,8 +317,7 @@ class BrewHistoryManager:
             data_changed = True
         elif brewing is False and self._active_brew_start is not None:
             active_cycles = self._active_brew_cycles
-            if active_cycles is not None and current_total_brews > active_cycles:
-                now_timestamp = int(now.timestamp())
+            if active_cycles is not None:
                 api_end = _positive_timestamp(device_config.get("brewEndTime"))
                 end_timestamp = (
                     api_end
@@ -274,11 +329,15 @@ class BrewHistoryManager:
                 )
                 duration = end_timestamp - self._active_brew_start
                 if duration > 0:
-                    observed_timing = (
+                    completed_timing = _ObservedTiming(
+                        active_cycles + 1,
                         self._active_brew_start,
                         end_timestamp,
-                        duration,
                     )
+                    if current_total_brews >= completed_timing.total_brews_at_time:
+                        observed_timing = completed_timing
+                    else:
+                        self._pending_brew_timing = completed_timing
             self._active_brew_start = None
             self._active_brew_cycles = None
             data_changed = True
@@ -330,10 +389,7 @@ class BrewHistoryManager:
             self._last_total_brews = current_total_brews
             data_changed = True
 
-        data_changed = (
-            self._attach_observed_timing(current_total_brews, observed_timing)
-            or data_changed
-        )
+        data_changed = self._attach_observed_timing(observed_timing) or data_changed
 
         data_changed = (
             self._attribute_latest_unresolved_brew(

@@ -489,15 +489,15 @@ class FcmClient:
                         message.persistent_id is not None
                         and message.persistent_id in credentials.persistent_ids
                     )
-                    if message.persistent_id and not duplicate:
-                        credentials.persistent_ids.append(message.persistent_id)
-                        del credentials.persistent_ids[:-_MAX_PERSISTENT_IDS]
                     await send(
                         _MCS_IQ_STANZA,
                         _build_stream_ack(incoming_stream_id),
                     )
                     if not duplicate:
                         await _call(on_message, message)
+                        if message.persistent_id:
+                            credentials.persistent_ids.append(message.persistent_id)
+                            del credentials.persistent_ids[:-_MAX_PERSISTENT_IDS]
                 elif tag == _MCS_CLOSE:
                     raise FcmConnectionError("Google closed the MCS connection")
                 elif tag == _MCS_STREAM_ERROR:

@@ -281,6 +281,51 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(self.module._first_int(heartbeat_fields, 2), 4)
 
+    async def test_listener_does_not_record_message_when_ack_fails(self) -> None:
+        module = self.module
+
+        class FailingAckWriter(FakeWriter):
+            def __init__(self) -> None:
+                super().__init__()
+                self.drain_count = 0
+
+            async def drain(self) -> None:
+                self.drain_count += 1
+                if self.drain_count == 2:
+                    raise ConnectionResetError("ack failed")
+                await super().drain()
+
+        app_data = module._field_bytes(1, "type")
+        app_data += module._field_bytes(2, "device-update")
+        message_payload = module._field_bytes(5, module.FELLOW_PACKAGE)
+        message_payload += module._field_bytes(7, app_data)
+        message_payload += module._field_bytes(9, "persistent-1")
+        server_data = bytes((module.MCS_VERSION,))
+        server_data += module._frame(module._MCS_LOGIN_RESPONSE, b"")
+        server_data += module._frame(module._MCS_DATA_MESSAGE, message_payload)
+        reader = FakeReader(server_data)
+        writer = FailingAckWriter()
+        credentials = module.FcmCredentials(1, 2, "token")
+        messages = []
+
+        with (
+            patch.object(module.asyncio, "to_thread", return_value=object()),
+            patch.object(
+                module.asyncio,
+                "open_connection",
+                return_value=(reader, writer),
+            ),
+            self.assertRaises(module.FcmConnectionError),
+        ):
+            await module.FcmClient(FakeSession([])).async_listen(
+                credentials,
+                messages.append,
+            )
+
+        self.assertEqual(messages, [])
+        self.assertEqual(credentials.persistent_ids, [])
+        self.assertTrue(writer.closed)
+
     async def test_listener_distinguishes_rejected_android_credentials(self) -> None:
         login_error = self.module._field_bytes(3, "rejected")
         server_data = bytes((self.module.MCS_VERSION,))
