@@ -31,10 +31,10 @@ This is a custom integration that brings your coffee brewer into the Home Assist
 ## Features
 
 - **Real-Time Sensors:**
-  - **Sensors** for water usage, number of brews, average water per brew and more—because data is beautiful.
+  - **Sensors** for brew phase, pump, heater, connectivity, water usage, number of brews, average water per brew and more.
   - **Analytics:** Daily/weekly/monthly water usage tracking, brew patterns, and timing insights.
   - **Binary sensors** for brewing, lid status, missing water, baskets inserted, etc.
-- **Device Info:** Displays firmware version, hardware elevation (for you mountaintop dwellers), Wi-Fi and Bluetooth addresses, plus a witty sense of connectedness.
+- **Device Info:** Displays firmware, SKU, serial number, elevation, Wi-Fi and Bluetooth inventory, plus cloud connection state.
 - **Brew Management:** 
   - Create, list, delete, and manage brew profiles from Home Assistant
   - Schedule management
@@ -114,15 +114,15 @@ After installation, go to **Settings > Devices & Services > Fellow Aiden > Confi
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
-| Update interval | 60 s | 30-300 s | How often the integration polls the Fellow cloud API. Lower values give faster updates but increase network traffic. |
+| Update interval | 10 s | 10-300 s | How often the integration polls live device state. Lower values give faster updates but increase network traffic. |
 
 ---
 
 ## How data is updated
 
-The integration polls Fellow's cloud API at a configurable interval (default 60 seconds). Each poll fetches the device config, brew profiles, and schedules. Historical brew and water usage data is tracked locally and kept for 365 days.
+The integration uses Fellow's v2 cloud API. It polls the lightweight device-detail route at a configurable interval (default 10 seconds), while profiles and schedules refresh separately every 60 seconds. Historical brew and water usage data is tracked locally and kept for 365 days.
 
-There is no local/push connection. All data goes through Fellow's servers.
+There is no local connection. The Fellow app uses Firebase Cloud Messaging, but FCM does not provide a supported server-side receiver for Home Assistant. All integration data goes through Fellow's cloud API.
 
 ---
 
@@ -149,6 +149,8 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Sensor | Total brews | Lifetime brew count. |
 | Sensor | Total water volume | Lifetime water usage in liters. |
 | Sensor | Last brew volume | Water used in the most recent brew (mL). |
+| Sensor | Instant Brew water | Configured Instant Brew volume (mL). |
+| Sensor | Brew phase | Live bloom, pulse, drip-finish, paused, or idle phase. |
 | Sensor | Last brew start/end time | Timestamps of the last brew. |
 | Sensor | Last brew duration | How long the last brew took. |
 | Sensor | Last brew time | When the last brew finished. |
@@ -161,8 +163,14 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Binary sensor | Brewing | Whether the brewer is running. |
 | Binary sensor | Carafe | Whether the carafe is present. |
 | Binary sensor | Heater | Whether the heater is on. |
+| Binary sensor | Pump | Whether the pump is on. |
 | Binary sensor | Lid | Whether the lid is open. |
+| Binary sensor | Shower head | Whether the shower head is present. |
 | Binary sensor | Missing water | Whether the water tank is empty. |
+| Binary sensor | Cleaning / rinsing | Whether a maintenance cycle is running. |
+| Binary sensor | Cloud connection | Whether the brewer reports a cloud connection. |
+| Binary sensor | Firmware update | Whether a firmware update is required. |
+| Binary sensor | Brew error / unsynced changes | Cloud and live-state problem indicators. |
 | Select | Profiles | Dropdown of available brew profiles (display-only). |
 
 ### Services
@@ -227,7 +235,8 @@ automation:
 
 ## Known limitations
 
-- No direct brew start: the Fellow API does not support starting a brew remotely. Use the physical controls or a schedule.
+- No direct brew start: v2 advertises remote brewing, but the observed cancellation endpoint did not reliably stop a running brew. The integration does not expose an unsafe start-only control.
+- No native cloud push: Fellow registers the mobile app with Firebase Cloud Messaging. Home Assistant cannot receive those app messages through a supported server API, so the integration uses fast polling.
 - Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
 

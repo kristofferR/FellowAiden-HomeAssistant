@@ -1,4 +1,5 @@
 """Constants for Fellow Aiden."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,9 +14,11 @@ type FellowAidenConfigEntry = ConfigEntry[FellowAidenDataUpdateCoordinator]
 DOMAIN = "fellow"
 PLATFORMS = ["sensor", "select", "binary_sensor"]
 
-# Update intervals
-DEFAULT_UPDATE_INTERVAL_MINUTES = 1
-MIN_UPDATE_INTERVAL_SECONDS = 30
+# Update intervals. Device state changes quickly during a brew, while profiles
+# and schedules are configuration data and can be refreshed less frequently.
+DEFAULT_UPDATE_INTERVAL_SECONDS = 10
+MIN_UPDATE_INTERVAL_SECONDS = 10
+RESOURCE_UPDATE_INTERVAL_SECONDS = 60
 
 
 # Historical data constants

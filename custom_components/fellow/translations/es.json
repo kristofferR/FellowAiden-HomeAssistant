@@ -36,12 +36,12 @@
           "update_interval_seconds": "Intervalo de Actualización (segundos)"
         },
         "data_description": {
-          "update_interval_seconds": "Con qué frecuencia consultar la nube de Fellow Aiden (mínimo 30 segundos, predeterminado 60 segundos). Valores más bajos proporcionan datos más responsivos pero pueden afectar el rendimiento."
+          "update_interval_seconds": "Con qué frecuencia consultar el estado de la cafetera. El mínimo y el valor predeterminado son 10 segundos. Los perfiles y horarios se actualizan cada 60 segundos."
         }
       }
     },
     "error": {
-      "too_fast": "El intervalo de actualización debe ser de al menos 30 segundos para evitar sobrecargar los servidores de Fellow"
+      "too_fast": "El intervalo de actualización debe ser de al menos 10 segundos."
     }
   },
   "services": {
@@ -76,6 +76,10 @@
         "bloom_temperature": {
           "name": "Temperatura de Floración (°C)",
           "description": "Temperatura para la fase de floración, 50–99°C."
+        },
+        "overall_temperature": {
+          "name": "Temperatura general (°C)",
+          "description": "Temperatura predeterminada de preparación, 50–99°C. Si se omite, usa la temperatura de floración. Las temperaturas de los pulsos pueden sustituirla."
         },
         "ss_pulses_enabled": {
           "name": "Pulsos Porción Individual Habilitados",
