@@ -39,15 +39,39 @@ ABI_SPLIT_NAME = "config.armeabi_v7a.apk"
 
 SELECTED_COPY_PATHS = [
     ("resources/AndroidManifest.xml", "resources/AndroidManifest.xml"),
-    ("sources/is/symphony/FellowDev/BuildConfig.java", "is/symphony/FellowDev/BuildConfig.java"),
-    ("sources/is/symphony/FellowDev/MainApplication.java", "is/symphony/FellowDev/MainApplication.java"),
-    ("sources/is/symphony/FellowDev/MainActivity.java", "is/symphony/FellowDev/MainActivity.java"),
-    ("sources/com/facebook/react/PackageList.java", "com/facebook/react/PackageList.java"),
-    ("sources/it/innove/NativeBleManagerSpec.java", "it/innove/NativeBleManagerSpec.java"),
+    (
+        "sources/is/symphony/FellowDev/BuildConfig.java",
+        "is/symphony/FellowDev/BuildConfig.java",
+    ),
+    (
+        "sources/is/symphony/FellowDev/MainApplication.java",
+        "is/symphony/FellowDev/MainApplication.java",
+    ),
+    (
+        "sources/is/symphony/FellowDev/MainActivity.java",
+        "is/symphony/FellowDev/MainActivity.java",
+    ),
+    (
+        "sources/com/facebook/react/PackageList.java",
+        "com/facebook/react/PackageList.java",
+    ),
+    (
+        "sources/it/innove/NativeBleManagerSpec.java",
+        "it/innove/NativeBleManagerSpec.java",
+    ),
     ("sources/it/innove/CompanionScanner.java", "it/innove/CompanionScanner.java"),
-    ("sources/com/thanosfisherman/wifiutils/WifiConnectorBuilder.java", "com/thanosfisherman/wifiutils/WifiConnectorBuilder.java"),
-    ("sources/com/reactlibrary/rnwifi/RNWifiModule.java", "com/reactlibrary/rnwifi/RNWifiModule.java"),
-    ("sources/com/lugg/RNCConfig/RNCConfigModule.java", "com/lugg/RNCConfig/RNCConfigModule.java"),
+    (
+        "sources/com/thanosfisherman/wifiutils/WifiConnectorBuilder.java",
+        "com/thanosfisherman/wifiutils/WifiConnectorBuilder.java",
+    ),
+    (
+        "sources/com/reactlibrary/rnwifi/RNWifiModule.java",
+        "com/reactlibrary/rnwifi/RNWifiModule.java",
+    ),
+    (
+        "sources/com/lugg/RNCConfig/RNCConfigModule.java",
+        "com/lugg/RNCConfig/RNCConfigModule.java",
+    ),
 ]
 
 HERMES_FEATURE_PATTERNS = {
@@ -266,14 +290,32 @@ def command_version(name: str, *arguments: str) -> str:
     return output.splitlines()[0] if output else "present (version unavailable)"
 
 
-def extract_member(archive: zipfile.ZipFile, member_name: str, destination: Path) -> None:
+def extract_member(
+    archive: zipfile.ZipFile, member_name: str, destination: Path
+) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     with archive.open(member_name, "r") as src, destination.open("wb") as dst:
         shutil.copyfileobj(src, dst)
 
 
 def yaml_quote(value: str) -> str:
-    specials = [":", "#", "{", "}", "[", "]", ",", "&", "*", "?", "|", ">", "%", "@", "`"]
+    specials = [
+        ":",
+        "#",
+        "{",
+        "}",
+        "[",
+        "]",
+        ",",
+        "&",
+        "*",
+        "?",
+        "|",
+        ">",
+        "%",
+        "@",
+        "`",
+    ]
     needs_quote = (
         value == ""
         or value.strip() != value
@@ -332,7 +374,9 @@ def dump_yaml(data: Any, indent: int = 0) -> str:
 
 
 def line_number(path: Path, needle: str) -> int | None:
-    for idx, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1):
+    for idx, line in enumerate(
+        path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
+    ):
         if needle in line:
             return idx
     return None
@@ -421,14 +465,18 @@ def parse_manifest(path: Path) -> dict[str, Any]:
                 bucket.append(
                     {
                         "name": element.attrib.get(f"{ANDROID_NS}name", ""),
-                        "exported": element.attrib.get(f"{ANDROID_NS}exported", "unspecified"),
+                        "exported": element.attrib.get(
+                            f"{ANDROID_NS}exported", "unspecified"
+                        ),
                     }
                 )
 
         for activity in application.findall("activity"):
             activity_name = activity.attrib.get(f"{ANDROID_NS}name", "")
             exported = activity.attrib.get(f"{ANDROID_NS}exported", "unspecified")
-            exported_components.append({"type": "activity", "name": activity_name, "exported": exported})
+            exported_components.append(
+                {"type": "activity", "name": activity_name, "exported": exported}
+            )
             for intent_filter in activity.findall("intent-filter"):
                 actions = {
                     action.attrib.get(f"{ANDROID_NS}name", "")
@@ -442,15 +490,27 @@ def parse_manifest(path: Path) -> dict[str, Any]:
                     continue
                 data_elements = intent_filter.findall("data")
                 scheme = next(
-                    (data.attrib.get(f"{ANDROID_NS}scheme", "") for data in data_elements if data.attrib.get(f"{ANDROID_NS}scheme")),
+                    (
+                        data.attrib.get(f"{ANDROID_NS}scheme", "")
+                        for data in data_elements
+                        if data.attrib.get(f"{ANDROID_NS}scheme")
+                    ),
                     "",
                 )
                 host = next(
-                    (data.attrib.get(f"{ANDROID_NS}host", "") for data in data_elements if data.attrib.get(f"{ANDROID_NS}host")),
+                    (
+                        data.attrib.get(f"{ANDROID_NS}host", "")
+                        for data in data_elements
+                        if data.attrib.get(f"{ANDROID_NS}host")
+                    ),
                     "",
                 )
                 path_prefix = next(
-                    (data.attrib.get(f"{ANDROID_NS}pathPrefix", "") for data in data_elements if data.attrib.get(f"{ANDROID_NS}pathPrefix")),
+                    (
+                        data.attrib.get(f"{ANDROID_NS}pathPrefix", "")
+                        for data in data_elements
+                        if data.attrib.get(f"{ANDROID_NS}pathPrefix")
+                    ),
                     "",
                 )
                 deep_links.append(
@@ -459,8 +519,12 @@ def parse_manifest(path: Path) -> dict[str, Any]:
                         "scheme": scheme,
                         "host": host,
                         "pathPrefix": path_prefix,
-                        "autoVerify": intent_filter.attrib.get(f"{ANDROID_NS}autoVerify", "false"),
-                        "categories": ", ".join(sorted(category for category in categories if category)),
+                        "autoVerify": intent_filter.attrib.get(
+                            f"{ANDROID_NS}autoVerify", "false"
+                        ),
+                        "categories": ", ".join(
+                            sorted(category for category in categories if category)
+                        ),
                     }
                 )
 
@@ -468,17 +532,31 @@ def parse_manifest(path: Path) -> dict[str, Any]:
         "package": root.attrib.get("package", ""),
         "versionCode": root.attrib.get(f"{ANDROID_NS}versionCode", ""),
         "versionName": root.attrib.get(f"{ANDROID_NS}versionName", ""),
-        "minSdk": uses_sdk.attrib.get(f"{ANDROID_NS}minSdkVersion", "") if uses_sdk is not None else "",
-        "targetSdk": uses_sdk.attrib.get(f"{ANDROID_NS}targetSdkVersion", "") if uses_sdk is not None else "",
-        "applicationName": application.attrib.get(f"{ANDROID_NS}name", "") if application is not None else "",
+        "minSdk": uses_sdk.attrib.get(f"{ANDROID_NS}minSdkVersion", "")
+        if uses_sdk is not None
+        else "",
+        "targetSdk": uses_sdk.attrib.get(f"{ANDROID_NS}targetSdkVersion", "")
+        if uses_sdk is not None
+        else "",
+        "applicationName": application.attrib.get(f"{ANDROID_NS}name", "")
+        if application is not None
+        else "",
         "permissions": permissions,
         "exported_components": exported_components,
         "deep_links": deep_links,
         "services": services,
         "receivers": receivers,
         "providers": providers,
-        "networkSecurityConfig": application.attrib.get(f"{ANDROID_NS}networkSecurityConfig", "") if application is not None else "",
-        "usesCleartextTraffic": application.attrib.get(f"{ANDROID_NS}usesCleartextTraffic", "") if application is not None else "",
+        "networkSecurityConfig": application.attrib.get(
+            f"{ANDROID_NS}networkSecurityConfig", ""
+        )
+        if application is not None
+        else "",
+        "usesCleartextTraffic": application.attrib.get(
+            f"{ANDROID_NS}usesCleartextTraffic", ""
+        )
+        if application is not None
+        else "",
     }
 
 
@@ -527,7 +605,9 @@ def copy_selected_files(jadx_root: Path) -> None:
         shutil.copyfile(source, destination)
 
 
-def emit_method_index(source: Path, destination: Path, method_patterns: list[str], title: str) -> None:
+def emit_method_index(
+    source: Path, destination: Path, method_patterns: list[str], title: str
+) -> None:
     content = source.read_text(encoding="utf-8", errors="replace").splitlines()
     lines = [f"# {title}", ""]
     for pattern in method_patterns:
@@ -540,7 +620,11 @@ def emit_method_index(source: Path, destination: Path, method_patterns: list[str
         if not found:
             lines.append(f"- `{pattern}`: not found")
     lines.append("")
-    source_label = source.relative_to(WORKSPACE) if source.is_relative_to(WORKSPACE) else source.name
+    source_label = (
+        source.relative_to(WORKSPACE)
+        if source.is_relative_to(WORKSPACE)
+        else source.name
+    )
     lines.append(f"Source: `{source_label}`")
     write_text(destination, "\n".join(lines) + "\n")
 
@@ -556,7 +640,9 @@ def build_artifact_index(
 ) -> str:
     _, separator, description = hermes_file_description.strip().partition(": ")
     hermes_description = description if separator else hermes_file_description.strip()
-    permission_lines = "\n".join(f"- `{permission}`" for permission in manifest_data["permissions"])
+    permission_lines = "\n".join(
+        f"- `{permission}`" for permission in manifest_data["permissions"]
+    )
     deep_link_lines = "\n".join(
         f"- `{entry['scheme']}://{entry['host']}{entry['pathPrefix']}` via `{entry['activity']}`"
         for entry in manifest_data["deep_links"]
@@ -565,18 +651,20 @@ def build_artifact_index(
         f"| `{row['name']}` | `{row['role']}` | `{row['size']}` | `{row['sha256']}` |"
         for row in split_hash_rows
     )
-    tool_rows = "\n".join(f"| `{name}` | `{value}` |" for name, value in tool_versions.items())
+    tool_rows = "\n".join(
+        f"| `{name}` | `{value}` |" for name, value in tool_versions.items()
+    )
     return f"""# Artifact Index
 
 ## Source Artifact
 
 - Source XAPK: `{SOURCE_XAPK.name}`
 - SHA-256: `{xapk_hash}`
-- APKPure package: `{xapk_manifest['package_name']}`
-- Application class: `{manifest_data['applicationName']}`
-- Version: `{xapk_manifest['version_name']}` (`versionCode` `{xapk_manifest['version_code']}`)
-- Min/target SDK: `{xapk_manifest['min_sdk_version']}` / `{xapk_manifest['target_sdk_version']}`
-- Build config API gateway: `{build_config.get('API_GATEWAY_URL', 'unknown')}`
+- APKPure package: `{xapk_manifest["package_name"]}`
+- Application class: `{manifest_data["applicationName"]}`
+- Version: `{xapk_manifest["version_name"]}` (`versionCode` `{xapk_manifest["version_code"]}`)
+- Min/target SDK: `{xapk_manifest["min_sdk_version"]}` / `{xapk_manifest["target_sdk_version"]}`
+- Build config API gateway: `{build_config.get("API_GATEWAY_URL", "unknown")}`
 - Hermes bundle description: `{hermes_description}`
 
 ## Split Layout
@@ -626,7 +714,9 @@ def build_android_surface_model(
     sections.append("")
     sections.append("## Exported Entry Points")
     for entry in manifest_data["exported_components"]:
-        sections.append(f"- `{entry['type']}` `{entry['name']}` exported=`{entry['exported']}`")
+        sections.append(
+            f"- `{entry['type']}` `{entry['name']}` exported=`{entry['exported']}`"
+        )
     sections.append("")
     sections.append("## Deep-Link Surface")
     for entry in manifest_data["deep_links"]:
@@ -642,17 +732,27 @@ def build_android_surface_model(
         sections.append(f"- {label}: " + ", ".join(f"`{name}`" for name in packages))
     sections.append("")
     sections.append("## Connectivity And Provisioning Seams")
-    sections.append("- BLE: `BleManagerPackage` plus `NativeBleManagerSpec` exposes scan, connect, read, write, MTU, notification, and companion-device association methods.")
-    sections.append("- Wi-Fi: `RNWifiPackage` plus `wifiutils` exposes list, connect, disconnect, and current-SSID operations.")
-    sections.append("- Notifications: Firebase Analytics + Firebase Messaging packages are registered in `PackageList` and backed by manifest services/receivers.")
-    sections.append("- Storage: `KeychainPackage` and AsyncStorage are bundled alongside `RNCConfigModule` for config injection.")
+    sections.append(
+        "- BLE: `BleManagerPackage` plus `NativeBleManagerSpec` exposes scan, connect, read, write, MTU, notification, and companion-device association methods."
+    )
+    sections.append(
+        "- Wi-Fi: `RNWifiPackage` plus `wifiutils` exposes list, connect, disconnect, and current-SSID operations."
+    )
+    sections.append(
+        "- Notifications: Firebase Analytics + Firebase Messaging packages are registered in `PackageList` and backed by manifest services/receivers."
+    )
+    sections.append(
+        "- Storage: `KeychainPackage` and AsyncStorage are bundled alongside `RNCConfigModule` for config injection."
+    )
     sections.append("")
     sections.append("## Security Observations")
     if network_security_hits:
         for hit in network_security_hits:
             sections.append(f"- {hit}")
     else:
-        sections.append("- No app-package references to `networkSecurityConfig`, `usesCleartextTraffic`, `CertificatePinner`, custom `HostnameVerifier`, `SSLSocketFactory`, or `X509TrustManager` were found in the app-specific wrapper files or decoded manifest.")
+        sections.append(
+            "- No app-package references to `networkSecurityConfig`, `usesCleartextTraffic`, `CertificatePinner`, custom `HostnameVerifier`, `SSLSocketFactory`, or `X509TrustManager` were found in the app-specific wrapper files or decoded manifest."
+        )
     return "\n".join(sections) + "\n"
 
 
@@ -804,7 +904,9 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 auth_mode="refresh-token body",
                 request_fields=["refreshToken"],
                 response_fields=["accessToken", "refreshToken?"],
-                notes=["Request sets skipAuthRefresh=true and Content-Type=application/json."],
+                notes=[
+                    "Request sets skipAuthRefresh=true and Content-Type=application/json."
+                ],
             ),
             endpoint(
                 "auth_sign_up",
@@ -835,7 +937,12 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 "/auth/activate-account",
                 14042,
                 auth_mode="public",
-                request_fields=["customerId", "activationToken", "password", "timezone"],
+                request_fields=[
+                    "customerId",
+                    "activationToken",
+                    "password",
+                    "timezone",
+                ],
             ),
             endpoint("auth_sign_out", "POST", "/auth/sign-out", 14046),
             endpoint(
@@ -904,7 +1011,12 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 18527,
                 request_fields=["elevation"],
             ),
-            endpoint("device_factory_reset", "DELETE", "/devices/{deviceId}/factoryReset", 18531),
+            endpoint(
+                "device_factory_reset",
+                "DELETE",
+                "/devices/{deviceId}/factoryReset",
+                18531,
+            ),
             endpoint(
                 "device_delete",
                 "DELETE",
@@ -917,7 +1029,9 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 "/{deviceType}/devices/{deviceId}{?confirm=true}",
                 18539,
             ),
-            endpoint("device_update_check", "GET", "/devices/{deviceId}/updates", 18543),
+            endpoint(
+                "device_update_check", "GET", "/devices/{deviceId}/updates", 18543
+            ),
             endpoint(
                 "typed_device_update_check",
                 "GET",
@@ -929,19 +1043,36 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 "POST",
                 "/{optionalDeviceTypePrefix}devices/{deviceId}/provision",
                 18551,
-                request_fields=["deviceTimezone", "deviceType", "deviceOS", "deviceOSVersion"],
+                request_fields=[
+                    "deviceTimezone",
+                    "deviceType",
+                    "deviceOS",
+                    "deviceOSVersion",
+                ],
             ),
             endpoint("device_share", "POST", "/devices/{deviceId}/share", 23540),
-            endpoint("device_verify_share_code", "GET", "/devices/verify?code={code}", 23544),
+            endpoint(
+                "device_verify_share_code", "GET", "/devices/verify?code={code}", 23544
+            ),
             endpoint(
                 "device_claim_certificate",
                 "POST",
                 "/auth/device/claimCertificate",
                 27711,
-                request_fields=["deviceType", "claim request fields (not fully decoded)"],
+                request_fields=[
+                    "deviceType",
+                    "claim request fields (not fully decoded)",
+                ],
             ),
-            endpoint("profiles_list", "GET", "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles", 21136),
-            endpoint("profile_get", "GET", "/devices/{deviceId}/profiles/{profileId}", 21140),
+            endpoint(
+                "profiles_list",
+                "GET",
+                "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles",
+                21136,
+            ),
+            endpoint(
+                "profile_get", "GET", "/devices/{deviceId}/profiles/{profileId}", 21140
+            ),
             endpoint(
                 "profile_create",
                 "POST",
@@ -1011,15 +1142,26 @@ def build_cloud_catalog(evidence_refs: dict[str, str]) -> dict[str, Any]:
                 33339,
                 request_fields=["schedule object (spread into body)"],
             ),
-            endpoint("schedule_delete", "DELETE", "/devices/{deviceId}/schedules/{scheduleId}", 33343),
-            endpoint("maintenance_clean_start", "PATCH", "/devices/{deviceId}/clean", 23675),
-            endpoint("maintenance_rinse_start", "PATCH", "/devices/{deviceId}/rinse", 23679),
+            endpoint(
+                "schedule_delete",
+                "DELETE",
+                "/devices/{deviceId}/schedules/{scheduleId}",
+                33343,
+            ),
+            endpoint(
+                "maintenance_clean_start", "PATCH", "/devices/{deviceId}/clean", 23675
+            ),
+            endpoint(
+                "maintenance_rinse_start", "PATCH", "/devices/{deviceId}/rinse", 23679
+            ),
             endpoint(
                 "firebase_notification_register",
                 "POST",
                 "/firebase/notifications",
                 28122,
-                request_fields=["notification registration payload (not fully decoded)"],
+                request_fields=[
+                    "notification registration payload (not fully decoded)"
+                ],
             ),
         ],
         "unresolved_operations": [
@@ -1325,7 +1467,9 @@ def build_parity_matrix() -> str:
     for row in rows:
         lines.append("| " + " | ".join(row) + " |")
     lines.append("")
-    lines.append("Reference: `evidence/current_integration_state.md` plus the generated cloud/local catalogs.")
+    lines.append(
+        "Reference: `evidence/current_integration_state.md` plus the generated cloud/local catalogs."
+    )
     return "\n".join(lines)
 
 
@@ -1535,7 +1679,10 @@ def main() -> None:
             raise SystemExit(
                 f"Expected Fellow {APP_VERSION}, got {xapk_manifest.get('version_name', 'unknown')}"
             )
-        write_text(INPUTS_DIR / "xapk_manifest.json", json.dumps(xapk_manifest, indent=2) + "\n")
+        write_text(
+            INPUTS_DIR / "xapk_manifest.json",
+            json.dumps(xapk_manifest, indent=2) + "\n",
+        )
 
         split_rows: list[dict[str, Any]] = []
         for split in xapk_manifest["split_apks"]:
@@ -1563,13 +1710,18 @@ def main() -> None:
         try:
             run(["jadx", "-q", "-j", "2", "-d", str(jadx_base_dir), str(base_apk_path)])
         except subprocess.CalledProcessError:
-            if not ((jadx_base_dir / "sources").exists() and (jadx_base_dir / "resources").exists()):
+            if not (
+                (jadx_base_dir / "sources").exists()
+                and (jadx_base_dir / "resources").exists()
+            ):
                 raise
 
     hermes_bundle_path = GENERATED_HERMES_DIR / "index.android.bundle"
     if not hermes_bundle_path.exists():
         with zipfile.ZipFile(base_apk_path) as base_archive:
-            extract_member(base_archive, "assets/index.android.bundle", hermes_bundle_path)
+            extract_member(
+                base_archive, "assets/index.android.bundle", hermes_bundle_path
+            )
 
     hermes_disasm_path = GENERATED_HERMES_DIR / "index.android.disasm"
     if not hermes_disasm_path.exists():
@@ -1612,15 +1764,23 @@ def main() -> None:
 
     manifest_path = EVIDENCE_CODE_DIR / "resources/AndroidManifest.xml"
     build_config_path = EVIDENCE_CODE_DIR / "is/symphony/FellowDev/BuildConfig.java"
-    main_application_path = EVIDENCE_CODE_DIR / "is/symphony/FellowDev/MainApplication.java"
+    main_application_path = (
+        EVIDENCE_CODE_DIR / "is/symphony/FellowDev/MainApplication.java"
+    )
     main_activity_path = EVIDENCE_CODE_DIR / "is/symphony/FellowDev/MainActivity.java"
     package_list_path = EVIDENCE_CODE_DIR / "com/facebook/react/PackageList.java"
     config_module_path = EVIDENCE_CODE_DIR / "com/lugg/RNCConfig/RNCConfigModule.java"
     ble_spec_path = EVIDENCE_CODE_DIR / "it/innove/NativeBleManagerSpec.java"
     companion_scanner_path = EVIDENCE_CODE_DIR / "it/innove/CompanionScanner.java"
-    wifi_builder_path = EVIDENCE_CODE_DIR / "com/thanosfisherman/wifiutils/WifiConnectorBuilder.java"
-    rnwifi_methods_path = EVIDENCE_CODE_DIR / "com/reactlibrary/rnwifi/RNWifi_methods.md"
-    keychain_methods_path = EVIDENCE_CODE_DIR / "com/oblador/keychain/Keychain_methods.md"
+    wifi_builder_path = (
+        EVIDENCE_CODE_DIR / "com/thanosfisherman/wifiutils/WifiConnectorBuilder.java"
+    )
+    rnwifi_methods_path = (
+        EVIDENCE_CODE_DIR / "com/reactlibrary/rnwifi/RNWifi_methods.md"
+    )
+    keychain_methods_path = (
+        EVIDENCE_CODE_DIR / "com/oblador/keychain/Keychain_methods.md"
+    )
 
     manifest_data = parse_manifest(manifest_path)
     build_config = parse_build_config(build_config_path)
@@ -1638,7 +1798,12 @@ def main() -> None:
         )
     for copied_file in [build_config_path, main_application_path, main_activity_path]:
         copied_text = copied_file.read_text(encoding="utf-8", errors="replace")
-        for needle in ["CertificatePinner", "HostnameVerifier", "SSLSocketFactory", "X509TrustManager"]:
+        for needle in [
+            "CertificatePinner",
+            "HostnameVerifier",
+            "SSLSocketFactory",
+            "X509TrustManager",
+        ]:
             if needle in copied_text:
                 network_security_hits.append(
                     f"`{needle}` appears in `{copied_file.relative_to(WORKSPACE)}`."
@@ -1649,7 +1814,9 @@ def main() -> None:
         for feature, patterns in HERMES_FEATURE_PATTERNS.items()
     }
 
-    service_names = top_level_yaml_keys(REPO_ROOT / "custom_components/fellow/services.yaml")
+    service_names = top_level_yaml_keys(
+        REPO_ROOT / "custom_components/fellow/services.yaml"
+    )
 
     artifact_index = build_artifact_index(
         xapk_hash=xapk_hash,
@@ -1674,7 +1841,9 @@ def main() -> None:
     )
     write_text(EVIDENCE_DIR / "android_surface_model.md", android_surface_model)
 
-    hermes_feature_map = build_hermes_feature_map(hermes_disasm_path, hermes_feature_hits)
+    hermes_feature_map = build_hermes_feature_map(
+        hermes_disasm_path, hermes_feature_hits
+    )
     write_text(EVIDENCE_DIR / "hermes_feature_map.md", hermes_feature_map)
 
     integration_state = build_integration_current_state(service_names)
@@ -1682,9 +1851,7 @@ def main() -> None:
 
     has_adb = shutil.which("adb") is not None
     adb_devices_output = (
-        run(["adb", "devices", "-l"], capture=True)
-        if has_adb
-        else "adb unavailable"
+        run(["adb", "devices", "-l"], capture=True) if has_adb else "adb unavailable"
     )
     has_emulator = shutil.which("emulator") is not None
     sanitized_capture_path = RUNTIME_DIR / "sanitized_api_capture.json"
@@ -1698,14 +1865,21 @@ def main() -> None:
         write_text(RUNTIME_DIR / "dynamic_pass.md", dynamic_report)
 
     manifest_ble_line = line_number(manifest_path, "android.permission.BLUETOOTH_SCAN")
-    manifest_wifi_line = line_number(manifest_path, "android.permission.ACCESS_WIFI_STATE")
-    manifest_fcm_line = line_number(manifest_path, "io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService")
+    manifest_wifi_line = line_number(
+        manifest_path, "android.permission.ACCESS_WIFI_STATE"
+    )
+    manifest_fcm_line = line_number(
+        manifest_path,
+        "io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService",
+    )
     api_line = line_number(build_config_path, "API_GATEWAY_URL")
-    activate_line = line_number(manifest_path, "android:pathPrefix=\"/account/activate\"")
-    brew_link_line = line_number(manifest_path, "android:host=\"brew.link\"")
+    activate_line = line_number(manifest_path, 'android:pathPrefix="/account/activate"')
+    brew_link_line = line_number(manifest_path, 'android:host="brew.link"')
     ble_spec_line = line_number(ble_spec_path, "public abstract void scan(")
     companion_line = line_number(companion_scanner_path, "associate(")
-    wifi_builder_line = line_number(wifi_builder_path, "connectWith(String str, String str2)")
+    wifi_builder_line = line_number(
+        wifi_builder_path, "connectWith(String str, String str2)"
+    )
 
     evidence_refs = {
         "build_config_api": f"{build_config_path.relative_to(WORKSPACE)}:{api_line}",
@@ -1742,7 +1916,9 @@ def main() -> None:
     write_text(WORKSPACE / "cloud_api_catalog.yaml", dump_yaml(cloud_catalog) + "\n")
 
     local_protocol_map = build_local_protocol_map(evidence_refs)
-    write_text(WORKSPACE / "local_protocol_map.yaml", dump_yaml(local_protocol_map) + "\n")
+    write_text(
+        WORKSPACE / "local_protocol_map.yaml", dump_yaml(local_protocol_map) + "\n"
+    )
 
     if not has_sanitized_runtime_capture:
         feature_parity_matrix = build_parity_matrix()
@@ -1760,7 +1936,9 @@ def main() -> None:
         hermes_file_description=hermes_file_description,
         service_names=service_names,
         feature_hits=hermes_feature_hits,
-        dynamic_blocked=(not has_adb or (not has_emulator and not adb_has_target(adb_devices_output))),
+        dynamic_blocked=(
+            not has_adb or (not has_emulator and not adb_has_target(adb_devices_output))
+        ),
         dynamic_reason=(
             "adb is not installed on this host."
             if not has_adb
