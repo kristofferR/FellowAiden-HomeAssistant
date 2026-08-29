@@ -86,7 +86,6 @@
       "device_timezone": { "name": "Device timezone" },
       "elevation": { "name": "Elevation" },
       "average_water_per_brew": { "name": "Average water per brew" },
-      "last_brew_start_time": { "name": "Last brew start time" },
       "last_brew_end_time": { "name": "Last brew end time" },
       "last_brew_duration": { "name": "Last brew duration" },
       "average_time_between_brews": { "name": "Average time between brews" },
@@ -94,7 +93,6 @@
       "total_water_today": { "name": "Water used today" },
       "total_water_this_week": { "name": "Water used this week" },
       "total_water_this_month": { "name": "Water used this month" },
-      "average_brew_duration": { "name": "Average brew duration" },
       "most_popular_profile": { "name": "Most popular profile" },
       "current_profile": { "name": "Current profile" },
       "brew_phase": {
@@ -117,11 +115,13 @@
     },
     "binary_sensor": {
       "brewing": { "name": "Brewing" },
-      "carafe_inserted": { "name": "Carafe" },
+      "carafe_inserted": {
+        "name": "Carafe",
+        "state": { "off": "Removed", "on": "Inserted" }
+      },
       "heater": { "name": "Heater" },
       "pump": { "name": "Pump" },
       "lid": { "name": "Lid" },
-      "shower_head": { "name": "Shower head" },
       "missing_water": { "name": "Missing water" },
       "brew_error": { "name": "Brew error" },
       "cleaning": { "name": "Cleaning" },

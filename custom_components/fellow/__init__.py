@@ -554,11 +554,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> bool:
     """Set up Fellow Aiden from a config entry."""
     entity_registry = er.async_get(hass)
-    obsolete_select = entity_registry.async_get_entity_id(
-        "select", DOMAIN, f"{entry.entry_id}-profile_select"
+    obsolete_entities = (
+        ("select", f"{entry.entry_id}-profile_select"),
+        ("binary_sensor", f"{entry.entry_id}-showerHeadPresent"),
+        ("sensor", f"{entry.entry_id}-brewStartTime"),
+        ("sensor", f"{entry.entry_id}-avg_brew_duration"),
     )
-    if obsolete_select:
-        entity_registry.async_remove(obsolete_select)
+    for platform, unique_id in obsolete_entities:
+        entity_id = entity_registry.async_get_entity_id(platform, DOMAIN, unique_id)
+        if entity_id:
+            entity_registry.async_remove(entity_id)
 
     coordinator = FellowAidenDataUpdateCoordinator(
         hass,

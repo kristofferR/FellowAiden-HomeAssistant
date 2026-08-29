@@ -154,12 +154,11 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Sensor | Last brew volume | Water used in the most recent brew (mL). |
 | Sensor | Instant Brew water | Configured Instant Brew volume (mL). |
 | Sensor | Brew phase | Live bloom, pulse, drip-finish, paused, or idle phase. |
-| Sensor | Last brew start/end time | Timestamps of the last brew. |
-| Sensor | Last brew duration | How long the last brew took. |
+| Sensor | Last brew end time | Cloud timestamp for brew completion. |
+| Sensor | Last brew duration | Observed cycle duration, including pauses. |
 | Sensor | Last brew time | When the last brew finished. |
 | Sensor | Water used today/this week/this month | Period water usage from local tracking. |
 | Sensor | Average water per brew | Lifetime average (mL). |
-| Sensor | Average brew duration | Historical average (minutes). |
 | Sensor | Current profile | The active or most recently used brew profile. |
 | Sensor | Basket | Which basket is inserted: single serve, batch, or missing. |
 | Sensor | Chime volume | Device chime setting (diagnostic, disabled by default). |
@@ -168,7 +167,6 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Binary sensor | Heater | Whether the heater is on. |
 | Binary sensor | Pump | Whether the pump is on. |
 | Binary sensor | Lid | Whether the lid is open. |
-| Binary sensor | Shower head | Whether the shower head is present. |
 | Binary sensor | Missing water | Whether the water tank is empty. |
 | Binary sensor | Cleaning / rinsing | Whether a maintenance cycle is running. |
 | Binary sensor | Cloud connection | Whether the brewer reports a cloud connection. |

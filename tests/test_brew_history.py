@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import unittest
+from datetime import UTC, datetime
+from unittest.mock import patch
 
 from module_loader import load_brew_history_module
 
@@ -76,3 +78,106 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
             )
         )
         self.assertFalse(await self.manager.async_has_new_brew({}))
+
+    async def test_unpaired_api_timestamps_are_not_stored_as_duration(self) -> None:
+        await self.manager.async_update_data(
+            {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
+        )
+
+        await self.manager.async_update_data(
+            {
+                "totalBrewingCycles": 11,
+                "totalWaterVolumeL": 5500,
+                "brewStartTime": "1788001438",
+                "brewEndTime": "1788008322",
+            },
+            [],
+        )
+
+        record = self.manager._brew_history[-1]
+        self.assertNotIn("start_time", record)
+        self.assertNotIn("end_time", record)
+        self.assertNotIn("duration_seconds", record)
+
+    async def test_observed_cycle_stores_paired_duration(self) -> None:
+        now = datetime.fromtimestamp(1788012278, UTC)
+        with patch.object(self.module.dt_util, "now", return_value=now):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "brewing": False,
+                    "brewStartTime": "1788001438",
+                },
+                [],
+            )
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "brewing": True,
+                    "brewStartTime": "1788011867",
+                },
+                [],
+            )
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "brewing": False,
+                    "brewStartTime": "1788011867",
+                    "brewEndTime": "1788012276",
+                },
+                [],
+            )
+
+        record = self.manager._brew_history[-1]
+        self.assertEqual(record["duration_seconds"], 409)
+        self.assertEqual(record["duration_source"], "observed_cycle")
+        self.assertEqual(self.manager.get_last_brew_duration(), 409)
+
+    async def test_migration_keeps_only_plausible_latest_duration(self) -> None:
+        self.manager._store.data = {
+            "brew_history": [
+                {
+                    "timestamp": "2026-08-29T14:04:59+00:00",
+                    "total_brews_at_time": 225,
+                    "start_time": "2026-08-29T13:57:47+00:00",
+                    "end_time": "2026-08-29T14:04:36+00:00",
+                    "duration_seconds": 409,
+                }
+            ],
+            "water_usage_history": [],
+            "profile_usage": {},
+            "last_total_brews": 225,
+            "last_total_water": 105017,
+            "tracking_initialized": True,
+        }
+
+        await self.manager.async_load_history()
+
+        self.assertEqual(self.manager.get_last_brew_duration(), 409)
+        self.assertEqual(self.manager._store.data["timing_version"], 2)
+
+    async def test_migration_discards_mismatched_idle_timestamps(self) -> None:
+        self.manager._store.data = {
+            "brew_history": [
+                {
+                    "timestamp": "2026-08-29T12:58:59+00:00",
+                    "total_brews_at_time": 224,
+                    "start_time": "2026-08-29T11:03:58+00:00",
+                    "end_time": "2026-08-29T12:58:42+00:00",
+                    "duration_seconds": 6884,
+                }
+            ],
+            "water_usage_history": [],
+            "profile_usage": {},
+            "last_total_brews": 224,
+            "last_total_water": 104567,
+            "tracking_initialized": True,
+        }
+
+        await self.manager.async_load_history()
+
+        self.assertIsNone(self.manager.get_last_brew_duration())
+        self.assertNotIn("duration_seconds", self.manager._brew_history[-1])

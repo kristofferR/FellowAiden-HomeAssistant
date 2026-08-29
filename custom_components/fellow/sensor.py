@@ -90,7 +90,6 @@ STANDARD_SENSORS = [
 
 # Brew time sensors: (api_key, translation_key)
 BREW_TIME_SENSORS = [
-    ("brewStartTime", "last_brew_start_time"),
     ("brewEndTime", "last_brew_end_time"),
 ]
 
@@ -150,18 +149,15 @@ async def async_setup_entry(
             )
         )
 
-    # Initialize the Last Brew Duration sensor immediately after brew time sensors
-    entities.append(AidenLastBrewDurationSensor(coordinator=coordinator, entry=entry))
-
     # Analytics sensors
     entities.extend(
         [
             AidenAverageTimeBetweenBrewsSensor(coordinator, entry),
             AidenLastBrewTimeSensor(coordinator, entry),
+            AidenLastBrewDurationSensor(coordinator, entry),
             AidenTotalWaterTodaySensor(coordinator, entry),
             AidenTotalWaterWeekSensor(coordinator, entry),
             AidenTotalWaterMonthSensor(coordinator, entry),
-            AidenAverageBrewDurationSensor(coordinator, entry),
             AidenMostPopularProfileSensor(coordinator, entry),
             AidenCurrentProfileSensor(coordinator, entry),
             AidenBrewPhaseSensor(coordinator, entry),
@@ -324,58 +320,6 @@ class AidenBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
             return None
 
 
-class AidenLastBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
-    """Duration of the last brew, derived from end minus start timestamps."""
-
-    def __init__(
-        self,
-        coordinator: FellowAidenDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        super().__init__(coordinator)
-        self._entry_id = entry.entry_id
-        self._attr_translation_key = "last_brew_duration"
-        self._attr_unique_id = f"{entry.entry_id}-last_brew_duration"
-        self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
-        self._attr_device_class = SensorDeviceClass.DURATION
-
-    @property
-    def native_value(self) -> int | None:
-        """Compute and return the duration of the last brew cycle."""
-        data = self.coordinator.data
-        if not data:
-            return None
-        device_config = data.get("device_config", {})
-        start_time_str = device_config.get("brewStartTime")
-        end_time_str = device_config.get("brewEndTime")
-
-        if not start_time_str or not end_time_str:
-            return None
-
-        try:
-            start_timestamp = int(start_time_str)
-            end_timestamp = int(end_time_str)
-
-            # Validate timestamps to avoid negative durations or epoch times
-            if start_timestamp == 0 or end_timestamp == 0:
-                return None
-            if start_timestamp < TIMESTAMP_2024_01_01:  # Timestamp before 2024-01-01
-                return None
-            if end_timestamp < TIMESTAMP_2024_01_01:
-                return None
-
-            duration = end_timestamp - start_timestamp
-
-            if duration < 0:
-                _LOGGER.warning("End time precedes start time for the last brew cycle.")
-                return None
-
-            return duration
-        except (ValueError, TypeError) as error:
-            _LOGGER.error("Error calculating brew duration: %s", error)
-            return None
-
-
 class AidenAverageTimeBetweenBrewsSensor(FellowAidenBaseEntity, SensorEntity):
     """Rough estimate of average time between brews, from historical data."""
 
@@ -409,6 +353,26 @@ class AidenAverageTimeBetweenBrewsSensor(FellowAidenBaseEntity, SensorEntity):
             else "Low - insufficient historical data",
             "note": f"Calculated from {history_count} recorded brews",
         }
+
+
+class AidenLastBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
+    """Duration of the latest brew cycle observed from start through completion."""
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._attr_translation_key = "last_brew_duration"
+        self._attr_unique_id = f"{entry.entry_id}-last_brew_duration"
+        self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
+        self._attr_device_class = SensorDeviceClass.DURATION
+
+    @property
+    def native_value(self) -> int | None:
+        """Return a trusted observed duration, never an unpaired API subtraction."""
+        return self.coordinator.history_manager.get_last_brew_duration()
 
 
 class AidenLastBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
@@ -595,76 +559,6 @@ class AidenTotalWaterMonthSensor(FellowAidenBaseEntity, SensorEntity):
             if water_records > 0
             else "Low - no historical data yet",
             "note": f"Calculated from {water_records} water usage records",
-        }
-
-
-class AidenAverageBrewDurationSensor(FellowAidenBaseEntity, SensorEntity):
-    """Average brew duration across historical data, with last-brew fallback."""
-
-    def __init__(
-        self,
-        coordinator: FellowAidenDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        super().__init__(coordinator)
-        self._entry_id = entry.entry_id
-        self._attr_translation_key = "average_brew_duration"
-        self._attr_unique_id = f"{entry.entry_id}-avg_brew_duration"
-        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
-        self._attr_device_class = SensorDeviceClass.DURATION
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the average brew duration using historical data."""
-        historical_avg = self.coordinator.history_manager.get_average_brew_duration()
-        if historical_avg is not None:
-            return historical_avg
-
-        # Fallback to last brew duration if no historical data
-        data = self.coordinator.data
-        if not data:
-            return None
-        device_config = data.get("device_config", {})
-        start_time_str = device_config.get("brewStartTime")
-        end_time_str = device_config.get("brewEndTime")
-
-        if not start_time_str or not end_time_str:
-            return None
-
-        try:
-            start_timestamp = int(start_time_str)
-            end_timestamp = int(end_time_str)
-
-            if start_timestamp == 0 or end_timestamp == 0:
-                return None
-            if (
-                start_timestamp < TIMESTAMP_2024_01_01
-                or end_timestamp < TIMESTAMP_2024_01_01
-            ):
-                return None
-
-            duration_seconds = end_timestamp - start_timestamp
-            if duration_seconds < 0:
-                return None
-
-            return round(duration_seconds / 60.0, 1)  # Convert to minutes
-        except (ValueError, TypeError) as error:
-            _LOGGER.error("Error calculating brew duration: %s", error)
-            return None
-
-    @property
-    def extra_state_attributes(self) -> dict:
-        """Return additional attributes."""
-        brew_records = self.coordinator.history_manager.get_brew_history_count()
-        historical_avg = self.coordinator.history_manager.get_average_brew_duration()
-        return {
-            "historical_brews": brew_records,
-            "accuracy": "High - based on historical averages"
-            if historical_avg
-            else "Low - using last brew only",
-            "note": f"Calculated from {brew_records} recorded brews"
-            if historical_avg
-            else "Fallback to last brew duration",
         }
 
 

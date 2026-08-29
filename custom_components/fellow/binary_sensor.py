@@ -29,11 +29,10 @@ PARALLEL_UPDATES = 0
 # (api_key, device_class, translation_key, category, enabled_default)
 BINARY_SENSORS = [
     ("brewing", BinarySensorDeviceClass.RUNNING, "brewing", None, True),
-    ("carafePresent", BinarySensorDeviceClass.PRESENCE, "carafe_inserted", None, True),
+    ("carafePresent", None, "carafe_inserted", None, True),
     ("heaterOn", BinarySensorDeviceClass.HEAT, "heater", None, True),
     ("pumpOn", BinarySensorDeviceClass.RUNNING, "pump", None, True),
     ("lidClosed", BinarySensorDeviceClass.DOOR, "lid", None, True),
-    ("showerHeadPresent", BinarySensorDeviceClass.PRESENCE, "shower_head", None, True),
     ("missingWater", BinarySensorDeviceClass.PROBLEM, "missing_water", None, True),
     ("brewError", BinarySensorDeviceClass.PROBLEM, "brew_error", None, True),
     ("cleaning", BinarySensorDeviceClass.RUNNING, "cleaning", None, True),

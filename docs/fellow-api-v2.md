@@ -46,6 +46,11 @@ cleaning, rinsing, cloud connectivity, firmware-update status, and queued
 changes. Home Assistant keeps stable entity semantics when a field is absent
 and treats the live nested state as authoritative while a brew is active.
 
+`brewStartTime` and `brewEndTime` advance independently while idle and must not
+be subtracted without observing a matching cycle. Home Assistant records a
+duration only when it sees the brewer transition from active to complete with
+one corresponding counter increment.
+
 ## Cloud notifications
 
 The mobile flow registers an Android FCM token with
