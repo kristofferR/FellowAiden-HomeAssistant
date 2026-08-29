@@ -188,13 +188,19 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
         credentials = self.module.FcmCredentials(1, 2, "token")
         messages = []
         connections = []
+        ssl_context = object()
 
         with (
             patch.object(
                 self.module.asyncio,
+                "to_thread",
+                return_value=ssl_context,
+            ) as to_thread,
+            patch.object(
+                self.module.asyncio,
                 "open_connection",
                 return_value=(reader, writer),
-            ),
+            ) as open_connection,
             self.assertRaises(self.module.FcmConnectionError),
         ):
             await self.module.FcmClient(FakeSession([])).async_listen(
@@ -208,6 +214,13 @@ class FcmProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(credentials.persistent_ids, ["persistent-1"])
         self.assertEqual(connections, [True, False])
         self.assertTrue(writer.closed)
+        to_thread.assert_awaited_once_with(self.module.ssl.create_default_context)
+        open_connection.assert_awaited_once_with(
+            self.module.MCS_HOST,
+            self.module.MCS_PORT,
+            ssl=ssl_context,
+            server_hostname=self.module.MCS_HOST,
+        )
         self.assertEqual(writer.writes[0][:2], bytes((self.module.MCS_VERSION, 2)))
         iq_frame = next(
             frame

@@ -352,6 +352,13 @@ class FcmClient:
 
     def __init__(self, session: aiohttp.ClientSession) -> None:
         self._session = session
+        self._ssl_context: ssl.SSLContext | None = None
+
+    async def _async_get_ssl_context(self) -> ssl.SSLContext:
+        """Build the system trust store without blocking the event loop."""
+        if self._ssl_context is None:
+            self._ssl_context = await asyncio.to_thread(ssl.create_default_context)
+        return self._ssl_context
 
     async def async_register(
         self, existing: FcmCredentials | None = None
@@ -492,10 +499,11 @@ class FcmClient:
 
         try:
             try:
+                ssl_context = await self._async_get_ssl_context()
                 reader, writer = await asyncio.open_connection(
                     MCS_HOST,
                     MCS_PORT,
-                    ssl=True,
+                    ssl=ssl_context,
                     server_hostname=MCS_HOST,
                 )
                 writer.write(
