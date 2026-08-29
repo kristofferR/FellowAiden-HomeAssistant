@@ -147,6 +147,14 @@ class TelemetryTests(unittest.TestCase):
             ["brew_completed"],
         )
 
+    def test_lifecycle_events_survive_an_unknown_intermediate_snapshot(self) -> None:
+        active = self.module.merge_event_telemetry(None, {"state": {"value": "p1"}})
+        unknown = self.module.merge_event_telemetry(active, {})
+        idle = self.module.merge_event_telemetry(unknown, {"state": None})
+
+        self.assertEqual(self.module.device_events(active, unknown), [])
+        self.assertEqual(self.module.device_events(unknown, idle), ["brew_completed"])
+
     def test_remote_start_requires_safe_reported_state(self) -> None:
         ready = {
             "state": None,

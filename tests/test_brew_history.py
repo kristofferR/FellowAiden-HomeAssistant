@@ -62,6 +62,47 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.manager._last_total_brews, 10)
         self.assertEqual(self.manager._last_total_water, 5000)
 
+    async def test_partial_counters_still_preserve_observed_cycle_timing(self) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        counter_updated = datetime.fromtimestamp(1788012408, UTC)
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": None,
+                },
+                [],
+            )
+            await self.manager.async_update_data(
+                {
+                    "state": {"value": "p1"},
+                    "brewStartTime": str(int(started.timestamp())),
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(
+                {
+                    "state": None,
+                    "brewStartTime": str(int(started.timestamp())),
+                    "brewEndTime": str(int(finished.timestamp())),
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=counter_updated):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "state": None,
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_last_brew_duration(), 120)
+
     async def test_detects_when_fresh_profiles_are_needed(self) -> None:
         await self.manager.async_update_data(
             {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
@@ -357,6 +398,39 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(
             await self.manager.async_needs_profile_attribution(completed_device)
         )
+
+    async def test_profile_backfill_uses_completed_brew_evidence(self) -> None:
+        await self.manager.async_update_data(
+            {"totalBrewingCycles": 10, "totalWaterVolumeL": 5000}, []
+        )
+        await self.manager.async_update_data(
+            {
+                "totalBrewingCycles": 11,
+                "totalWaterVolumeL": 5450,
+                "brewingProfileId": "completed-profile",
+                "brewStartTime": "1234",
+            },
+            [],
+        )
+
+        await self.manager.async_update_data(
+            {
+                "totalBrewingCycles": 11,
+                "totalWaterVolumeL": 5450,
+                "state": {"value": "p1"},
+                "brewingProfileId": "next-profile",
+                "brewStartTime": "5678",
+            },
+            [
+                {"id": "completed-profile", "title": "Completed"},
+                {"id": "next-profile", "title": "Next"},
+            ],
+        )
+
+        record = self.manager._brew_history[-1]
+        self.assertEqual(record["profile_id"], "completed-profile")
+        self.assertEqual(record["profile_title"], "Completed")
+        self.assertNotIn("_profile_evidence", record)
 
     async def test_stale_active_start_falls_back_to_observation_time(self) -> None:
         initial = datetime.fromtimestamp(1788012278, UTC)

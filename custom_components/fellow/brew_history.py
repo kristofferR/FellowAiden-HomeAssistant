@@ -24,6 +24,11 @@ _MAX_COMPLETION_CLOCK_SKEW_SECONDS = 5 * 60
 _MAX_OBSERVED_START_AGE_SECONDS = 30 * 60
 _MAX_PENDING_COMPLETION_AGE_SECONDS = 5 * 60
 _TRUSTED_DURATION_SOURCES = frozenset({"observed_cycle", "validated_legacy_pair"})
+_PROFILE_EVIDENCE_FIELDS = (
+    "brewingProfileId",
+    "brewStartTime",
+    "ibSelectedProfileId",
+)
 
 
 class _ObservedTiming(NamedTuple):
@@ -200,6 +205,7 @@ class BrewHistoryManager:
         if not isinstance(profile_title, str) or not profile_title:
             profile_title = "Unknown Profile"
         brew_record["profile_title"] = profile_title
+        brew_record.pop("_profile_evidence", None)
         self._profile_usage[profile_title] = (
             self._profile_usage.get(profile_title, 0) + 1
         )
@@ -226,7 +232,11 @@ class BrewHistoryManager:
         )
         if brew_record is None:
             return False
-        return self._attribute_profile(brew_record, profiles, device_config)
+        stored_evidence = brew_record.get("_profile_evidence")
+        evidence = (
+            stored_evidence if isinstance(stored_evidence, dict) else device_config
+        )
+        return self._attribute_profile(brew_record, profiles, evidence)
 
     def _attach_observed_timing(
         self,
@@ -277,14 +287,16 @@ class BrewHistoryManager:
         current_total_water = _nonnegative_counter(
             device_config.get("totalWaterVolumeL")
         )
-        if current_total_brews is None or current_total_water is None:
-            _LOGGER.debug("Skipping history update because counters are unavailable")
-            return
         now = dt_util.now()
         now_timestamp = int(now.timestamp())
         data_changed = False
         observed_timing: _ObservedTiming | None = None
-        current_api_start = _positive_timestamp(device_config.get("brewStartTime"))
+        api_start_present = "brewStartTime" in device_config
+        current_api_start = (
+            _positive_timestamp(device_config.get("brewStartTime"))
+            if api_start_present
+            else self._last_api_brew_start
+        )
         brewing = is_brewing(device_config)
 
         pending_timing = self._pending_brew_timing
@@ -293,12 +305,18 @@ class BrewHistoryManager:
                 now_timestamp - pending_timing.end_timestamp
                 > _MAX_PENDING_COMPLETION_AGE_SECONDS
                 or pending_timing.end_timestamp > now_timestamp + 60
-                or current_total_brews < pending_timing.total_brews_at_time - 1
+                or (
+                    current_total_brews is not None
+                    and current_total_brews < pending_timing.total_brews_at_time - 1
+                )
             )
             if pending_expired:
                 self._pending_brew_timing = None
                 data_changed = True
-            elif current_total_brews >= pending_timing.total_brews_at_time:
+            elif (
+                current_total_brews is not None
+                and current_total_brews >= pending_timing.total_brews_at_time
+            ):
                 observed_timing = pending_timing
                 self._pending_brew_timing = None
                 data_changed = True
@@ -313,7 +331,10 @@ class BrewHistoryManager:
             self._active_brew_start = (
                 current_api_start if api_start_changed else now_timestamp
             )
-            self._active_brew_cycles = current_total_brews
+            cycles_at_start = current_total_brews
+            if cycles_at_start is None and self._tracking_initialized:
+                cycles_at_start = self._last_total_brews
+            self._active_brew_cycles = cycles_at_start
             data_changed = True
         elif brewing is False and self._active_brew_start is not None:
             active_cycles = self._active_brew_cycles
@@ -334,7 +355,10 @@ class BrewHistoryManager:
                         self._active_brew_start,
                         end_timestamp,
                     )
-                    if current_total_brews >= completed_timing.total_brews_at_time:
+                    if (
+                        current_total_brews is not None
+                        and current_total_brews >= completed_timing.total_brews_at_time
+                    ):
                         observed_timing = completed_timing
                     else:
                         self._pending_brew_timing = completed_timing
@@ -342,9 +366,17 @@ class BrewHistoryManager:
             self._active_brew_cycles = None
             data_changed = True
 
-        if current_api_start != self._last_api_brew_start:
+        if api_start_present and current_api_start != self._last_api_brew_start:
             self._last_api_brew_start = current_api_start
             data_changed = True
+
+        if current_total_brews is None or current_total_water is None:
+            _LOGGER.debug(
+                "Skipping counter history update because counters are unavailable"
+            )
+            if data_changed:
+                await self._async_save_history()
+            return
 
         # Zero is a valid counter value. An explicit flag prevents the first
         # brew after a zero baseline from being mistaken for initialization.
@@ -376,13 +408,22 @@ class BrewHistoryManager:
 
             # Add brew record(s)
             for i in range(new_brews):
+                record_total_brews = current_total_brews - (new_brews - 1 - i)
                 brew_record = {
                     "timestamp": now.isoformat(),
-                    "total_brews_at_time": current_total_brews - (new_brews - 1 - i),
+                    "total_brews_at_time": record_total_brews,
                     "total_water_at_time": current_total_water,
                 }
 
-                self._attribute_profile(brew_record, profiles, device_config)
+                if record_total_brews == current_total_brews:
+                    profile_evidence = {
+                        key: device_config[key]
+                        for key in _PROFILE_EVIDENCE_FIELDS
+                        if device_config.get(key) is not None
+                    }
+                    if profile_evidence:
+                        brew_record["_profile_evidence"] = profile_evidence
+                    self._attribute_profile(brew_record, profiles, device_config)
 
                 self._brew_history.append(brew_record)
 

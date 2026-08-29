@@ -116,6 +116,36 @@ def can_start_brew(device_config: dict[str, Any]) -> bool:
     )
 
 
+def merge_event_telemetry(
+    previous: dict[str, Any] | None, current: dict[str, Any]
+) -> dict[str, Any]:
+    """Retain definitive event state across partial cloud snapshots."""
+    if previous is None:
+        return dict(current)
+
+    merged = dict(current)
+    if is_brewing(current) is None:
+        if "state" in previous:
+            merged["state"] = previous.get("state")
+        else:
+            previous_brewing = previous.get("brewing")
+            if isinstance(previous_brewing, bool):
+                merged["brewing"] = previous_brewing
+
+    if is_missing_water(current) is None:
+        previous_missing_water = is_missing_water(previous)
+        if previous_missing_water is not None:
+            merged["missingWater"] = previous_missing_water
+
+    for key in ("cleaning", "rinsing"):
+        if not isinstance(current.get(key), bool) and isinstance(
+            previous.get(key), bool
+        ):
+            merged[key] = previous[key]
+
+    return merged
+
+
 def device_events(
     previous: dict[str, Any] | None, current: dict[str, Any]
 ) -> list[str]:

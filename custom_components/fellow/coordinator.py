@@ -30,7 +30,12 @@ from .fellow_aiden import (
     FellowConnectionError,
     FellowNoSupportedDeviceError,
 )
-from .telemetry import brew_phase, can_start_brew, device_events
+from .telemetry import (
+    brew_phase,
+    can_start_brew,
+    device_events,
+    merge_event_telemetry,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +66,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._next_refresh_verbose = False
         self._force_resource_refresh = False
         self._last_resource_refresh = monotonic()
+        self._event_device_config: dict[str, Any] | None = None
 
         # Get update interval from options or use default
         update_interval_seconds = get_update_interval_seconds(entry.options)
@@ -119,9 +125,6 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the Fellow Aiden cloud API."""
         _LOGGER.debug("Starting data update cycle")
-        previous_device_config = (
-            (self.data or {}).get("device_config") if self.data is not None else None
-        )
         if not self.api:
             _LOGGER.error("Fellow Aiden library not initialized")
             raise UpdateFailed("Fellow Aiden library not initialized")
@@ -246,7 +249,12 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.warning("Failed to update historical data", exc_info=True)
 
         brewer_id = device_config.get("id")
-        for event_type in device_events(previous_device_config, device_config):
+        previous_event_config = self._event_device_config
+        event_device_config = merge_event_telemetry(
+            previous_event_config, device_config
+        )
+        self._event_device_config = event_device_config
+        for event_type in device_events(previous_event_config, event_device_config):
             self.hass.bus.async_fire(
                 EVENT_DEVICE,
                 {
