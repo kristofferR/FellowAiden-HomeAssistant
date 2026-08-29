@@ -27,9 +27,6 @@
       "lid": { "default": "mdi:door" },
       "missing_water": { "default": "mdi:water-off" },
       "push_connected": { "default": "mdi:cloud-check-outline" }
-    },
-    "select": {
-      "profiles": { "default": "mdi:format-list-bulleted" }
     }
   },
   "services": {

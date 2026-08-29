@@ -19,6 +19,7 @@ from homeassistant.core import (
     SupportsResponse,
 )
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -550,6 +551,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> bool:
     """Set up Fellow Aiden from a config entry."""
+    entity_registry = er.async_get(hass)
+    obsolete_select = entity_registry.async_get_entity_id(
+        "select", DOMAIN, f"{entry.entry_id}-profile_select"
+    )
+    if obsolete_select:
+        entity_registry.async_remove(obsolete_select)
+
     coordinator = FellowAidenDataUpdateCoordinator(
         hass,
         entry,

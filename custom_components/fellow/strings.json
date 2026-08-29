@@ -130,9 +130,6 @@
       "firmware_update": { "name": "Firmware update available" },
       "unsynced_changes": { "name": "Unsynced changes" },
       "push_connected": { "name": "Cloud push connection" }
-    },
-    "select": {
-      "profiles": { "name": "Profiles" }
     }
   },
   "services": {
@@ -386,9 +383,6 @@
     },
     "reset_water_failed": {
       "message": "Failed to reset water tracking: {error}"
-    },
-    "profile_selection_not_supported": {
-      "message": "The Fellow API does not support remote profile switching."
     }
   }
 }

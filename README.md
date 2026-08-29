@@ -39,7 +39,6 @@ This is a custom integration that brings your coffee brewer into the Home Assist
 - **Brew Management:** 
   - Create, list, delete, and manage brew profiles from Home Assistant
   - Schedule management
-  - Profile selection dropdown (display-only)
 - **Services:** A collection of services for all brewing operations
 - **Smart Logging:** Detailed API logging for manual operations, quiet polling for regular updates
 - **Water Usage Tracking:** Historical tracking with reset capabilities and period-specific sensors
@@ -175,7 +174,6 @@ The **Fellow Aiden** coffee brewer. No other Fellow products are supported.
 | Binary sensor | Cloud connection | Whether the brewer reports a cloud connection. |
 | Binary sensor | Firmware update | Whether a firmware update is required. |
 | Binary sensor | Brew error / unsynced changes | Cloud and live-state problem indicators. |
-| Select | Profiles | Dropdown of available brew profiles (display-only). |
 
 ### Services
 
@@ -240,8 +238,8 @@ automation:
 ## Known limitations
 
 - No direct brew start: v2 advertises remote brewing, but the observed cancellation endpoint did not reliably stop a running brew. The integration does not expose an unsafe start-only control.
+- No remote profile selection: the mobile client contains a selection route, but Fellow's live Aiden gateway rejects authenticated calls to it. The integration exposes the current profile as a sensor instead of a non-functional control.
 - Cloud push uses Fellow's Android Firebase registration flow, which is an undocumented mobile protocol. The integration automatically reconnects and retains polling as the source-of-truth fallback.
-- Profile selection is display-only: the dropdown shows profiles but selecting one does nothing.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.
 
 ---

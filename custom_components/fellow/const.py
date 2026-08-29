@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 type FellowAidenConfigEntry = ConfigEntry[FellowAidenDataUpdateCoordinator]
 
 DOMAIN = "fellow"
-PLATFORMS = ["sensor", "select", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor"]
 
 # Update intervals. Device state changes quickly during a brew, while profiles
 # and schedules are configuration data and can be refreshed less frequently.
