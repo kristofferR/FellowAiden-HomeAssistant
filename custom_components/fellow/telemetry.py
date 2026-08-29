@@ -34,7 +34,12 @@ DEVICE_EVENT_TYPES = (
 def brew_phase(device_config: dict[str, Any]) -> str:
     """Return a stable phase name from the v2 state object."""
     if "state" not in device_config:
-        return "brewing" if device_config.get("brewing") else "idle"
+        brewing = device_config.get("brewing")
+        if brewing is True:
+            return "brewing"
+        if brewing is False:
+            return "idle"
+        return "unknown"
 
     state = device_config.get("state")
     if state is None:

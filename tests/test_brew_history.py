@@ -172,6 +172,59 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(self.manager.get_last_brew_duration(), 120)
 
+    async def test_failed_profile_refresh_does_not_defer_cycle_timing(self) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        device = {
+            "totalBrewingCycles": 10,
+            "totalWaterVolumeL": 5000,
+            "state": None,
+        }
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(device, [])
+            await self.manager.async_update_data(
+                {
+                    **device,
+                    "state": {"value": "p1"},
+                    "brewStartTime": str(int(started.timestamp())),
+                },
+                [],
+            )
+        completed_device = {
+            **device,
+            "totalBrewingCycles": 11,
+            "totalWaterVolumeL": 5450,
+            "brewStartTime": str(int(started.timestamp())),
+            "brewEndTime": str(int(finished.timestamp())),
+        }
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(completed_device, [])
+
+        record = self.manager._brew_history[-1]
+        self.assertEqual(record["duration_seconds"], 120)
+        self.assertNotIn("profile_title", record)
+        self.assertTrue(
+            await self.manager.async_needs_profile_attribution(completed_device)
+        )
+
+        profiles = [
+            {
+                "id": "guided",
+                "title": "Guided",
+                "lastUsedTime": str(int(started.timestamp())),
+            }
+        ]
+        await self.manager.async_update_data(completed_device, profiles)
+        await self.manager.async_update_data(completed_device, profiles)
+
+        self.assertEqual(record["duration_seconds"], 120)
+        self.assertEqual(record["profile_id"], "guided")
+        self.assertEqual(record["profile_title"], "Guided")
+        self.assertEqual(self.manager.get_profile_usage_stats(), {"Guided": 1})
+        self.assertFalse(
+            await self.manager.async_needs_profile_attribution(completed_device)
+        )
+
     async def test_stale_active_start_falls_back_to_observation_time(self) -> None:
         initial = datetime.fromtimestamp(1788012278, UTC)
         finished = datetime.fromtimestamp(1788012398, UTC)

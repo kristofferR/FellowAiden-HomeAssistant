@@ -127,12 +127,18 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self.api.fetch_device()
             device_config = self.api.get_device_config() or {}
             new_brew = await self.history_manager.async_has_new_brew(device_config)
+            profile_attribution_pending = (
+                await self.history_manager.async_needs_profile_attribution(
+                    device_config
+                )
+            )
+            needs_fresh_profiles = new_brew or profile_attribution_pending
             now = monotonic()
             force_resource_refresh = self._force_resource_refresh
             self._force_resource_refresh = False
             resource_refresh_needed = (
                 force_resource_refresh
-                or new_brew
+                or needs_fresh_profiles
                 or now - self._last_resource_refresh >= RESOURCE_UPDATE_INTERVAL_SECONDS
             )
             profiles_refreshed = False
@@ -156,9 +162,9 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "Profile and schedule refresh failed; using cached data",
                         exc_info=True,
                     )
-            if new_brew and not profiles_refreshed:
+            if needs_fresh_profiles and not profiles_refreshed:
                 _LOGGER.warning(
-                    "Deferring brew history update until profiles can be refreshed"
+                    "Deferring brew profile attribution until profiles can be refreshed"
                 )
         except FellowAuthError as err:
             raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
@@ -226,8 +232,12 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Update historical data with the new data (non-fatal)
         _LOGGER.debug("Updating historical data")
         try:
-            if not new_brew or profiles_refreshed:
-                await self.history_manager.async_update_data(device_config, profiles)
+            history_profiles = (
+                profiles if not needs_fresh_profiles or profiles_refreshed else []
+            )
+            await self.history_manager.async_update_data(
+                device_config, history_profiles
+            )
         except Exception:
             _LOGGER.warning("Failed to update historical data", exc_info=True)
 

@@ -100,6 +100,51 @@ class PushManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(manager._retry_delay, self.module._INITIAL_RETRY_SECONDS)
         self.assertEqual(manager.status, self.module.PushStatus.CONNECTED)
 
+    async def test_registration_rejection_discards_stored_credentials(self) -> None:
+        module = self.module
+
+        class FakeApi:
+            def __init__(self) -> None:
+                self.tokens: list[str] = []
+
+            async def register_push_token(self, token: str) -> None:
+                self.tokens.append(token)
+
+        class FakeClient:
+            def __init__(self) -> None:
+                self.existing_credentials: list[object] = []
+
+            async def async_register(self, existing: object) -> object:
+                self.existing_credentials.append(existing)
+                if len(self.existing_credentials) == 1:
+                    raise module.FcmRegistrationError("rejected")
+                return module.FcmCredentials(3, 4, "fresh-token")
+
+        manager = module.FellowPushManager(FakeHass(), "account")
+        coordinator = FakeCoordinator()
+        coordinator.api = FakeApi()
+        manager.attach("entry-1", coordinator)
+        stale_credentials = module.FcmCredentials(1, 2, "stale-token")
+        manager._credentials = stale_credentials
+        client = FakeClient()
+        saved: list[dict[str, object]] = []
+
+        async def save(data: dict[str, object]) -> None:
+            saved.append(data)
+
+        with (
+            patch.object(manager._store, "async_save", side_effect=save),
+            patch.object(manager, "_async_retry_delay", return_value=None) as retry,
+        ):
+            registered = await manager._async_register(client)
+
+        self.assertTrue(registered)
+        self.assertEqual(client.existing_credentials, [stale_credentials, None])
+        self.assertEqual(saved[0], {})
+        self.assertEqual(saved[-1]["fcm_token"], "fresh-token")
+        self.assertEqual(coordinator.api.tokens, ["fresh-token"])
+        retry.assert_awaited_once_with()
+
     async def test_rejected_credentials_trigger_fresh_registration(self) -> None:
         module = self.module
 

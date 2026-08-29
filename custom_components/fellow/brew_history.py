@@ -140,6 +140,55 @@ class BrewHistoryManager:
         except Exception as e:  # noqa: BLE001 - storage failures are non-fatal
             _LOGGER.error("Failed to save brew history: %s", e)
 
+    def _attribute_profile(
+        self,
+        brew_record: dict[str, Any],
+        profiles: list[dict[str, Any]],
+        device_config: dict[str, Any],
+    ) -> bool:
+        """Attribute a profile to an unresolved brew record."""
+        if "profile_title" in brew_record:
+            return False
+
+        resolved_profile = resolve_current_profile(profiles, device_config).profile
+        if resolved_profile is None:
+            return False
+
+        profile_id = resolved_profile.get("id")
+        if isinstance(profile_id, str) and profile_id:
+            brew_record["profile_id"] = profile_id
+        profile_title = resolved_profile.get("title")
+        if not isinstance(profile_title, str) or not profile_title:
+            profile_title = "Unknown Profile"
+        brew_record["profile_title"] = profile_title
+        self._profile_usage[profile_title] = (
+            self._profile_usage.get(profile_title, 0) + 1
+        )
+        return True
+
+    def _attribute_latest_unresolved_brew(
+        self,
+        current_total_brews: int,
+        device_config: dict[str, Any],
+        profiles: list[dict[str, Any]],
+    ) -> bool:
+        """Backfill the latest brew once fresh profile data is available."""
+        if not profiles:
+            return False
+
+        brew_record = next(
+            (
+                record
+                for record in reversed(self._brew_history)
+                if record.get("total_brews_at_time") == current_total_brews
+                and "profile_title" not in record
+            ),
+            None,
+        )
+        if brew_record is None:
+            return False
+        return self._attribute_profile(brew_record, profiles, device_config)
+
     async def async_update_data(
         self, device_config: dict[str, Any], profiles: list[dict[str, Any]]
     ) -> None:
@@ -255,26 +304,19 @@ class BrewHistoryManager:
                         }
                     )
 
-                if profiles:
-                    resolved_profile = resolve_current_profile(
-                        profiles, device_config
-                    ).profile
-                    if resolved_profile:
-                        profile_id = resolved_profile.get("id")
-                        profile_title = resolved_profile.get("title", "Unknown Profile")
-                        brew_record["profile_id"] = profile_id
-                        brew_record["profile_title"] = profile_title
-
-                        # Update profile usage counter
-                        if profile_title in self._profile_usage:
-                            self._profile_usage[profile_title] += 1
-                        else:
-                            self._profile_usage[profile_title] = 1
+                self._attribute_profile(brew_record, profiles, device_config)
 
                 self._brew_history.append(brew_record)
 
             self._last_total_brews = current_total_brews
             data_changed = True
+
+        data_changed = (
+            self._attribute_latest_unresolved_brew(
+                current_total_brews, device_config, profiles
+            )
+            or data_changed
+        )
 
         # Check if water usage changed
         if current_total_water > self._last_total_water:
@@ -355,6 +397,24 @@ class BrewHistoryManager:
             self._tracking_initialized
             and current_total_brews is not None
             and current_total_brews > self._last_total_brews
+        )
+
+    async def async_needs_profile_attribution(
+        self, device_config: dict[str, Any]
+    ) -> bool:
+        """Return whether the latest brew still needs fresh profile data."""
+        if not self._data_loaded:
+            await self.async_load_history()
+        current_total_brews = _nonnegative_counter(
+            device_config.get("totalBrewingCycles"), integral=True
+        )
+        return bool(
+            current_total_brews is not None
+            and any(
+                record.get("total_brews_at_time") == current_total_brews
+                and "profile_title" not in record
+                for record in reversed(self._brew_history)
+            )
         )
 
     def _clean_old_records(self, cutoff_date: datetime) -> None:

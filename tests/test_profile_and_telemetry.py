@@ -89,6 +89,8 @@ class TelemetryTests(unittest.TestCase):
             self.module.brew_phase({"state": {"value": "p10"}}), "pulse_10"
         )
         self.assertEqual(self.module.brew_phase({"state": None}), "idle")
+        self.assertEqual(self.module.brew_phase({"brewing": False}), "idle")
+        self.assertEqual(self.module.brew_phase({}), "unknown")
 
     def test_nested_missing_water_is_used(self) -> None:
         self.assertTrue(
