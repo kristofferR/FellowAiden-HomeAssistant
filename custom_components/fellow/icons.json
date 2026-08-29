@@ -16,7 +16,8 @@
       "most_popular_profile": { "default": "mdi:star" },
       "current_profile": { "default": "mdi:coffee" },
       "basket": { "default": "mdi:basket" },
-      "last_cloud_push": { "default": "mdi:message-badge-outline" }
+      "last_cloud_push": { "default": "mdi:message-badge-outline" },
+      "next_scheduled_brew": { "default": "mdi:calendar-clock" }
     },
     "binary_sensor": {
       "brewing": { "default": "mdi:coffee-maker" },
@@ -25,6 +26,12 @@
       "lid": { "default": "mdi:door" },
       "missing_water": { "default": "mdi:water-off" },
       "push_connected": { "default": "mdi:cloud-check-outline" }
+    },
+    "calendar": {
+      "brew_schedule": { "default": "mdi:calendar-clock" }
+    },
+    "button": {
+      "start_brew": { "default": "mdi:coffee-maker-check" }
     }
   },
   "services": {

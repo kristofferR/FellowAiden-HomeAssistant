@@ -22,7 +22,12 @@ from .const import (
     FellowAidenConfigEntry,
 )
 from .coordinator import FellowAidenDataUpdateCoordinator
-from .profile_resolution import resolve_current_profile
+from .profile_resolution import profile_recipe_attributes, resolve_current_profile
+from .schedule_helpers import (
+    ScheduleOccurrence,
+    next_schedule_occurrence,
+    schedule_timezone,
+)
 from .telemetry import BREW_PHASES, brew_phase
 
 _LOGGER = logging.getLogger(__name__)
@@ -163,6 +168,7 @@ async def async_setup_entry(
             AidenBrewPhaseSensor(coordinator, entry),
             AidenConnectionTimestampSensor(coordinator, entry),
             AidenBasketSensor(coordinator, entry),
+            AidenNextScheduledBrewSensor(coordinator, entry),
         ]
     )
     if coordinator.push_manager:
@@ -714,6 +720,13 @@ class AidenCurrentProfileSensor(FellowAidenBaseEntity, SensorEntity):
             "confidence": confidence,
         }
 
+        if data:
+            resolution = resolve_current_profile(
+                data.get("profiles", []), data.get("device_config", {})
+            )
+            if resolution.profile:
+                attrs.update(profile_recipe_attributes(resolution.profile))
+
         # Add last used time if available
         if last_used_time:
             attrs["last_used_time"] = last_used_time
@@ -760,6 +773,61 @@ class AidenBrewPhaseSensor(FellowAidenBaseEntity, SensorEntity):
         if not isinstance(state, dict) or not isinstance(state.get("value"), str):
             return {}
         return {"raw_phase": state["value"]}
+
+
+class AidenNextScheduledBrewSensor(FellowAidenBaseEntity, SensorEntity):
+    """Timestamp and recipe summary for the next enabled schedule."""
+
+    _attr_translation_key = "next_scheduled_brew"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_unique_id = f"{entry.entry_id}-next-scheduled-brew"
+
+    def _occurrence(self) -> ScheduleOccurrence | None:
+        data = self.coordinator.data or {}
+        timezone = schedule_timezone(
+            data.get("device_config", {}), self.coordinator.hass.config.time_zone
+        )
+        return next_schedule_occurrence(
+            data.get("schedules", []),
+            data.get("profiles", []),
+            dt_util.now(),
+            timezone,
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the next scheduled brew time."""
+        occurrence = self._occurrence()
+        return occurrence.start if occurrence else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the schedule details useful to automations."""
+        data = self.coordinator.data or {}
+        schedules = data.get("schedules", [])
+        attrs: dict[str, Any] = {
+            "enabled_schedules": sum(
+                schedule.get("enabled") is True for schedule in schedules
+            )
+        }
+        occurrence = self._occurrence()
+        if occurrence:
+            attrs.update(
+                {
+                    "profile": occurrence.profile_title,
+                    "water_ml": occurrence.water_ml,
+                    "repeat_days": list(occurrence.repeat_days),
+                }
+            )
+        return attrs
 
 
 class AidenConnectionTimestampSensor(FellowAidenBaseEntity, SensorEntity):

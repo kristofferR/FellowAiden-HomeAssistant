@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 type FellowAidenConfigEntry = ConfigEntry[FellowAidenDataUpdateCoordinator]
 
 DOMAIN = "fellow"
-PLATFORMS = ["sensor", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor", "calendar", "button"]
 
 # Update intervals. Device state changes quickly during a brew, while profiles
 # and schedules are configuration data and can be refreshed less frequently.
@@ -26,6 +26,7 @@ CONF_ENABLE_CLOUD_PUSH = "enable_cloud_push"
 CONF_UPDATE_INTERVAL_SECONDS = "update_interval_seconds"
 LEGACY_CONF_UPDATE_INTERVAL_MINUTES = "update_interval_minutes"
 EVENT_CLOUD_PUSH = "fellow_cloud_push"
+EVENT_DEVICE = "fellow_device_event"
 PUSH_MANAGERS = "push_managers"
 
 

@@ -7,9 +7,7 @@ from typing import Any
 BREW_PHASES = (
     "idle",
     "bloom",
-    "pulse_1",
-    "pulse_2",
-    "pulse_3",
+    *(f"pulse_{number}" for number in range(1, 11)),
     "drip_finish",
     "paused",
     "brewing",
@@ -18,12 +16,19 @@ BREW_PHASES = (
 
 _BREW_PHASE_CODES = {
     "b": "bloom",
-    "p1": "pulse_1",
-    "p2": "pulse_2",
-    "p3": "pulse_3",
     "d": "drip_finish",
     "pa": "paused",
 }
+
+DEVICE_EVENT_TYPES = (
+    "brew_started",
+    "brew_paused",
+    "brew_resumed",
+    "drip_finish",
+    "brew_completed",
+    "cleaning_started",
+    "rinsing_started",
+)
 
 
 def brew_phase(device_config: dict[str, Any]) -> str:
@@ -40,6 +45,10 @@ def brew_phase(device_config: dict[str, Any]) -> str:
     value = state.get("value")
     if not isinstance(value, str):
         return "unknown"
+    if value.startswith("p") and value[1:].isdigit():
+        pulse_number = int(value[1:])
+        if 1 <= pulse_number <= 10:
+            return f"pulse_{pulse_number}"
     return _BREW_PHASE_CODES.get(value, "unknown")
 
 
@@ -75,3 +84,59 @@ def has_unsynced_changes(device_config: dict[str, Any]) -> bool | None:
     if isinstance(unsynced, list):
         return bool(unsynced)
     return None
+
+
+def can_start_brew(device_config: dict[str, Any]) -> bool:
+    """Return whether reported state is safe for an Instant Brew start."""
+    single_basket = device_config.get("singleBrewBasketPresent") is True
+    batch_ready = (
+        device_config.get("batchBrewBasketPresent") is True
+        and device_config.get("carafePresent") is True
+    )
+    return bool(
+        device_config.get("isConnected") is True
+        and is_brewing(device_config) is False
+        and device_config.get("lidClosed") is True
+        and is_missing_water(device_config) is False
+        and device_config.get("cleaning") is not True
+        and device_config.get("rinsing") is not True
+        and (single_basket or batch_ready)
+    )
+
+
+def device_events(
+    previous: dict[str, Any] | None, current: dict[str, Any]
+) -> list[str]:
+    """Return meaningful device transitions between two live snapshots."""
+    if previous is None:
+        return []
+
+    events: list[str] = []
+    previous_active = is_brewing(previous)
+    current_active = is_brewing(current)
+    previous_phase = brew_phase(previous)
+    current_phase = brew_phase(current)
+    previous_paused = previous_phase == "paused" or is_missing_water(previous) is True
+    current_paused = current_phase == "paused" or is_missing_water(current) is True
+
+    if previous_active is False and current_active is True:
+        events.append("brew_started")
+    if current_active is True and not previous_paused and current_paused:
+        events.append("brew_paused")
+    if (
+        previous_active is True
+        and current_active is True
+        and previous_paused
+        and not current_paused
+    ):
+        events.append("brew_resumed")
+    if current_phase == "drip_finish" and previous_phase != "drip_finish":
+        events.append("drip_finish")
+    if previous_active is True and current_active is False:
+        events.append("brew_completed")
+    if previous.get("cleaning") is not True and current.get("cleaning") is True:
+        events.append("cleaning_started")
+    if previous.get("rinsing") is not True and current.get("rinsing") is True:
+        events.append("rinsing_started")
+
+    return events

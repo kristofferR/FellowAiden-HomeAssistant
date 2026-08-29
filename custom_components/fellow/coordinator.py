@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .brew_history import BrewHistoryManager
 from .const import (
+    EVENT_DEVICE,
     PUSH_CONNECTED_POLL_INTERVAL_SECONDS,
     RESOURCE_UPDATE_INTERVAL_SECONDS,
     get_update_interval_seconds,
@@ -29,6 +30,7 @@ from .fellow_aiden import (
     FellowConnectionError,
     FellowNoSupportedDeviceError,
 )
+from .telemetry import brew_phase, can_start_brew, device_events
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.email = email
         self.password = password
         self.brewer_id = brewer_id
+        self.entry_id = entry.entry_id
         self.api: FellowAiden | None = None
         self.history_manager = BrewHistoryManager(hass, entry.entry_id)
         self.push_manager: FellowPushManager | None = None
@@ -112,6 +115,9 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the Fellow Aiden cloud API."""
         _LOGGER.debug("Starting data update cycle")
+        previous_device_config = (
+            (self.data or {}).get("device_config") if self.data is not None else None
+        )
         if not self.api:
             _LOGGER.error("Fellow Aiden library not initialized")
             raise UpdateFailed("Fellow Aiden library not initialized")
@@ -127,16 +133,18 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             resource_refresh_needed = (
                 force_resource_refresh
                 or new_brew
-                or now - self._last_resource_refresh
-                >= RESOURCE_UPDATE_INTERVAL_SECONDS
+                or now - self._last_resource_refresh >= RESOURCE_UPDATE_INTERVAL_SECONDS
             )
-            resources_refreshed = False
+            profiles_refreshed = False
+            schedules_refreshed = False
             if resource_refresh_needed:
                 _LOGGER.debug("Refreshing profiles and schedules")
                 try:
-                    await self.api.refresh_resources()
-                    self._last_resource_refresh = now
-                    resources_refreshed = True
+                    refresh_result = await self.api.refresh_resources()
+                    profiles_refreshed = refresh_result.profiles
+                    schedules_refreshed = refresh_result.schedules
+                    if profiles_refreshed or schedules_refreshed:
+                        self._last_resource_refresh = now
                 except FellowAuthError:
                     raise
                 except Exception as err:
@@ -148,7 +156,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "Profile and schedule refresh failed; using cached data",
                         exc_info=True,
                     )
-            if new_brew and not resources_refreshed:
+            if new_brew and not profiles_refreshed:
                 _LOGGER.warning(
                     "Deferring brew history update until profiles can be refreshed"
                 )
@@ -218,10 +226,22 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Update historical data with the new data (non-fatal)
         _LOGGER.debug("Updating historical data")
         try:
-            if not new_brew or resources_refreshed:
+            if not new_brew or profiles_refreshed:
                 await self.history_manager.async_update_data(device_config, profiles)
         except Exception:
             _LOGGER.warning("Failed to update historical data", exc_info=True)
+
+        brewer_id = device_config.get("id")
+        for event_type in device_events(previous_device_config, device_config):
+            self.hass.bus.async_fire(
+                EVENT_DEVICE,
+                {
+                    "type": event_type,
+                    "config_entry_id": self.entry_id,
+                    "device_id": brewer_id,
+                    "phase": brew_phase(device_config),
+                },
+            )
 
         _LOGGER.debug("Data update completed successfully")
         return result
@@ -312,4 +332,14 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.exception("Schedule toggle failed")
             raise
         self._next_refresh_verbose = True
+        await self.async_request_refresh()
+
+    async def async_start_brew(self) -> None:
+        """Start the brewer's configured Instant Brew recipe and refresh."""
+        if not self.api:
+            raise RuntimeError("Fellow Aiden library not initialized")
+        device_config = (self.data or {}).get("device_config", {})
+        if not can_start_brew(device_config):
+            raise ValueError("Brewer is not ready for remote Instant Brew")
+        await self.api.start_brew()
         await self.async_request_refresh()

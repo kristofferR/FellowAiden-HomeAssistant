@@ -103,6 +103,13 @@
           "pulse_1": "Pulse 1",
           "pulse_2": "Pulse 2",
           "pulse_3": "Pulse 3",
+          "pulse_4": "Pulse 4",
+          "pulse_5": "Pulse 5",
+          "pulse_6": "Pulse 6",
+          "pulse_7": "Pulse 7",
+          "pulse_8": "Pulse 8",
+          "pulse_9": "Pulse 9",
+          "pulse_10": "Pulse 10",
           "drip_finish": "Drip finish",
           "paused": "Paused",
           "brewing": "Brewing",
@@ -111,7 +118,8 @@
       },
       "cloud_connection_time": { "name": "Cloud connection time" },
       "basket": { "name": "Basket" },
-      "last_cloud_push": { "name": "Last cloud push" }
+      "last_cloud_push": { "name": "Last cloud push" },
+      "next_scheduled_brew": { "name": "Next scheduled brew" }
     },
     "binary_sensor": {
       "brewing": { "name": "Brewing" },
@@ -130,6 +138,24 @@
       "firmware_update": { "name": "Firmware update available" },
       "unsynced_changes": { "name": "Unsynced changes" },
       "push_connected": { "name": "Cloud push connection" }
+    },
+    "calendar": {
+      "brew_schedule": { "name": "Brew schedule" }
+    },
+    "button": {
+      "start_brew": { "name": "Start Instant Brew" }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "brew_started": "A brew started",
+      "brew_paused": "A brew paused for water",
+      "brew_resumed": "A paused brew resumed",
+      "drip_finish": "A brew entered drip finish",
+      "brew_completed": "A brew completed",
+      "cleaning_started": "Cleaning started",
+      "rinsing_started": "Rinsing started",
+      "cloud_notification": "A Fellow cloud notification arrived"
     }
   },
   "services": {

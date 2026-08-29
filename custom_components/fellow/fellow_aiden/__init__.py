@@ -7,7 +7,7 @@ import logging
 import re
 import ssl
 from difflib import SequenceMatcher
-from typing import Any, ClassVar
+from typing import Any, ClassVar, NamedTuple
 
 import aiohttp
 from pydantic import ValidationError
@@ -40,6 +40,13 @@ class _IncompatibleDeviceError(Exception):
     """Raised when a device candidate does not expose Aiden endpoints."""
 
 
+class ResourceRefreshResult(NamedTuple):
+    """Report which independently cached resources refreshed successfully."""
+
+    profiles: bool
+    schedules: bool
+
+
 class FellowAiden:
     """Async Fellow object to interact with Aiden brewer.
 
@@ -54,6 +61,7 @@ class FellowAiden:
     API_AUTH_REFRESH = "/auth/refresh-token"
     API_DEVICES = "/devices"
     API_DEVICE = "/devices/{id}"
+    API_START_BREW = "/devices/{id}/start"
     API_SCHEDULES = "/devices/{id}/schedules"
     API_SCHEDULE = "/devices/{id}/schedules/{sid}"
     API_PROFILES = "/devices/{id}/profiles"
@@ -75,6 +83,17 @@ class FellowAiden:
         "folder",
         "duration",
         "lastGBQuantity",
+    )
+    INVENTORY_FIELDS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "id",
+            "displayName",
+            "serialNumber",
+            "wifiMacAddress",
+            "btMacAddress",
+            "sku",
+            "firmwareVersion",
+        }
     )
 
     _RETRY_STATUSES = frozenset({408, 500, 501, 502, 503, 504})
@@ -385,18 +404,49 @@ class FellowAiden:
             raise FellowApiError(
                 "Device detail response did not match the configured brewer."
             )
-        self._device_config = parsed
+        inventory = {
+            key: value
+            for key, value in (self._device_config or {}).items()
+            if key in self.INVENTORY_FIELDS
+        }
+        self._device_config = {**inventory, **parsed}
 
-    async def refresh_resources(self) -> None:
-        """Refresh the slower-changing profile and schedule caches."""
+    async def refresh_resources(self) -> ResourceRefreshResult:
+        """Refresh profile and schedule caches without coupling their failures."""
         profiles_url = self.BASE_URL + self.API_PROFILES.format(id=self._brewer_id)
         schedules_url = self.BASE_URL + self.API_SCHEDULES.format(id=self._brewer_id)
         profiles, schedules = await asyncio.gather(
             self._fetch_list_resource(profiles_url, "Profile fetch"),
             self._fetch_list_resource(schedules_url, "Schedule fetch"),
+            return_exceptions=True,
         )
-        self._profiles = profiles
-        self._schedules = schedules
+
+        for result in (profiles, schedules):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            if isinstance(result, FellowAuthError):
+                raise result
+
+        profiles_refreshed = not isinstance(profiles, BaseException)
+        schedules_refreshed = not isinstance(schedules, BaseException)
+        if profiles_refreshed:
+            self._profiles = profiles
+        else:
+            self._log.warning("Profile refresh failed; using cached data: %s", profiles)
+        if schedules_refreshed:
+            self._schedules = schedules
+        else:
+            self._log.warning(
+                "Schedule refresh failed; using cached data: %s", schedules
+            )
+
+        if not profiles_refreshed and not schedules_refreshed:
+            failure = profiles if isinstance(profiles, Exception) else schedules
+            if isinstance(failure, Exception):
+                raise failure
+            raise FellowConnectionError("Profile and schedule refresh failed")
+
+        return ResourceRefreshResult(profiles_refreshed, schedules_refreshed)
 
     async def get_profiles(self) -> list[dict[str, Any]]:
         """Return profiles, fetching from API if not cached."""
@@ -763,6 +813,18 @@ class FellowAiden:
         )
         await self._ensure_success(response, f"Device setting update ({setting})")
         return await response.read()
+
+    async def start_brew(self) -> dict[str, Any]:
+        """Start the brewer's configured Instant Brew recipe."""
+        start_url = self.BASE_URL + self.API_START_BREW.format(id=self._brewer_id)
+        response = await self._request_with_reauth(
+            "patch", start_url, params={"confirm": "true"}
+        )
+        await self._ensure_success(response, "Remote brew start")
+        parsed = await self._parse_response(response)
+        if not isinstance(parsed, dict):
+            raise FellowApiError(f"Unexpected remote brew response: {parsed}")
+        return parsed
 
     async def register_push_token(self, fcm_token: str) -> None:
         """Register an Android FCM token with the Fellow account."""

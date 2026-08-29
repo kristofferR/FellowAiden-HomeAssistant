@@ -528,10 +528,81 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         )
 
         await api.authenticate()
-        await api.refresh_resources()
+        result = await api.refresh_resources()
 
+        self.assertEqual(result, (True, True))
         self.assertEqual(await api.get_profiles(), [{"id": "new", "title": "New"}])
         self.assertEqual(await api.get_schedules(), [{"id": "schedule"}])
+
+    async def test_detail_refresh_preserves_discovered_inventory(self) -> None:
+        api, _session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        201,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(
+                        200,
+                        [
+                            {
+                                "id": "aiden-1",
+                                "displayName": "Aiden",
+                                "serialNumber": "serial",
+                            }
+                        ],
+                    )
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/profiles"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/schedules"): [
+                    FakeResponse(200, [])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1"): [
+                    FakeResponse(200, {"id": "aiden-1", "state": {"value": "p1"}})
+                ],
+            }
+        )
+
+        await api.authenticate()
+        await api.fetch_device()
+
+        self.assertEqual(api.get_display_name(), "Aiden")
+        self.assertEqual(api.get_device_config()["serialNumber"], "serial")
+        self.assertEqual(api.get_device_config()["state"], {"value": "p1"})
+
+    async def test_schedule_failure_does_not_discard_profile_refresh(self) -> None:
+        api, _session = self._api(
+            {
+                ("post", f"{self.base_url}/auth/login"): [
+                    FakeResponse(
+                        201,
+                        {"accessToken": "token", "refreshToken": "refresh"},
+                    )
+                ],
+                ("get", f"{self.base_url}/devices"): [
+                    FakeResponse(200, [{"id": "aiden-1", "displayName": "Aiden"}])
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/profiles"): [
+                    FakeResponse(200, []),
+                    FakeResponse(200, [{"id": "new", "title": "New"}]),
+                ],
+                ("get", f"{self.base_url}/devices/aiden-1/schedules"): [
+                    FakeResponse(200, [{"id": "old"}]),
+                    FakeResponse(400, {"message": "Unavailable"}),
+                ],
+            }
+        )
+
+        await api.authenticate()
+        result = await api.refresh_resources()
+
+        self.assertEqual(result, (True, False))
+        self.assertEqual(await api.get_profiles(), [{"id": "new", "title": "New"}])
+        self.assertEqual(await api.get_schedules(), [{"id": "old"}])
 
     async def test_v2_profile_create_accepts_201_and_refreshes_cache(self) -> None:
         profiles_url = f"{self.base_url}/devices/aiden-1/profiles"
@@ -610,3 +681,21 @@ class FellowAidenDiscoveryTests(unittest.IsolatedAsyncioTestCase):
             session.request_kwargs[0]["headers"]["Authorization"],
             "Bearer access-token",
         )
+
+    async def test_remote_start_uses_confirmed_no_body_route(self) -> None:
+        start_url = f"{self.base_url}/devices/aiden-1/start"
+        api, session = self._api(
+            {
+                ("patch", start_url): [
+                    FakeResponse(200, {"id": "p1", "amountOfWater": 500})
+                ]
+            },
+            brewer_id="aiden-1",
+        )
+        api._token = "access-token"
+
+        result = await api.start_brew()
+
+        self.assertEqual(result["amountOfWater"], 500)
+        self.assertEqual(session.request_kwargs[0]["params"], {"confirm": "true"})
+        self.assertNotIn("json", session.request_kwargs[0])

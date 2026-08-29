@@ -136,6 +136,76 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(record["duration_source"], "observed_cycle")
         self.assertEqual(self.manager.get_last_brew_duration(), 409)
 
+    async def test_live_state_drives_observed_cycle_when_flag_is_stale(self) -> None:
+        started = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        with patch.object(self.module.dt_util, "now", return_value=started):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": None,
+                    "brewing": True,
+                },
+                [],
+            )
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": {"value": "p1"},
+                    "brewing": False,
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "state": None,
+                    "brewing": True,
+                    "brewEndTime": "1788012398",
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_last_brew_duration(), 120)
+
+    async def test_stale_active_start_falls_back_to_observation_time(self) -> None:
+        initial = datetime.fromtimestamp(1788012278, UTC)
+        finished = datetime.fromtimestamp(1788012398, UTC)
+        await self.manager.async_update_data(
+            {
+                "totalBrewingCycles": 10,
+                "totalWaterVolumeL": 5000,
+                "state": None,
+            },
+            [],
+        )
+        with patch.object(self.module.dt_util, "now", return_value=initial):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": {"value": "p1"},
+                    "brewStartTime": "1000",
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=finished):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 11,
+                    "totalWaterVolumeL": 5450,
+                    "state": None,
+                    "brewEndTime": str(int(finished.timestamp())),
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_last_brew_duration(), 120)
+
     async def test_migration_keeps_only_plausible_latest_duration(self) -> None:
         self.manager._store.data = {
             "brew_history": [

@@ -13,6 +13,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import HISTORY_RETENTION_DAYS, MIN_HISTORICAL_DATA_FOR_ACCURACY
 from .profile_resolution import resolve_current_profile
+from .telemetry import is_brewing
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ _TIMING_VERSION = 2
 _MAX_LEGACY_DURATION_SECONDS = 30 * 60
 _MAX_LEGACY_END_SKEW_SECONDS = 2 * 60
 _MAX_COMPLETION_CLOCK_SKEW_SECONDS = 5 * 60
+_MAX_OBSERVED_START_AGE_SECONDS = 30 * 60
 _TRUSTED_DURATION_SOURCES = frozenset({"observed_cycle", "validated_legacy_pair"})
 
 
@@ -159,13 +161,14 @@ class BrewHistoryManager:
         data_changed = False
         observed_timing: tuple[int, int, int] | None = None
         current_api_start = _positive_timestamp(device_config.get("brewStartTime"))
-        brewing = device_config.get("brewing")
+        brewing = is_brewing(device_config)
 
         if brewing is True and self._active_brew_start is None:
             now_timestamp = int(now.timestamp())
             api_start_changed = (
                 current_api_start is not None
                 and current_api_start != self._last_api_brew_start
+                and current_api_start >= now_timestamp - _MAX_OBSERVED_START_AGE_SECONDS
                 and current_api_start <= now_timestamp + 60
             )
             self._active_brew_start = (

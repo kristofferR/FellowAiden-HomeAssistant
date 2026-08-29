@@ -29,6 +29,7 @@ depending on a display name or a brittle model-name list.
 | `GET`, `PATCH`, `DELETE` | `/devices/{deviceId}/profiles/{profileId}` | Read, update, or delete a profile. |
 | `GET`, `POST` | `/devices/{deviceId}/schedules` | List or create schedules. |
 | `PATCH`, `DELETE` | `/devices/{deviceId}/schedules/{scheduleId}` | Toggle or delete a schedule. |
+| `PATCH` | `/devices/{deviceId}/start?confirm=true` | Start the configured Instant Brew recipe. |
 
 Profile writes omit server-owned identifiers and timestamps. Resource caches
 are invalidated after mutation and refreshed independently of fast device
@@ -37,6 +38,11 @@ telemetry.
 The mobile client also contains a selected-profile route, but an authenticated
 live Aiden request is rejected by Fellow's API gateway. Home Assistant does
 not expose that route as a control.
+
+Remote start is a no-body request and returns the selected Instant Brew
+profile and water amount. Home Assistant checks the latest reported safety
+state before calling it. The corresponding stop route is not exposed because
+it did not reliably cancel an observed active brew.
 
 ## Live telemetry
 
@@ -50,6 +56,11 @@ and treats the live nested state as authoritative while a brew is active.
 be subtracted without observing a matching cycle. Home Assistant records a
 duration only when it sees the brewer transition from active to complete with
 one corresponding counter increment.
+
+Weekly schedules use a Sunday-first seven-element day array, a local second
+within the day, and the brewer's IANA timezone. The integration expands that
+compact representation into a Home Assistant calendar and next-occurrence
+timestamp without copying account or device identifiers into documentation.
 
 ## Cloud notifications
 

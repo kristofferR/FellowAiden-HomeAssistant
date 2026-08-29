@@ -5,6 +5,29 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+PROFILE_RECIPE_FIELDS = {
+    "profileType": "profile_type",
+    "ratio": "ratio",
+    "overallTemperature": "overall_temperature_c",
+    "bloomEnabled": "bloom_enabled",
+    "bloomRatio": "bloom_ratio",
+    "bloomDuration": "bloom_duration_seconds",
+    "bloomTemperature": "bloom_temperature_c",
+    "ssPulsesEnabled": "single_serve_pulses_enabled",
+    "ssPulsesNumber": "single_serve_pulse_count",
+    "ssPulsesInterval": "single_serve_pulse_interval_seconds",
+    "ssPulseTemperatures": "single_serve_pulse_temperatures_c",
+    "batchPulsesEnabled": "batch_pulses_enabled",
+    "batchPulsesNumber": "batch_pulse_count",
+    "batchPulsesInterval": "batch_pulse_interval_seconds",
+    "batchPulseTemperatures": "batch_pulse_temperatures_c",
+    "duration": "cold_brew_duration",
+    "lastGBQuantity": "last_guided_brew_quantity_ml",
+    "instantBrew": "instant_brew",
+    "isDefaultProfile": "default_profile",
+    "folder": "folder",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class ProfileResolution:
@@ -97,3 +120,12 @@ def resolve_current_profile(
         return ProfileResolution(default_profile, "default_profile", "low_medium")
 
     return ProfileResolution(profiles[0], "first_available", "low")
+
+
+def profile_recipe_attributes(profile: dict[str, Any]) -> dict[str, Any]:
+    """Return a stable recipe view without server-owned profile metadata."""
+    return {
+        attribute: profile[key]
+        for key, attribute in PROFILE_RECIPE_FIELDS.items()
+        if profile.get(key) is not None
+    }
