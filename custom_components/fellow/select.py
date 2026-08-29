@@ -1,4 +1,5 @@
 """Select entity to list brew profiles from Fellow Aiden."""
+
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
@@ -7,9 +8,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .base_entity import FellowAidenBaseEntity
 from .const import DOMAIN, FellowAidenConfigEntry
 from .coordinator import FellowAidenDataUpdateCoordinator
-from .base_entity import FellowAidenBaseEntity
+from .profile_resolution import resolve_current_profile
 
 PARALLEL_UPDATES = 0
 
@@ -21,7 +23,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up select entity listing all brew profiles."""
     coordinator = entry.runtime_data
-    async_add_entities([FellowAidenProfilesSelect(coordinator, entry)], update_before_add=True)
+    async_add_entities(
+        [FellowAidenProfilesSelect(coordinator, entry)], update_before_add=True
+    )
 
 
 class FellowAidenProfilesSelect(FellowAidenBaseEntity, SelectEntity):
@@ -32,7 +36,9 @@ class FellowAidenProfilesSelect(FellowAidenBaseEntity, SelectEntity):
     device controls to brew with a specific profile.
     """
 
-    def __init__(self, coordinator: FellowAidenDataUpdateCoordinator, entry: ConfigEntry) -> None:
+    def __init__(
+        self, coordinator: FellowAidenDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         super().__init__(coordinator)
         self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}-profile_select"
@@ -53,25 +59,10 @@ class FellowAidenProfilesSelect(FellowAidenBaseEntity, SelectEntity):
         if not data or "profiles" not in data or not data["profiles"]:
             return None
 
-        device_config = self.coordinator.data.get("device_config")
-        if device_config:
-            selected_profile_id = device_config.get("ibSelectedProfileId")
-            if selected_profile_id:
-                selected_profile = next(
-                    (p for p in data["profiles"] if p.get("id") == selected_profile_id),
-                    None,
-                )
-                if selected_profile:
-                    return selected_profile.get("title", "Selected Profile")
-
-        default_profile = next(
-            (p for p in data["profiles"] if p.get("isDefaultProfile")),
-            None,
+        resolution = resolve_current_profile(
+            data["profiles"], data.get("device_config", {})
         )
-        if default_profile:
-            return default_profile.get("title", "Default Profile")
-
-        return data["profiles"][0].get("title", "Profile 1")
+        return resolution.title
 
     async def async_select_option(self, option: str) -> None:
         """Raise error — the Fellow API doesn't support switching profiles remotely."""

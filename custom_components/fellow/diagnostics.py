@@ -1,4 +1,5 @@
 """Diagnostics for Fellow Aiden."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -8,12 +9,20 @@ from homeassistant.core import HomeAssistant
 
 from .const import FellowAidenConfigEntry
 
-TO_REDACT_CONFIG = {"email", "password"}
+TO_REDACT_CONFIG = {"email", "password", "brewer_id"}
 TO_REDACT_DEVICE = {
+    "id",
+    "displayName",
+    "serialNumber",
     "wifiMacAddress",
     "btMacAddress",
     "wifiSSID",
+    "wifiSsid",
     "localIpAddress",
+    "publicIpAddress",
+    "hiddenProfiles",
+    "profiles",
+    "schedules",
 }
 
 
@@ -38,5 +47,7 @@ async def async_get_config_entry_diagnostics(
         ),
         "profiles_count": len(data.get("profiles", [])),
         "schedules_count": len(data.get("schedules", [])),
-        "brewer_name": data.get("brewer_name"),
+        "brewer_name": async_redact_data(
+            {"brewer_name": data.get("brewer_name")}, {"brewer_name"}
+        )["brewer_name"],
     }

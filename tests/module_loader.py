@@ -3,8 +3,10 @@ from __future__ import annotations
 import importlib.util
 import sys
 import types
+from collections.abc import Callable
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 _OWNED_EXACT_MODULES = frozenset(
@@ -18,6 +20,9 @@ _OWNED_EXACT_MODULES = frozenset(
         "homeassistant.helpers",
         "homeassistant.helpers.aiohttp_client",
         "homeassistant.helpers.selector",
+        "homeassistant.helpers.storage",
+        "homeassistant.util",
+        "homeassistant.util.dt",
         "custom_components",
         "custom_components.fellow",
     }
@@ -51,9 +56,7 @@ def _restore_modules(snapshot: dict[str, object]) -> None:
 
 def _clear_modules() -> None:
     for name in list(sys.modules):
-        if name in _OWNED_EXACT_MODULES or name.startswith(
-            "custom_components.fellow."
-        ):
+        if name in _OWNED_EXACT_MODULES or name.startswith("custom_components.fellow."):
             sys.modules.pop(name, None)
 
 
@@ -189,7 +192,9 @@ def _install_homeassistant_stubs() -> None:
                 "last_step": last_step,
             }
 
-        def async_create_entry(self, *, title: str, data: dict[str, Any]) -> dict[str, Any]:
+        def async_create_entry(
+            self, *, title: str, data: dict[str, Any]
+        ) -> dict[str, Any]:
             return {"type": "create_entry", "title": title, "data": data}
 
         def async_abort(self, *, reason: str) -> dict[str, Any]:
@@ -209,7 +214,9 @@ def _install_homeassistant_stubs() -> None:
         def __init__(self) -> None:
             self.config_entry = types.SimpleNamespace(options={})
 
-        def async_create_entry(self, *, title: str, data: dict[str, Any]) -> dict[str, Any]:
+        def async_create_entry(
+            self, *, title: str, data: dict[str, Any]
+        ) -> dict[str, Any]:
             return {"type": "create_entry", "title": title, "data": data}
 
         def async_show_form(
@@ -277,6 +284,32 @@ def _install_homeassistant_stubs() -> None:
     helpers.__path__ = [str(ROOT / "tests" / "_homeassistant_helpers_stub")]
     sys.modules["homeassistant.helpers"] = helpers
 
+    storage = types.ModuleType("homeassistant.helpers.storage")
+
+    class Store:
+        def __init__(self, hass: Any, version: int, key: str) -> None:
+            del hass, version, key
+            self.data: Any = None
+
+        async def async_load(self) -> Any:
+            return self.data
+
+        async def async_save(self, data: Any) -> None:
+            self.data = data
+
+    storage.Store = Store
+    sys.modules["homeassistant.helpers.storage"] = storage
+
+    util = types.ModuleType("homeassistant.util")
+    util.__path__ = []
+    dt = types.ModuleType("homeassistant.util.dt")
+    dt.now = lambda: datetime.now(timezone.utc)
+    dt.as_local = lambda value: value
+    dt.utc_from_timestamp = lambda value: datetime.fromtimestamp(value, tz=timezone.utc)
+    util.dt = dt
+    sys.modules["homeassistant.util"] = util
+    sys.modules["homeassistant.util.dt"] = dt
+
 
 def _install_package_placeholders() -> None:
     custom_components = types.ModuleType("custom_components")
@@ -288,9 +321,7 @@ def _install_package_placeholders() -> None:
     sys.modules["custom_components.fellow"] = fellow
 
 
-def _load_module(
-    name: str, path: Path, *, package: bool = False
-) -> types.ModuleType:
+def _load_module(name: str, path: Path, *, package: bool = False) -> types.ModuleType:
     kwargs: dict[str, Any] = {}
     if package:
         kwargs["submodule_search_locations"] = [str(path.parent)]
@@ -341,5 +372,40 @@ def load_config_flow_module() -> tuple[types.ModuleType, Callable[[], None]]:
     module = _load_module(
         "custom_components.fellow.config_flow",
         ROOT / "custom_components" / "fellow" / "config_flow.py",
+    )
+    return module, lambda: _restore_modules(snapshot)
+
+
+def load_fellow_utility_module(
+    module_name: str,
+) -> tuple[types.ModuleType, Callable[[], None]]:
+    """Load a Fellow module that has no Home Assistant dependencies."""
+    snapshot = _snapshot_modules()
+    _clear_modules()
+    _install_package_placeholders()
+    module = _load_module(
+        f"custom_components.fellow.{module_name}",
+        ROOT / "custom_components" / "fellow" / f"{module_name}.py",
+    )
+    return module, lambda: _restore_modules(snapshot)
+
+
+def load_brew_history_module() -> tuple[types.ModuleType, Callable[[], None]]:
+    """Load brew history with lightweight Home Assistant stubs."""
+    snapshot = _snapshot_modules()
+    _clear_modules()
+    _install_homeassistant_stubs()
+    _install_package_placeholders()
+    _load_module(
+        "custom_components.fellow.const",
+        ROOT / "custom_components" / "fellow" / "const.py",
+    )
+    _load_module(
+        "custom_components.fellow.profile_resolution",
+        ROOT / "custom_components" / "fellow" / "profile_resolution.py",
+    )
+    module = _load_module(
+        "custom_components.fellow.brew_history",
+        ROOT / "custom_components" / "fellow" / "brew_history.py",
     )
     return module, lambda: _restore_modules(snapshot)

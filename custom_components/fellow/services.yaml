@@ -76,7 +76,19 @@ create_profile:
         number:
           min: 50
           max: 99
-          step: 1
+          step: 0.5
+          unit_of_measurement: "°C"
+          mode: box
+    overall_temperature:
+      name: "Overall Temperature (°C)"
+      description: "Default brew temperature, 50–99°C. Defaults to the bloom temperature. Individual pulse temperatures can override it."
+      required: false
+      example: 96
+      selector:
+        number:
+          min: 50
+          max: 99
+          step: 0.5
           unit_of_measurement: "°C"
           mode: box
     ss_pulses_enabled:

@@ -66,12 +66,12 @@
           "update_interval_seconds": "Update interval (seconds)"
         },
         "data_description": {
-          "update_interval_seconds": "How often to poll the Fellow cloud API. Minimum 30 seconds, default 60."
+          "update_interval_seconds": "How often to poll live brewer state. Minimum and default 10 seconds. Profiles and schedules refresh every 60 seconds."
         }
       }
     },
     "error": {
-      "too_fast": "Update interval must be at least 30 seconds."
+      "too_fast": "Update interval must be at least 10 seconds."
     }
   },
   "entity": {
@@ -80,6 +80,9 @@
       "total_brews": { "name": "Total brews" },
       "total_water_volume": { "name": "Total water volume" },
       "last_brew_volume": { "name": "Last brew volume" },
+      "instant_brew_water": { "name": "Instant Brew water" },
+      "device_timezone": { "name": "Device timezone" },
+      "elevation": { "name": "Elevation" },
       "average_water_per_brew": { "name": "Average water per brew" },
       "last_brew_start_time": { "name": "Last brew start time" },
       "last_brew_end_time": { "name": "Last brew end time" },
@@ -92,14 +95,37 @@
       "average_brew_duration": { "name": "Average brew duration" },
       "most_popular_profile": { "name": "Most popular profile" },
       "current_profile": { "name": "Current profile" },
+      "brew_phase": {
+        "name": "Brew phase",
+        "state": {
+          "idle": "Idle",
+          "bloom": "Bloom",
+          "pulse_1": "Pulse 1",
+          "pulse_2": "Pulse 2",
+          "pulse_3": "Pulse 3",
+          "drip_finish": "Drip finish",
+          "paused": "Paused",
+          "brewing": "Brewing",
+          "unknown": "Unknown"
+        }
+      },
+      "cloud_connection_time": { "name": "Cloud connection time" },
       "basket": { "name": "Basket" }
     },
     "binary_sensor": {
       "brewing": { "name": "Brewing" },
       "carafe_inserted": { "name": "Carafe" },
       "heater": { "name": "Heater" },
+      "pump": { "name": "Pump" },
       "lid": { "name": "Lid" },
-      "missing_water": { "name": "Missing water" }
+      "shower_head": { "name": "Shower head" },
+      "missing_water": { "name": "Missing water" },
+      "brew_error": { "name": "Brew error" },
+      "cleaning": { "name": "Cleaning" },
+      "rinsing": { "name": "Rinsing" },
+      "cloud_connected": { "name": "Cloud connection" },
+      "firmware_update": { "name": "Firmware update available" },
+      "unsynced_changes": { "name": "Unsynced changes" }
     },
     "select": {
       "profiles": { "name": "Profiles" }
@@ -141,6 +167,10 @@
         "bloom_temperature": {
           "name": "Bloom temperature",
           "description": "Bloom phase temperature in Celsius (50-99)."
+        },
+        "overall_temperature": {
+          "name": "Overall temperature",
+          "description": "Default brew temperature in Celsius (50-99). Defaults to the bloom temperature. Individual pulse temperatures can override it."
         },
         "ss_pulses_enabled": {
           "name": "Single serve pulses enabled",

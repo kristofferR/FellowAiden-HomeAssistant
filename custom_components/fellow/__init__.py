@@ -1,4 +1,5 @@
 """Fellow Aiden integration for Home Assistant."""
+
 from __future__ import annotations
 
 import json
@@ -37,14 +38,19 @@ def _normalize_keys(data: dict) -> dict:
     """
     return {_CAMEL_TO_SNAKE_RE.sub(r"\1_\2", k).lower(): v for k, v in data.items()}
 
+
 REFRESH_RESPONSE_REDACT_KEYS = {
     "email",
     "password",
     "id",
+    "displayName",
+    "serialNumber",
     "wifiMacAddress",
     "btMacAddress",
     "wifiSSID",
+    "wifiSsid",
     "localIpAddress",
+    "publicIpAddress",
 }
 
 
@@ -94,40 +100,52 @@ def _coerce_temperature_list(value: object) -> list[float]:
 
     return temperatures
 
-CREATE_PROFILE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
-    vol.Optional("config_entry_id"): cv.string,
-    vol.Optional("profile_type", default=DEFAULT_PROFILE_TYPE): vol.Coerce(int),
-    vol.Required("title"): cv.string,
-    vol.Required("ratio"): vol.Coerce(float),
-    vol.Required("bloom_enabled"): cv.boolean,
-    vol.Required("bloom_ratio"): vol.Coerce(float),
-    vol.Required("bloom_duration"): vol.Coerce(int),
-    vol.Required("bloom_temperature"): vol.Coerce(int),
-    vol.Required("ss_pulses_enabled"): cv.boolean,
-    vol.Required("ss_pulses_number"): vol.Coerce(int),
-    vol.Required("ss_pulses_interval"): vol.Coerce(int),
-    vol.Required("ss_pulse_temperatures"): _coerce_temperature_list,
-    vol.Required("batch_pulses_enabled"): cv.boolean,
-    vol.Required("batch_pulses_number"): vol.Coerce(int),
-    vol.Required("batch_pulses_interval"): vol.Coerce(int),
-    vol.Required("batch_pulse_temperatures"): _coerce_temperature_list,
-}))
 
-CREATE_SCHEDULE_SCHEMA = vol.All(_normalize_keys, vol.Schema({
-    vol.Optional("config_entry_id"): cv.string,
-    vol.Optional("monday", default=False): cv.boolean,
-    vol.Optional("tuesday", default=False): cv.boolean,
-    vol.Optional("wednesday", default=False): cv.boolean,
-    vol.Optional("thursday", default=False): cv.boolean,
-    vol.Optional("friday", default=False): cv.boolean,
-    vol.Optional("saturday", default=False): cv.boolean,
-    vol.Optional("sunday", default=False): cv.boolean,
-    vol.Required("time"): cv.string,
-    vol.Required("amount_of_water"): vol.Coerce(int),
-    vol.Optional("profile_name"): cv.string,
-    vol.Optional("profile_id"): cv.string,
-    vol.Optional("enabled", default=True): cv.boolean,
-}))
+CREATE_PROFILE_SCHEMA = vol.All(
+    _normalize_keys,
+    vol.Schema(
+        {
+            vol.Optional("config_entry_id"): cv.string,
+            vol.Optional("profile_type", default=DEFAULT_PROFILE_TYPE): vol.Coerce(int),
+            vol.Required("title"): cv.string,
+            vol.Required("ratio"): vol.Coerce(float),
+            vol.Required("bloom_enabled"): cv.boolean,
+            vol.Required("bloom_ratio"): vol.Coerce(float),
+            vol.Required("bloom_duration"): vol.Coerce(int),
+            vol.Required("bloom_temperature"): vol.Coerce(float),
+            vol.Optional("overall_temperature"): vol.Coerce(float),
+            vol.Required("ss_pulses_enabled"): cv.boolean,
+            vol.Required("ss_pulses_number"): vol.Coerce(int),
+            vol.Required("ss_pulses_interval"): vol.Coerce(int),
+            vol.Required("ss_pulse_temperatures"): _coerce_temperature_list,
+            vol.Required("batch_pulses_enabled"): cv.boolean,
+            vol.Required("batch_pulses_number"): vol.Coerce(int),
+            vol.Required("batch_pulses_interval"): vol.Coerce(int),
+            vol.Required("batch_pulse_temperatures"): _coerce_temperature_list,
+        }
+    ),
+)
+
+CREATE_SCHEDULE_SCHEMA = vol.All(
+    _normalize_keys,
+    vol.Schema(
+        {
+            vol.Optional("config_entry_id"): cv.string,
+            vol.Optional("monday", default=False): cv.boolean,
+            vol.Optional("tuesday", default=False): cv.boolean,
+            vol.Optional("wednesday", default=False): cv.boolean,
+            vol.Optional("thursday", default=False): cv.boolean,
+            vol.Optional("friday", default=False): cv.boolean,
+            vol.Optional("saturday", default=False): cv.boolean,
+            vol.Optional("sunday", default=False): cv.boolean,
+            vol.Required("time"): cv.string,
+            vol.Required("amount_of_water"): vol.Coerce(int),
+            vol.Optional("profile_name"): cv.string,
+            vol.Optional("profile_id"): cv.string,
+            vol.Optional("enabled", default=True): cv.boolean,
+        }
+    ),
+)
 
 
 def _get_coordinator(
@@ -149,11 +167,7 @@ def _get_coordinator(
 
     if config_entry_id:
         target = next(
-            (
-                entry
-                for entry in loaded_entries
-                if entry.entry_id == config_entry_id
-            ),
+            (entry for entry in loaded_entries if entry.entry_id == config_entry_id),
             None,
         )
         if target is None:
@@ -208,9 +222,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register Fellow Aiden services."""
 
     async def handle_create_profile(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         data = {
             "profileType": call.data.get("profile_type", DEFAULT_PROFILE_TYPE),
             "title": call.data["title"],
@@ -219,6 +231,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             "bloomRatio": call.data["bloom_ratio"],
             "bloomDuration": call.data["bloom_duration"],
             "bloomTemperature": call.data["bloom_temperature"],
+            "overallTemperature": call.data.get(
+                "overall_temperature", call.data["bloom_temperature"]
+            ),
             "ssPulsesEnabled": call.data["ss_pulses_enabled"],
             "ssPulsesNumber": call.data["ss_pulses_number"],
             "ssPulsesInterval": call.data["ss_pulses_interval"],
@@ -244,9 +259,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_delete_profile(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         pid = call.data.get("profile_id")
         if not pid:
             raise ServiceValidationError(
@@ -263,9 +276,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_list_profiles(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         data = coordinator.data
         if not data or "profiles" not in data or not data["profiles"]:
             return {"profiles": []}
@@ -288,9 +299,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 translation_key="provide_profile_id_or_name",
             )
 
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         data = coordinator.data
         if not data or "profiles" not in data:
             raise ServiceValidationError(
@@ -319,9 +328,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return {"profile": target}
 
     async def handle_create_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         profile_input = call.data.get("profile_name") or call.data.get("profile_id")
         if not profile_input:
             raise ServiceValidationError(
@@ -391,9 +398,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_delete_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         sid = call.data.get("schedule_id")
         if not sid:
             raise ServiceValidationError(
@@ -410,9 +415,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_toggle_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         sid = call.data.get("schedule_id")
         if not sid:
             raise ServiceValidationError(
@@ -430,31 +433,31 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_list_schedules(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         await coordinator.async_request_refresh()
         data = coordinator.data
         schedules = data.get("schedules", []) if data else []
         return {"schedules": schedules}
 
     async def handle_debug_water_usage(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         device_config = (coordinator.data or {}).get("device_config", {})
         return {
             "water_usage_record_count": coordinator.history_manager.get_water_usage_count(),
             "current_device_total_ml": device_config.get("totalWaterVolumeL", 0),
-            "water_usage_today_l": coordinator.history_manager.get_water_usage_for_period(1),
-            "water_usage_week_l": coordinator.history_manager.get_water_usage_for_period(7),
-            "water_usage_month_l": coordinator.history_manager.get_water_usage_for_period(30),
+            "water_usage_today_l": coordinator.history_manager.get_water_usage_for_period(
+                1
+            ),
+            "water_usage_week_l": coordinator.history_manager.get_water_usage_for_period(
+                7
+            ),
+            "water_usage_month_l": coordinator.history_manager.get_water_usage_for_period(
+                30
+            ),
         }
 
     async def handle_reset_water_tracking(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         device_config = (coordinator.data or {}).get("device_config", {})
         current_total = device_config.get("totalWaterVolumeL", 0)
         _LOGGER.info(
@@ -472,9 +475,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ) from exc
 
     async def handle_refresh_and_log_data(call: ServiceCall) -> ServiceResponse:
-        coordinator = _get_coordinator(
-            hass, call.data.get("config_entry_id")
-        )
+        coordinator = _get_coordinator(hass, call.data.get("config_entry_id"))
         coordinator._next_refresh_verbose = True
         await coordinator.async_request_refresh()
         data = coordinator.data
@@ -573,7 +574,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: FellowAidenConfigEntry
+) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
@@ -589,6 +592,8 @@ async def async_migrate_entry(
     return True
 
 
-async def _async_update_options(hass: HomeAssistant, entry: FellowAidenConfigEntry) -> None:
+async def _async_update_options(
+    hass: HomeAssistant, entry: FellowAidenConfigEntry
+) -> None:
     """Reload the integration when options change."""
     await hass.config_entries.async_reload(entry.entry_id)
