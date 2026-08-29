@@ -1,0 +1,139 @@
+{
+  "xapk_version": 2,
+  "package_name": "com.fellowproducts.Fellow",
+  "name": "Fellow",
+  "version_code": "52",
+  "version_name": "1.4.5",
+  "min_sdk_version": "24",
+  "target_sdk_version": "35",
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.POST_NOTIFICATIONS",
+    "android.permission.BLUETOOTH",
+    "android.permission.BLUETOOTH_ADMIN",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.BLUETOOTH_SCAN",
+    "android.permission.BLUETOOTH_CONNECT",
+    "android.permission.BLUETOOTH_ADVERTISE",
+    "android.permission.CAMERA",
+    "android.permission.USE_BIOMETRIC",
+    "android.permission.USE_FINGERPRINT",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.ACCESS_WIFI_STATE",
+    "android.permission.WAKE_LOCK",
+    "android.permission.CHANGE_WIFI_STATE",
+    "android.permission.CHANGE_NETWORK_STATE",
+    "com.google.android.c2dm.permission.RECEIVE",
+    "com.google.android.gms.permission.AD_ID",
+    "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
+    "android.permission.ACCESS_ADSERVICES_AD_ID",
+    "com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE",
+    "com.fellowproducts.Fellow.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "split_configs": [
+    "config.pt",
+    "config.ar",
+    "config.es",
+    "config.fr",
+    "config.zh",
+    "config.hi",
+    "config.mdpi",
+    "config.vi",
+    "config.ja",
+    "config.ko",
+    "config.armeabi_v7a",
+    "config.en",
+    "config.in",
+    "config.ru",
+    "config.th",
+    "config.tr",
+    "config.de",
+    "config.it",
+    "config.my"
+  ],
+  "total_size": 133800322,
+  "icon": "icon.png",
+  "split_apks": [
+    {
+      "file": "com.fellowproducts.Fellow.apk",
+      "id": "base"
+    },
+    {
+      "file": "config.pt.apk",
+      "id": "config.pt"
+    },
+    {
+      "file": "config.ar.apk",
+      "id": "config.ar"
+    },
+    {
+      "file": "config.es.apk",
+      "id": "config.es"
+    },
+    {
+      "file": "config.fr.apk",
+      "id": "config.fr"
+    },
+    {
+      "file": "config.zh.apk",
+      "id": "config.zh"
+    },
+    {
+      "file": "config.hi.apk",
+      "id": "config.hi"
+    },
+    {
+      "file": "config.mdpi.apk",
+      "id": "config.mdpi"
+    },
+    {
+      "file": "config.vi.apk",
+      "id": "config.vi"
+    },
+    {
+      "file": "config.ja.apk",
+      "id": "config.ja"
+    },
+    {
+      "file": "config.ko.apk",
+      "id": "config.ko"
+    },
+    {
+      "file": "config.armeabi_v7a.apk",
+      "id": "config.armeabi_v7a"
+    },
+    {
+      "file": "config.en.apk",
+      "id": "config.en"
+    },
+    {
+      "file": "config.in.apk",
+      "id": "config.in"
+    },
+    {
+      "file": "config.ru.apk",
+      "id": "config.ru"
+    },
+    {
+      "file": "config.th.apk",
+      "id": "config.th"
+    },
+    {
+      "file": "config.tr.apk",
+      "id": "config.tr"
+    },
+    {
+      "file": "config.de.apk",
+      "id": "config.de"
+    },
+    {
+      "file": "config.it.apk",
+      "id": "config.it"
+    },
+    {
+      "file": "config.my.apk",
+      "id": "config.my"
+    }
+  ]
+}

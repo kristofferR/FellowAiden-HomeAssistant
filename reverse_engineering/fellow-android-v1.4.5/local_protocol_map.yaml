@@ -1,0 +1,139 @@
+source_artifact: Fellow_1.4.5_APKPure.xapk
+app_version: 1.4.5
+entries:
+  - transport: bluetooth_le
+    entrypoint: NativeBleManagerSpec / BleManagerPackage
+    operation: scan_connect_read_write_notify
+    identifiers_or_uuids:
+      - service UUID filters supported but concrete Fellow UUIDs not recovered statically
+    message_shape:
+      - string peripheral ID
+      - string service UUID
+      - string characteristic UUID
+      - byte array payloads
+    state_transitions:
+      - checkState
+      - scan
+      - onDiscoverPeripheral
+      - connect
+      - retrieveServices
+      - read/write
+      - startNotification
+      - disconnect
+    dependencies:
+      - "android.permission.BLUETOOTH_*"
+      - BleManagerPackage
+    evidence:
+      - "evidence/code/it/innove/NativeBleManagerSpec.java:92"
+      - "evidence/code/it/innove/CompanionScanner.java:125"
+      - "evidence/code/resources/AndroidManifest.xml:22"
+    validation_status: static-confirmed
+  - transport: companion_device_manager_ble
+    entrypoint: CompanionScanner
+    operation: single_device_ble_association
+    identifiers_or_uuids:
+      - optional BLE service UUID filter
+    message_shape:
+      - ReadableArray service UUID filters
+      - "ReadableMap options with `single` flag"
+    state_transitions:
+      - companionScan
+      - associate
+      - onDeviceFound
+      - onCompanionPeripheral/onCompanionFailure
+    dependencies:
+      - CompanionDeviceManager
+      - BleManagerPackage
+    evidence:
+      - "evidence/code/it/innove/CompanionScanner.java:125"
+    validation_status: static-confirmed
+  - transport: wifi_manager_and_rnwifi
+    entrypoint: RNWifiModule / WifiConnectorBuilder / WifiUtils
+    operation: scan_connect_disconnect_current_ssid
+    identifiers_or_uuids:
+      - SSID
+      - BSSID
+      - security type
+    message_shape:
+      - SSID/password pairs
+      - scan result lists
+      - current SSID query
+    state_transitions:
+      - loadWifiList
+      - connectToProtectedSSID
+      - connectToProtectedWifiSSID
+      - disconnect
+      - getCurrentWifiSSID
+    dependencies:
+      - android.permission.ACCESS_WIFI_STATE
+      - android.permission.CHANGE_WIFI_STATE
+      - RNWifiPackage
+      - wifiutils
+    evidence:
+      - evidence/code/com/reactlibrary/rnwifi/RNWifi_methods.md
+      - "evidence/code/com/thanosfisherman/wifiutils/WifiConnectorBuilder.java:25"
+      - "evidence/code/resources/AndroidManifest.xml:30"
+    validation_status: static-confirmed
+  - transport: local_http_to_device_ap
+    entrypoint: Hermes bundle provisioning hooks
+    operation: wifi_provisioning_negotiation
+    identifiers_or_uuids:
+      - "SSID/password endpoints inferred from `postSSID`, `postPassword`, `postGetWifiList`, `postGetWifiStatus` strings"
+    message_shape:
+      - Wi-Fi list/status requests
+      - SSID/password posts
+      - data-length/data-security negotiation posts
+    state_transitions:
+      - postGetWifiList
+      - postGetWifiStatus
+      - postNegotiateDataSecurity
+      - postNegotiateLengthSecurity
+      - postSSID
+      - postPassword
+      - postProcessPassResolved
+    dependencies:
+      - device provisioning mode
+      - local network reachability
+    evidence:
+      - evidence/hermes_feature_map.md (Wifi section)
+      - evidence/hermes_feature_map.md (Claim Provision section)
+    validation_status: hypothesis
+  - transport: android_keystore_via_react_native_keychain
+    entrypoint: KeychainModule
+    operation: credential_storage_and_retrieval
+    identifiers_or_uuids:
+      - alias/service names
+    message_shape:
+      - username/password pairs
+      - service/server alias
+      - biometry/passcode access control options
+    state_transitions:
+      - setGenericPassword
+      - getGenericPassword
+      - getAllGenericPasswordServices
+      - resetGenericPassword
+    dependencies:
+      - KeychainPackage
+      - biometric/passcode availability (optional)
+    evidence:
+      - evidence/code/com/oblador/keychain/Keychain_methods.md
+    validation_status: static-confirmed
+  - transport: firebase_cloud_messaging
+    entrypoint: ReactNativeFirebaseMessagingService / bundle notification hooks
+    operation: push_registration_and_notification_open_handling
+    identifiers_or_uuids:
+      - FCM token (not recovered statically)
+    message_shape:
+      - notification open callbacks
+      - notification preference update flow
+    state_transitions:
+      - register/unregister for remote notifications
+      - onNotificationOpenedApp
+      - updateUserNotifications
+    dependencies:
+      - Firebase Messaging
+      - POST_NOTIFICATIONS permission
+    evidence:
+      - "evidence/code/resources/AndroidManifest.xml:147"
+      - evidence/hermes_feature_map.md (Notifications section)
+    validation_status: static-confirmed

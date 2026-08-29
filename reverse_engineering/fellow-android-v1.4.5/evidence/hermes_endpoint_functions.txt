@@ -1,0 +1,1443 @@
+Fellow Android 1.4.5 Hermes endpoint evidence
+Generated from index.android.bundle (Hermes bytecode v96).
+
+=> [Function #14026 "?anon_0_" of 80 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x00498278
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 70, Reg8: 2>  # Address: 0000004d
+==> 0000000a: <NewObject>: <Reg8: 4>
+==> 0000000c: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000012: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000017: <Call1>: <Reg8: 2, Reg8: 2, Reg8: 3>
+==> 0000001b: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000020: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 3, string_id: 28574>  # String: 'password' (Identifier)
+==> 00000026: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28574>  # String: 'password' (Identifier)
+==> 0000002b: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 4, string_id: 236>  # String: 'timezone' (Identifier)
+==> 00000030: <PutNewOwnByIdShort>: <Reg8: 4, Reg8: 2, string_id: 236>  # String: 'timezone' (Identifier)
+==> 00000034: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 5, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 0000003a: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 6, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000040: <LoadConstString>: <Reg8: 1, string_id: 6344>  # String: '/auth/login' (String)
+==> 00000044: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 0000004a: <CompleteGenerator>: <>
+==> 0000004b: <Ret>: <Reg8: 1>
+==> 0000004d: <CompleteGenerator>: <>
+==> 0000004e: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14030 "?anon_0_" of 77 bytes]: 2 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x004982f6
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 67, Reg8: 2>  # Address: 0000004a
+==> 0000000a: <NewObject>: <Reg8: 5>
+==> 0000000c: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 1, string_id: 27977>  # String: 'token' (Identifier)
+==> 00000012: <PutNewOwnById>: <Reg8: 5, Reg8: 2, string_id: 29243>  # String: 'refreshToken' (Identifier)
+==> 00000017: <NewObject>: <Reg8: 4>
+==> 00000019: <LoadConstTrue>: <Reg8: 2>
+==> 0000001b: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 32265>  # String: 'skipAuthRefresh' (Identifier)
+==> 00000020: <NewObject>: <Reg8: 2>
+==> 00000022: <LoadConstString>: <Reg8: 3, string_id: 6330>  # String: 'application/json' (String)
+==> 00000026: <PutNewOwnById>: <Reg8: 2, Reg8: 3, string_id: 33750>  # String: 'Content-Type' (Identifier)
+==> 0000002b: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 34254>  # String: 'headers' (Identifier)
+==> 00000030: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 2, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000036: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 3, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000003c: <LoadConstString>: <Reg8: 1, string_id: 6350>  # String: '/auth/refresh-token' (String)
+==> 00000040: <Call4>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 5, Reg8: 4>
+==> 00000047: <CompleteGenerator>: <>
+==> 00000048: <Ret>: <Reg8: 1>
+==> 0000004a: <CompleteGenerator>: <>
+==> 0000004b: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14034 "?anon_0_" of 124 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x00498371
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 114, Reg8: 2>  # Address: 00000079
+==> 0000000a: <NewObject>: <Reg8: 4>
+==> 0000000c: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 1, string_id: 36880>  # String: 'acceptsMarketing' (Identifier)
+==> 00000012: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 36880>  # String: 'acceptsMarketing' (Identifier)
+==> 00000017: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 2, string_id: 28122>  # String: 'email' (Identifier)
+==> 0000001d: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 3, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000022: <Call1>: <Reg8: 2, Reg8: 2, Reg8: 3>
+==> 00000026: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28122>  # String: 'email' (Identifier)
+==> 0000002b: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 4, string_id: 47104>  # String: 'firstName' (Identifier)
+==> 00000031: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 47104>  # String: 'firstName' (Identifier)
+==> 00000036: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 5, string_id: 38288>  # String: 'lastName' (Identifier)
+==> 0000003c: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 38288>  # String: 'lastName' (Identifier)
+==> 00000041: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 6, string_id: 28574>  # String: 'password' (Identifier)
+==> 00000047: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28574>  # String: 'password' (Identifier)
+==> 0000004c: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 7, string_id: 30790>  # String: 'phone' (Identifier)
+==> 00000052: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 30790>  # String: 'phone' (Identifier)
+==> 00000057: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 8, string_id: 236>  # String: 'timezone' (Identifier)
+==> 0000005c: <PutNewOwnByIdShort>: <Reg8: 4, Reg8: 2, string_id: 236>  # String: 'timezone' (Identifier)
+==> 00000060: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 9, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000066: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 10, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000006c: <LoadConstString>: <Reg8: 1, string_id: 6356>  # String: '/auth/sign-up' (String)
+==> 00000070: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 00000076: <CompleteGenerator>: <>
+==> 00000077: <Ret>: <Reg8: 1>
+==> 00000079: <CompleteGenerator>: <>
+==> 0000007a: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14038 "?anon_0_" of 70 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x0049841b
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 60, Reg8: 2>  # Address: 00000043
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000016: <GetById>: <Reg8: 4, Reg8: 1, UInt8: 3, string_id: 28122>  # String: 'email' (Identifier)
+==> 0000001c: <GetByIdShort>: <Reg8: 1, Reg8: 4, UInt8: 4, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000021: <Call1>: <Reg8: 5, Reg8: 1, Reg8: 4>
+==> 00000025: <GetGlobalObject>: <Reg8: 1>
+==> 00000027: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 5, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 0000002d: <GetByIdShort>: <Reg8: 4, Reg8: 1, UInt8: 6, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000032: <LoadConstString>: <Reg8: 1, string_id: 6343>  # String: '/auth/email-status/' (String)
+==> 00000036: <Call2>: <Reg8: 1, Reg8: 4, Reg8: 1, Reg8: 5>
+==> 0000003b: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000040: <CompleteGenerator>: <>
+==> 00000041: <Ret>: <Reg8: 1>
+==> 00000043: <CompleteGenerator>: <>
+==> 00000044: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14042 "?anon_0_" of 82 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x0049848f
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 72, Reg8: 2>  # Address: 0000004f
+==> 0000000a: <NewObject>: <Reg8: 4>
+==> 0000000c: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 1, string_id: 31263>  # String: 'customerId' (Identifier)
+==> 00000012: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 31263>  # String: 'customerId' (Identifier)
+==> 00000017: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 31264>  # String: 'activationToken' (Identifier)
+==> 0000001d: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 31264>  # String: 'activationToken' (Identifier)
+==> 00000022: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 3, string_id: 28574>  # String: 'password' (Identifier)
+==> 00000028: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28574>  # String: 'password' (Identifier)
+==> 0000002d: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 4, string_id: 236>  # String: 'timezone' (Identifier)
+==> 00000032: <PutNewOwnByIdShort>: <Reg8: 4, Reg8: 2, string_id: 236>  # String: 'timezone' (Identifier)
+==> 00000036: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 5, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 0000003c: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 6, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000042: <LoadConstString>: <Reg8: 1, string_id: 5458>  # String: '/auth/activate-account' (String)
+==> 00000046: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 0000004c: <CompleteGenerator>: <>
+==> 0000004d: <Ret>: <Reg8: 1>
+==> 0000004f: <CompleteGenerator>: <>
+==> 00000050: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14046 "?anon_0_" of 37 bytes]: 2 params, frame size=12, strict=0, exc handler=0, debug info=0  @ offset 0x0049850f
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000004: <JmpTrue>: <Addr8: 30, Reg8: 1>  # Address: 00000022
+==> 00000007: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000016: <LoadConstString>: <Reg8: 1, string_id: 1798>  # String: '/auth/sign-out' (String)
+==> 0000001a: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 0000001f: <CompleteGenerator>: <>
+==> 00000020: <Ret>: <Reg8: 1>
+==> 00000022: <CompleteGenerator>: <>
+==> 00000023: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14050 "?anon_0_" of 71 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x00498562
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 61, Reg8: 2>  # Address: 00000044
+==> 0000000a: <NewObject>: <Reg8: 4>
+==> 0000000c: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000012: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000017: <Call1>: <Reg8: 2, Reg8: 2, Reg8: 3>
+==> 0000001b: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000020: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 3, string_id: 28574>  # String: 'password' (Identifier)
+==> 00000026: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28574>  # String: 'password' (Identifier)
+==> 0000002b: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 4, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000031: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 5, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000037: <LoadConstString>: <Reg8: 1, string_id: 6347>  # String: '/users/profile' (String)
+==> 0000003b: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 00000041: <CompleteGenerator>: <>
+==> 00000042: <Ret>: <Reg8: 1>
+==> 00000044: <CompleteGenerator>: <>
+==> 00000045: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14054 "?anon_0_" of 60 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x004985d7
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 50, Reg8: 2>  # Address: 00000039
+==> 0000000a: <NewObject>: <Reg8: 4>
+==> 0000000c: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000012: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000017: <Call1>: <Reg8: 2, Reg8: 2, Reg8: 3>
+==> 0000001b: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 28122>  # String: 'email' (Identifier)
+==> 00000020: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 3, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000026: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 4, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000002c: <LoadConstString>: <Reg8: 1, string_id: 827>  # String: '/auth/recover' (String)
+==> 00000030: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 1>
+==> 00000039: <CompleteGenerator>: <>
+==> 0000003a: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14059 "?anon_0_" of 36 bytes]: 2 params, frame size=12, strict=0, exc handler=0, debug info=0  @ offset 0x004986ba
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000004: <JmpTrue>: <Addr8: 29, Reg8: 1>  # Address: 00000021
+==> 00000007: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 24>  # String: 'get' (Identifier)
+==> 00000015: <LoadConstString>: <Reg8: 1, string_id: 6347>  # String: '/users/profile' (String)
+==> 00000019: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 0000001e: <CompleteGenerator>: <>
+==> 0000001f: <Ret>: <Reg8: 1>
+==> 00000021: <CompleteGenerator>: <>
+==> 00000022: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #14063 "?anon_0_" of 65 bytes]: 2 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x0049870c
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 55, Reg8: 2>  # Address: 0000003e
+==> 0000000a: <GetById>: <Reg8: 4, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 2, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000016: <GetGlobalObject>: <Reg8: 2>
+==> 00000018: <TryGetById>: <Reg8: 6, Reg8: 2, UInt8: 3, string_id: 33>  # String: 'Object' (Identifier)
+==> 0000001e: <GetByIdShort>: <Reg8: 5, Reg8: 6, UInt8: 4, string_id: 77>  # String: 'assign' (Identifier)
+==> 00000023: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 5, string_id: 33440>  # String: 'notificationData' (Identifier)
+==> 00000029: <NewObject>: <Reg8: 1>
+==> 0000002b: <Call3>: <Reg8: 2, Reg8: 5, Reg8: 6, Reg8: 1, Reg8: 2>
+==> 00000031: <LoadConstString>: <Reg8: 1, string_id: 6460>  # String: '/users/notifications' (String)
+==> 00000035: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 1, Reg8: 2>
+==> 0000003b: <CompleteGenerator>: <>
+==> 0000003c: <Ret>: <Reg8: 1>
+==> 0000003e: <CompleteGenerator>: <>
+==> 0000003f: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #17436 "getApiPrefix" of 67 bytes]: 2 params, frame size=13, strict=0, exc handler=0, debug info=0  @ offset 0x004f99b0
+
+Bytecode listing:
+
+==> 00000000: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000003: <JmpFalse>: <Addr8: 58, Reg8: 1>  # Address: 0000003d
+==> 00000006: <GetEnvironment>: <Reg8: 0, UInt8: 0>
+==> 00000009: <LoadFromEnvironment>: <Reg8: 2, Reg8: 0, UInt8: 4>
+==> 0000000d: <LoadConstUndefined>: <Reg8: 0>
+==> 0000000f: <Call2>: <Reg8: 0, Reg8: 2, Reg8: 0, Reg8: 1>
+==> 00000014: <JmpTrue>: <Addr8: 41, Reg8: 0>  # Address: 0000003d
+==> 00000017: <GetByIdShort>: <Reg8: 0, Reg8: 1, UInt8: 1, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 0000001c: <Call1>: <Reg8: 3, Reg8: 0, Reg8: 1>
+==> 00000020: <GetGlobalObject>: <Reg8: 0>
+==> 00000022: <TryGetById>: <Reg8: 0, Reg8: 0, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000028: <GetByIdShort>: <Reg8: 2, Reg8: 0, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002d: <LoadConstString>: <Reg8: 1, string_id: 27415>  # String: '' (Identifier)
+==> 00000031: <LoadConstString>: <Reg8: 0, string_id: 28201>  # String: '/' (Identifier)
+==> 00000035: <Call3>: <Reg8: 0, Reg8: 2, Reg8: 1, Reg8: 3, Reg8: 0>
+==> 0000003b: <Ret>: <Reg8: 0>
+==> 0000003d: <LoadConstString>: <Reg8: 0, string_id: 27415>  # String: '' (Identifier)
+==> 00000041: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18495 "?anon_0_" of 56 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x00518e26
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 46, Reg8: 1>  # Address: 00000035
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 0000000f: <GetGlobalObject>: <Reg8: 1>
+==> 00000011: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000017: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001c: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000020: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000023: <LoadConstString>: <Reg8: 1, string_id: 6372>  # String: '?dataType=real' (String)
+==> 00000027: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000032: <CompleteGenerator>: <>
+==> 00000033: <Ret>: <Reg8: 1>
+==> 00000035: <CompleteGenerator>: <>
+==> 00000036: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18499 "?anon_0_" of 70 bytes]: 4 params, frame size=20, strict=0, exc handler=0, debug info=0  @ offset 0x00518e8c
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 4, UInt8: 3>
+==> 00000007: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000a: <JmpTrue>: <Addr8: 57, Reg8: 1>  # Address: 00000043
+==> 0000000d: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 00000012: <GetByIdShort>: <Reg8: 1, Reg8: 4, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000017: <Call1>: <Reg8: 12, Reg8: 1, Reg8: 4>
+==> 0000001b: <GetGlobalObject>: <Reg8: 1>
+==> 0000001d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000023: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000028: <LoadConstString>: <Reg8: 13, string_id: 27415>  # String: '' (Identifier)
+==> 0000002c: <LoadConstString>: <Reg8: 11, string_id: 6367>  # String: '/devices/' (String)
+==> 00000030: <LoadParam>: <Reg8: 10, UInt8: 2>
+==> 00000033: <LoadConstString>: <Reg8: 9, string_id: 6372>  # String: '?dataType=real' (String)
+==> 00000037: <Call>: <Reg8: 1, Reg8: 7, UInt8: 5>
+==> 0000003b: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000040: <CompleteGenerator>: <>
+==> 00000041: <Ret>: <Reg8: 1>
+==> 00000043: <CompleteGenerator>: <>
+==> 00000044: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18503 "?anon_0_" of 56 bytes]: 4 params, frame size=15, strict=0, exc handler=0, debug info=0  @ offset 0x00518f00
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 46, Reg8: 1>  # Address: 00000035
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 2, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 1, UInt8: 2>
+==> 00000024: <Call2>: <Reg8: 2, Reg8: 5, Reg8: 2, Reg8: 1>
+==> 00000029: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 0000002c: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 00000032: <CompleteGenerator>: <>
+==> 00000033: <Ret>: <Reg8: 1>
+==> 00000035: <CompleteGenerator>: <>
+==> 00000036: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18507 "?anon_0_" of 74 bytes]: 5 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x00518f66
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 2, UInt8: 4>
+==> 00000007: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000a: <JmpTrue>: <Addr8: 61, Reg8: 1>  # Address: 00000047
+==> 0000000d: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000013: <GetByIdShort>: <Reg8: 1, Reg8: 2, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000018: <Call1>: <Reg8: 7, Reg8: 1, Reg8: 2>
+==> 0000001c: <GetGlobalObject>: <Reg8: 1>
+==> 0000001e: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000024: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000029: <LoadConstString>: <Reg8: 5, string_id: 27415>  # String: '' (Identifier)
+==> 0000002d: <LoadConstString>: <Reg8: 2, string_id: 6367>  # String: '/devices/' (String)
+==> 00000031: <LoadParam>: <Reg8: 1, UInt8: 2>
+==> 00000034: <Call4>: <Reg8: 2, Reg8: 6, Reg8: 5, Reg8: 7, Reg8: 2, Reg8: 1>
+==> 0000003b: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 0000003e: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 00000044: <CompleteGenerator>: <>
+==> 00000045: <Ret>: <Reg8: 1>
+==> 00000047: <CompleteGenerator>: <>
+==> 00000048: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18511 "?anon_0_" of 30 bytes]: 2 params, frame size=12, strict=0, exc handler=0, debug info=0  @ offset 0x00518fde
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 20, Reg8: 1>  # Address: 0000001b
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 0000000f: <LoadConstString>: <Reg8: 1, string_id: 6371>  # String: '/devices?dataType=real' (String)
+==> 00000013: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000018: <CompleteGenerator>: <>
+==> 00000019: <Ret>: <Reg8: 1>
+==> 0000001b: <CompleteGenerator>: <>
+==> 0000001c: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18515 "?anon_0_" of 76 bytes]: 5 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x0051902a
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 66, Reg8: 1>  # Address: 00000049
+==> 0000000a: <LoadConstString>: <Reg8: 7, string_id: 27415>  # String: '' (Identifier)
+==> 0000000e: <LoadParam>: <Reg8: 1, UInt8: 4>
+==> 00000011: <JmpFalse>: <Addr8: 7, Reg8: 1>  # Address: 00000018
+==> 00000014: <LoadConstString>: <Reg8: 7, string_id: 6786>  # String: '?confirm=true' (String)
+==> 00000018: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 0000001e: <GetGlobalObject>: <Reg8: 1>
+==> 00000020: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000026: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002b: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 0000002f: <LoadParam>: <Reg8: 2, UInt8: 2>
+==> 00000032: <LoadConstString>: <Reg8: 1, string_id: 6452>  # String: '/start' (String)
+==> 00000036: <Call4>: <Reg8: 2, Reg8: 6, Reg8: 5, Reg8: 2, Reg8: 1, Reg8: 7>
+==> 0000003d: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 00000040: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 00000046: <CompleteGenerator>: <>
+==> 00000047: <Ret>: <Reg8: 1>
+==> 00000049: <CompleteGenerator>: <>
+==> 0000004a: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18519 "?anon_0_" of 72 bytes]: 4 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x005190a4
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 62, Reg8: 1>  # Address: 00000045
+==> 0000000a: <LoadConstString>: <Reg8: 7, string_id: 27415>  # String: '' (Identifier)
+==> 0000000e: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 00000011: <JmpFalse>: <Addr8: 7, Reg8: 1>  # Address: 00000018
+==> 00000014: <LoadConstString>: <Reg8: 7, string_id: 6786>  # String: '?confirm=true' (String)
+==> 00000018: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 0000001e: <GetGlobalObject>: <Reg8: 1>
+==> 00000020: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000026: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002b: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 0000002f: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000032: <LoadConstString>: <Reg8: 1, string_id: 6452>  # String: '/start' (String)
+==> 00000036: <Call4>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1, Reg8: 7>
+==> 0000003d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000042: <CompleteGenerator>: <>
+==> 00000043: <Ret>: <Reg8: 1>
+==> 00000045: <CompleteGenerator>: <>
+==> 00000046: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18523 "?anon_0_" of 57 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x0051911a
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 47, Reg8: 1>  # Address: 00000036
+==> 0000000a: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000024: <LoadConstString>: <Reg8: 1, string_id: 6457>  # String: '/stop' (String)
+==> 00000028: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002e: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000033: <CompleteGenerator>: <>
+==> 00000034: <Ret>: <Reg8: 1>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18527 "?anon_0_" of 135 bytes]: 5 params, frame size=20, strict=0, exc handler=0, debug info=0  @ offset 0x00519181
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 5, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 9, UInt8: 2>
+==> 00000007: <LoadParam>: <Reg8: 6, UInt8: 3>
+==> 0000000a: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000d: <JmpTrue>: <Addr8: 119, Reg8: 1>  # Address: 00000084
+==> 00000010: <GetEnvironment>: <Reg8: 1, UInt8: 2>
+==> 00000013: <LoadFromEnvironment>: <Reg8: 2, Reg8: 1, UInt8: 0>
+==> 00000017: <LoadFromEnvironment>: <Reg8: 3, Reg8: 1, UInt8: 1>
+==> 0000001b: <LoadConstUInt8>: <Reg8: 1, UInt8: 2>
+==> 0000001e: <GetByVal>: <Reg8: 1, Reg8: 3, Reg8: 1>
+==> 00000022: <LoadConstUndefined>: <Reg8: 3>
+==> 00000024: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000029: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 0000002f: <LoadParam>: <Reg8: 1, UInt8: 4>
+==> 00000032: <Call2>: <Reg8: 8, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000037: <GetById>: <Reg8: 4, Reg8: 5, UInt8: 2, string_id: 28987>  # String: 'patch' (Identifier)
+==> 0000003d: <GetGlobalObject>: <Reg8: 1>
+==> 0000003f: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000045: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000004a: <JmpTrue>: <Addr8: 27, Reg8: 8>  # Address: 00000065
+==> 0000004d: <LoadConstString>: <Reg8: 1, string_id: 6367>  # String: '/devices/' (String)
+==> 00000051: <Call2>: <Reg8: 2, Reg8: 7, Reg8: 1, Reg8: 9>
+==> 00000056: <NewObject>: <Reg8: 1>
+==> 00000058: <PutNewOwnById>: <Reg8: 1, Reg8: 6, string_id: 33003>  # String: 'elevation' (Identifier)
+==> 0000005d: <Call3>: <Reg8: 1, Reg8: 4, Reg8: 5, Reg8: 2, Reg8: 1>
+==> 00000063: <Jmp>: <Addr8: 30>  # Address: 00000081
+==> 00000065: <LoadConstString>: <Reg8: 3, string_id: 27415>  # String: '' (Identifier)
+==> 00000069: <LoadConstString>: <Reg8: 2, string_id: 6369>  # String: 'devices/' (String)
+==> 0000006d: <Call4>: <Reg8: 3, Reg8: 7, Reg8: 3, Reg8: 8, Reg8: 2, Reg8: 9>
+==> 00000074: <NewObject>: <Reg8: 2>
+==> 00000076: <PutNewOwnById>: <Reg8: 2, Reg8: 6, string_id: 33003>  # String: 'elevation' (Identifier)
+==> 0000007b: <Call3>: <Reg8: 1, Reg8: 4, Reg8: 5, Reg8: 3, Reg8: 2>
+==> 00000081: <CompleteGenerator>: <>
+==> 00000082: <Ret>: <Reg8: 1>
+==> 00000084: <CompleteGenerator>: <>
+==> 00000085: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18531 "?anon_0_" of 56 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x00519236
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 46, Reg8: 1>  # Address: 00000035
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 126>  # String: 'delete' (Identifier)
+==> 0000000f: <GetGlobalObject>: <Reg8: 1>
+==> 00000011: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000017: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001c: <LoadConstString>: <Reg8: 5, string_id: 6369>  # String: 'devices/' (String)
+==> 00000020: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000023: <LoadConstString>: <Reg8: 1, string_id: 6375>  # String: '/factoryReset' (String)
+==> 00000027: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000032: <CompleteGenerator>: <>
+==> 00000033: <Ret>: <Reg8: 1>
+==> 00000035: <CompleteGenerator>: <>
+==> 00000036: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18535 "?anon_0_" of 75 bytes]: 4 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x0051929c
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 6, UInt8: 2>
+==> 00000007: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000a: <JmpTrue>: <Addr8: 62, Reg8: 1>  # Address: 00000048
+==> 0000000d: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 126>  # String: 'delete' (Identifier)
+==> 00000012: <GetGlobalObject>: <Reg8: 1>
+==> 00000014: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 0000001a: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001f: <LoadConstString>: <Reg8: 4, string_id: 6367>  # String: '/devices/' (String)
+==> 00000023: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 00000026: <JmpTrue>: <Addr8: 16, Reg8: 1>  # Address: 00000036
+==> 00000029: <Call2>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 6>
+==> 0000002e: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000033: <CompleteGenerator>: <>
+==> 00000034: <Ret>: <Reg8: 1>
+==> 00000036: <LoadConstString>: <Reg8: 1, string_id: 6786>  # String: '?confirm=true' (String)
+==> 0000003a: <Call3>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 6, Reg8: 1>
+==> 00000040: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000045: <CompleteGenerator>: <>
+==> 00000046: <Ret>: <Reg8: 1>
+==> 00000048: <CompleteGenerator>: <>
+==> 00000049: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18539 "?anon_0_" of 103 bytes]: 5 params, frame size=20, strict=0, exc handler=0, debug info=0  @ offset 0x00519315
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 8, UInt8: 2>
+==> 00000007: <LoadParam>: <Reg8: 4, UInt8: 3>
+==> 0000000a: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000d: <JmpTrue>: <Addr8: 87, Reg8: 1>  # Address: 00000064
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 126>  # String: 'delete' (Identifier)
+==> 00000015: <GetByIdShort>: <Reg8: 1, Reg8: 4, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 0000001a: <Call1>: <Reg8: 7, Reg8: 1, Reg8: 4>
+==> 0000001e: <GetGlobalObject>: <Reg8: 1>
+==> 00000020: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000026: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002b: <LoadConstString>: <Reg8: 5, string_id: 27415>  # String: '' (Identifier)
+==> 0000002f: <LoadConstString>: <Reg8: 4, string_id: 6367>  # String: '/devices/' (String)
+==> 00000033: <LoadParam>: <Reg8: 1, UInt8: 4>
+==> 00000036: <JmpTrue>: <Addr8: 18, Reg8: 1>  # Address: 00000048
+==> 00000039: <Call4>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 7, Reg8: 4, Reg8: 8>
+==> 00000040: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000045: <CompleteGenerator>: <>
+==> 00000046: <Ret>: <Reg8: 1>
+==> 00000048: <LoadConstString>: <Reg8: 9, string_id: 6786>  # String: '?confirm=true' (String)
+==> 0000004c: <Mov>: <Reg8: 13, Reg8: 5>
+==> 0000004f: <Mov>: <Reg8: 12, Reg8: 7>
+==> 00000052: <Mov>: <Reg8: 11, Reg8: 4>
+==> 00000055: <Mov>: <Reg8: 10, Reg8: 8>
+==> 00000058: <Call>: <Reg8: 1, Reg8: 6, UInt8: 5>
+==> 0000005c: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000061: <CompleteGenerator>: <>
+==> 00000062: <Ret>: <Reg8: 1>
+==> 00000064: <CompleteGenerator>: <>
+==> 00000065: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18543 "?anon_0_" of 56 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x005193aa
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 46, Reg8: 1>  # Address: 00000035
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 0000000f: <GetGlobalObject>: <Reg8: 1>
+==> 00000011: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000017: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001c: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000020: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000023: <LoadConstString>: <Reg8: 1, string_id: 6459>  # String: '/updates' (String)
+==> 00000027: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000032: <CompleteGenerator>: <>
+==> 00000033: <Ret>: <Reg8: 1>
+==> 00000035: <CompleteGenerator>: <>
+==> 00000036: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18547 "?anon_0_" of 84 bytes]: 4 params, frame size=20, strict=0, exc handler=0, debug info=0  @ offset 0x00519410
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 4, UInt8: 3>
+==> 00000007: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 0000000a: <JmpTrue>: <Addr8: 71, Reg8: 1>  # Address: 00000051
+==> 0000000d: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 00000012: <LoadConstNull>: <Reg8: 1>
+==> 00000014: <Eq>: <Reg8: 1, Reg8: 4, Reg8: 1>
+==> 00000018: <LoadConstUndefined>: <Reg8: 8>
+==> 0000001a: <JmpTrue>: <Addr8: 12, Reg8: 1>  # Address: 00000026
+==> 0000001d: <GetByIdShort>: <Reg8: 1, Reg8: 4, UInt8: 2, string_id: 238>  # String: 'toLowerCase' (Identifier)
+==> 00000022: <Call1>: <Reg8: 8, Reg8: 1, Reg8: 4>
+==> 00000026: <GetGlobalObject>: <Reg8: 1>
+==> 00000028: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 0000002e: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000033: <LoadConstString>: <Reg8: 13, string_id: 27415>  # String: '' (Identifier)
+==> 00000037: <LoadConstString>: <Reg8: 11, string_id: 6367>  # String: '/devices/' (String)
+==> 0000003b: <LoadParam>: <Reg8: 10, UInt8: 2>
+==> 0000003e: <LoadConstString>: <Reg8: 9, string_id: 6459>  # String: '/updates' (String)
+==> 00000042: <Mov>: <Reg8: 12, Reg8: 8>
+==> 00000045: <Call>: <Reg8: 1, Reg8: 7, UInt8: 5>
+==> 00000049: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 0000004e: <CompleteGenerator>: <>
+==> 0000004f: <Ret>: <Reg8: 1>
+==> 00000051: <CompleteGenerator>: <>
+==> 00000052: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #18551 "?anon_0_" of 163 bytes]: 7 params, frame size=22, strict=0, exc handler=0, debug info=0  @ offset 0x00519492
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 5, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 10, UInt8: 2>
+==> 00000007: <LoadParam>: <Reg8: 1, UInt8: 4>
+==> 0000000a: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 0000000d: <JmpTrueLong>: <Addr32: 147, Reg8: 2>  # Address: 000000a0
+==> 00000013: <GetEnvironment>: <Reg8: 2, UInt8: 2>
+==> 00000016: <LoadFromEnvironment>: <Reg8: 4, Reg8: 2, UInt8: 0>
+==> 0000001a: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 1>
+==> 0000001e: <LoadConstUInt8>: <Reg8: 2, UInt8: 2>
+==> 00000021: <GetByVal>: <Reg8: 2, Reg8: 3, Reg8: 2>
+==> 00000025: <LoadConstUndefined>: <Reg8: 3>
+==> 00000027: <Call2>: <Reg8: 2, Reg8: 4, Reg8: 3, Reg8: 2>
+==> 0000002c: <GetById>: <Reg8: 2, Reg8: 2, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 00000032: <Call2>: <Reg8: 9, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000037: <NewObject>: <Reg8: 4>
+==> 00000039: <LoadParam>: <Reg8: 2, UInt8: 3>
+==> 0000003c: <PutNewOwnById>: <Reg8: 4, Reg8: 2, string_id: 32228>  # String: 'deviceTimezone' (Identifier)
+==> 00000041: <PutNewOwnByIdShort>: <Reg8: 4, Reg8: 1, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000045: <LoadParam>: <Reg8: 1, UInt8: 5>
+==> 00000048: <PutNewOwnById>: <Reg8: 4, Reg8: 1, string_id: 42490>  # String: 'deviceOS' (Identifier)
+==> 0000004d: <LoadParam>: <Reg8: 1, UInt8: 6>
+==> 00000050: <PutNewOwnById>: <Reg8: 4, Reg8: 1, string_id: 42491>  # String: 'deviceOSVersion' (Identifier)
+==> 00000055: <GetById>: <Reg8: 3, Reg8: 5, UInt8: 2, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000005b: <GetGlobalObject>: <Reg8: 1>
+==> 0000005d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 3, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000063: <GetByIdShort>: <Reg8: 8, Reg8: 1, UInt8: 4, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000068: <JmpTrue>: <Addr8: 25, Reg8: 9>  # Address: 00000081
+==> 0000006b: <LoadConstString>: <Reg8: 2, string_id: 6367>  # String: '/devices/' (String)
+==> 0000006f: <LoadConstString>: <Reg8: 1, string_id: 6116>  # String: '/provision' (String)
+==> 00000073: <Call3>: <Reg8: 1, Reg8: 8, Reg8: 2, Reg8: 10, Reg8: 1>
+==> 00000079: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 5, Reg8: 1, Reg8: 4>
+==> 0000007f: <Jmp>: <Addr8: 30>  # Address: 0000009d
+==> 00000081: <LoadConstString>: <Reg8: 15, string_id: 27415>  # String: '' (Identifier)
+==> 00000085: <LoadConstString>: <Reg8: 13, string_id: 6369>  # String: 'devices/' (String)
+==> 00000089: <LoadConstString>: <Reg8: 11, string_id: 6116>  # String: '/provision' (String)
+==> 0000008d: <Mov>: <Reg8: 14, Reg8: 9>
+==> 00000090: <Mov>: <Reg8: 12, Reg8: 10>
+==> 00000093: <Call>: <Reg8: 2, Reg8: 8, UInt8: 5>
+==> 00000097: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 5, Reg8: 2, Reg8: 4>
+==> 0000009d: <CompleteGenerator>: <>
+==> 0000009e: <Ret>: <Reg8: 1>
+==> 000000a0: <CompleteGenerator>: <>
+==> 000000a1: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21136 "?anon_0_" of 107 bytes]: 2 params, frame size=20, strict=0, exc handler=0, debug info=0  @ offset 0x0055f0ed
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 97, Reg8: 2>  # Address: 00000068
+==> 0000000a: <GetEnvironment>: <Reg8: 2, UInt8: 2>
+==> 0000000d: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 0>
+==> 00000011: <LoadFromEnvironment>: <Reg8: 4, Reg8: 2, UInt8: 1>
+==> 00000015: <LoadConstUInt8>: <Reg8: 2, UInt8: 2>
+==> 00000018: <GetByVal>: <Reg8: 2, Reg8: 4, Reg8: 2>
+==> 0000001c: <LoadConstUndefined>: <Reg8: 4>
+==> 0000001e: <Call2>: <Reg8: 2, Reg8: 3, Reg8: 4, Reg8: 2>
+==> 00000023: <GetById>: <Reg8: 3, Reg8: 2, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 00000029: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 0000002e: <Call2>: <Reg8: 12, Reg8: 3, Reg8: 4, Reg8: 2>
+==> 00000033: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 3, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000039: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 4, string_id: 24>  # String: 'get' (Identifier)
+==> 0000003e: <GetByIdShort>: <Reg8: 10, Reg8: 1, UInt8: 5, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 00000043: <GetGlobalObject>: <Reg8: 1>
+==> 00000045: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 6, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 0000004b: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 7, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000050: <LoadConstString>: <Reg8: 13, string_id: 27415>  # String: '' (Identifier)
+==> 00000054: <LoadConstString>: <Reg8: 11, string_id: 6369>  # String: 'devices/' (String)
+==> 00000058: <LoadConstString>: <Reg8: 9, string_id: 6348>  # String: '/profiles' (String)
+==> 0000005c: <Call>: <Reg8: 1, Reg8: 6, UInt8: 5>
+==> 00000060: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000065: <CompleteGenerator>: <>
+==> 00000066: <Ret>: <Reg8: 1>
+==> 00000068: <CompleteGenerator>: <>
+==> 00000069: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21140 "?anon_0_" of 71 bytes]: 2 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x0055f186
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 61, Reg8: 2>  # Address: 00000044
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 24>  # String: 'get' (Identifier)
+==> 00000015: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 3, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 0000001a: <GetById>: <Reg8: 6, Reg8: 1, UInt8: 4, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 00000020: <GetGlobalObject>: <Reg8: 1>
+==> 00000022: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 5, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000028: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 6, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002d: <LoadConstString>: <Reg8: 4, string_id: 6369>  # String: 'devices/' (String)
+==> 00000031: <LoadConstString>: <Reg8: 1, string_id: 6349>  # String: '/profiles/' (String)
+==> 00000035: <Call4>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 7, Reg8: 1, Reg8: 6>
+==> 0000003c: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000041: <CompleteGenerator>: <>
+==> 00000042: <Ret>: <Reg8: 1>
+==> 00000044: <CompleteGenerator>: <>
+==> 00000045: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21144 "?anon_0_" of 160 bytes]: 2 params, frame size=21, strict=0, exc handler=0, debug info=0  @ offset 0x0055f1fb
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrueLong>: <Addr32: 150, Reg8: 2>  # Address: 0000009d
+==> 0000000d: <GetEnvironment>: <Reg8: 2, UInt8: 2>
+==> 00000010: <LoadFromEnvironment>: <Reg8: 4, Reg8: 2, UInt8: 0>
+==> 00000014: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 1>
+==> 00000018: <LoadConstUInt8>: <Reg8: 6, UInt8: 2>
+==> 0000001b: <GetByVal>: <Reg8: 3, Reg8: 3, Reg8: 6>
+==> 0000001f: <LoadConstUndefined>: <Reg8: 5>
+==> 00000021: <Call2>: <Reg8: 3, Reg8: 4, Reg8: 5, Reg8: 3>
+==> 00000026: <GetById>: <Reg8: 4, Reg8: 3, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 0000002c: <GetByIdShort>: <Reg8: 3, Reg8: 1, UInt8: 2, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000031: <Call2>: <Reg8: 9, Reg8: 4, Reg8: 5, Reg8: 3>
+==> 00000036: <JmpTrue>: <Addr8: 11, Reg8: 9>  # Address: 00000041
+==> 00000039: <GetById>: <Reg8: 4, Reg8: 1, UInt8: 3, string_id: 28032>  # String: 'profile' (Identifier)
+==> 0000003f: <Jmp>: <Addr8: 36>  # Address: 00000063
+==> 00000041: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 0>
+==> 00000045: <LoadFromEnvironment>: <Reg8: 2, Reg8: 2, UInt8: 1>
+==> 00000049: <GetByVal>: <Reg8: 2, Reg8: 2, Reg8: 6>
+==> 0000004d: <Call2>: <Reg8: 2, Reg8: 3, Reg8: 5, Reg8: 2>
+==> 00000052: <GetById>: <Reg8: 3, Reg8: 2, UInt8: 4, string_id: 36333>  # String: 'withSettingsVersion' (Identifier)
+==> 00000058: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 3, string_id: 28032>  # String: 'profile' (Identifier)
+==> 0000005e: <Call2>: <Reg8: 4, Reg8: 3, Reg8: 5, Reg8: 2>
+==> 00000063: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 5, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000069: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 6, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000006f: <GetByIdShort>: <Reg8: 11, Reg8: 1, UInt8: 7, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 00000074: <GetGlobalObject>: <Reg8: 1>
+==> 00000076: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 8, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 0000007c: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 9, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000081: <LoadConstString>: <Reg8: 14, string_id: 27415>  # String: '' (Identifier)
+==> 00000085: <LoadConstString>: <Reg8: 12, string_id: 6369>  # String: 'devices/' (String)
+==> 00000089: <LoadConstString>: <Reg8: 10, string_id: 6348>  # String: '/profiles' (String)
+==> 0000008d: <Mov>: <Reg8: 13, Reg8: 9>
+==> 00000090: <Call>: <Reg8: 1, Reg8: 7, UInt8: 5>
+==> 00000094: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 0000009a: <CompleteGenerator>: <>
+==> 0000009b: <Ret>: <Reg8: 1>
+==> 0000009d: <CompleteGenerator>: <>
+==> 0000009e: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21148 "?anon_0_" of 158 bytes]: 2 params, frame size=25, strict=0, exc handler=0, debug info=0  @ offset 0x0055f2c9
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrueLong>: <Addr32: 148, Reg8: 2>  # Address: 0000009b
+==> 0000000d: <GetEnvironment>: <Reg8: 6, UInt8: 2>
+==> 00000010: <LoadFromEnvironment>: <Reg8: 3, Reg8: 6, UInt8: 0>
+==> 00000014: <LoadFromEnvironment>: <Reg8: 2, Reg8: 6, UInt8: 1>
+==> 00000018: <LoadConstUInt8>: <Reg8: 9, UInt8: 2>
+==> 0000001b: <GetByVal>: <Reg8: 2, Reg8: 2, Reg8: 9>
+==> 0000001f: <LoadConstUndefined>: <Reg8: 7>
+==> 00000021: <Call2>: <Reg8: 2, Reg8: 3, Reg8: 7, Reg8: 2>
+==> 00000026: <GetById>: <Reg8: 3, Reg8: 2, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 0000002c: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000031: <Call2>: <Reg8: 8, Reg8: 3, Reg8: 7, Reg8: 2>
+==> 00000036: <GetById>: <Reg8: 4, Reg8: 1, UInt8: 3, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 0000003c: <GetByIdShort>: <Reg8: 3, Reg8: 4, UInt8: 4, string_id: 126>  # String: 'delete' (Identifier)
+==> 00000041: <GetByIdShort>: <Reg8: 15, Reg8: 1, UInt8: 5, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 00000046: <GetById>: <Reg8: 13, Reg8: 1, UInt8: 6, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 0000004c: <GetGlobalObject>: <Reg8: 1>
+==> 0000004e: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 7, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000054: <GetByIdShort>: <Reg8: 10, Reg8: 1, UInt8: 8, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000059: <LoadConstString>: <Reg8: 18, string_id: 27415>  # String: '' (Identifier)
+==> 0000005d: <LoadConstString>: <Reg8: 16, string_id: 6369>  # String: 'devices/' (String)
+==> 00000061: <LoadConstString>: <Reg8: 14, string_id: 6349>  # String: '/profiles/' (String)
+==> 00000065: <Mov>: <Reg8: 17, Reg8: 8>
+==> 00000068: <Call>: <Reg8: 2, Reg8: 10, UInt8: 6>
+==> 0000006c: <NewObject>: <Reg8: 1>
+==> 0000006e: <LoadConstUndefined>: <Reg8: 5>
+==> 00000070: <JmpFalse>: <Addr8: 30, Reg8: 8>  # Address: 0000008e
+==> 00000073: <LoadFromEnvironment>: <Reg8: 8, Reg8: 6, UInt8: 0>
+==> 00000077: <LoadFromEnvironment>: <Reg8: 6, Reg8: 6, UInt8: 1>
+==> 0000007b: <GetByVal>: <Reg8: 6, Reg8: 6, Reg8: 9>
+==> 0000007f: <Call2>: <Reg8: 6, Reg8: 8, Reg8: 7, Reg8: 6>
+==> 00000084: <GetById>: <Reg8: 6, Reg8: 6, UInt8: 9, string_id: 36333>  # String: 'withSettingsVersion' (Identifier)
+==> 0000008a: <Call1>: <Reg8: 5, Reg8: 6, Reg8: 7>
+==> 0000008e: <PutNewOwnByIdShort>: <Reg8: 1, Reg8: 5, string_id: 116>  # String: 'data' (Identifier)
+==> 00000092: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 00000098: <CompleteGenerator>: <>
+==> 00000099: <Ret>: <Reg8: 1>
+==> 0000009b: <CompleteGenerator>: <>
+==> 0000009c: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21152 "?anon_0_" of 72 bytes]: 2 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x0055f395
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 62, Reg8: 2>  # Address: 00000045
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000016: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 3, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 0000001b: <GetById>: <Reg8: 6, Reg8: 1, UInt8: 4, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 00000021: <GetGlobalObject>: <Reg8: 1>
+==> 00000023: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 5, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000029: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 6, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002e: <LoadConstString>: <Reg8: 4, string_id: 6369>  # String: 'devices/' (String)
+==> 00000032: <LoadConstString>: <Reg8: 1, string_id: 6449>  # String: '/selectedProfile?profileId=' (String)
+==> 00000036: <Call4>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 7, Reg8: 1, Reg8: 6>
+==> 0000003d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000042: <CompleteGenerator>: <>
+==> 00000043: <Ret>: <Reg8: 1>
+==> 00000045: <CompleteGenerator>: <>
+==> 00000046: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21156 "?anon_0_" of 166 bytes]: 2 params, frame size=23, strict=0, exc handler=0, debug info=0  @ offset 0x0055f40b
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrueLong>: <Addr32: 156, Reg8: 2>  # Address: 000000a3
+==> 0000000d: <GetEnvironment>: <Reg8: 2, UInt8: 2>
+==> 00000010: <LoadFromEnvironment>: <Reg8: 4, Reg8: 2, UInt8: 0>
+==> 00000014: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 1>
+==> 00000018: <LoadConstUInt8>: <Reg8: 6, UInt8: 2>
+==> 0000001b: <GetByVal>: <Reg8: 3, Reg8: 3, Reg8: 6>
+==> 0000001f: <LoadConstUndefined>: <Reg8: 5>
+==> 00000021: <Call2>: <Reg8: 3, Reg8: 4, Reg8: 5, Reg8: 3>
+==> 00000026: <GetById>: <Reg8: 4, Reg8: 3, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 0000002c: <GetByIdShort>: <Reg8: 3, Reg8: 1, UInt8: 2, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000031: <Call2>: <Reg8: 10, Reg8: 4, Reg8: 5, Reg8: 3>
+==> 00000036: <JmpTrue>: <Addr8: 11, Reg8: 10>  # Address: 00000041
+==> 00000039: <GetById>: <Reg8: 4, Reg8: 1, UInt8: 3, string_id: 28032>  # String: 'profile' (Identifier)
+==> 0000003f: <Jmp>: <Addr8: 36>  # Address: 00000063
+==> 00000041: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 0>
+==> 00000045: <LoadFromEnvironment>: <Reg8: 2, Reg8: 2, UInt8: 1>
+==> 00000049: <GetByVal>: <Reg8: 2, Reg8: 2, Reg8: 6>
+==> 0000004d: <Call2>: <Reg8: 2, Reg8: 3, Reg8: 5, Reg8: 2>
+==> 00000052: <GetById>: <Reg8: 3, Reg8: 2, UInt8: 4, string_id: 36333>  # String: 'withSettingsVersion' (Identifier)
+==> 00000058: <GetById>: <Reg8: 2, Reg8: 1, UInt8: 3, string_id: 28032>  # String: 'profile' (Identifier)
+==> 0000005e: <Call2>: <Reg8: 4, Reg8: 3, Reg8: 5, Reg8: 2>
+==> 00000063: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 5, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000069: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 6, string_id: 28987>  # String: 'patch' (Identifier)
+==> 0000006f: <GetByIdShort>: <Reg8: 13, Reg8: 1, UInt8: 7, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 00000074: <GetById>: <Reg8: 11, Reg8: 1, UInt8: 8, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 0000007a: <GetGlobalObject>: <Reg8: 1>
+==> 0000007c: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 9, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000082: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 10, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000087: <LoadConstString>: <Reg8: 16, string_id: 27415>  # String: '' (Identifier)
+==> 0000008b: <LoadConstString>: <Reg8: 14, string_id: 6369>  # String: 'devices/' (String)
+==> 0000008f: <LoadConstString>: <Reg8: 12, string_id: 6349>  # String: '/profiles/' (String)
+==> 00000093: <Mov>: <Reg8: 15, Reg8: 10>
+==> 00000096: <Call>: <Reg8: 1, Reg8: 7, UInt8: 6>
+==> 0000009a: <Call3>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1, Reg8: 4>
+==> 000000a0: <CompleteGenerator>: <>
+==> 000000a1: <Ret>: <Reg8: 1>
+==> 000000a3: <CompleteGenerator>: <>
+==> 000000a4: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21160 "?anon_0_" of 118 bytes]: 2 params, frame size=24, strict=0, exc handler=0, debug info=0  @ offset 0x0055f4df
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 108, Reg8: 2>  # Address: 00000073
+==> 0000000a: <GetEnvironment>: <Reg8: 2, UInt8: 2>
+==> 0000000d: <LoadFromEnvironment>: <Reg8: 3, Reg8: 2, UInt8: 0>
+==> 00000011: <LoadFromEnvironment>: <Reg8: 4, Reg8: 2, UInt8: 1>
+==> 00000015: <LoadConstUInt8>: <Reg8: 2, UInt8: 2>
+==> 00000018: <GetByVal>: <Reg8: 2, Reg8: 4, Reg8: 2>
+==> 0000001c: <LoadConstUndefined>: <Reg8: 4>
+==> 0000001e: <Call2>: <Reg8: 2, Reg8: 3, Reg8: 4, Reg8: 2>
+==> 00000023: <GetById>: <Reg8: 3, Reg8: 2, UInt8: 1, string_id: 47253>  # String: 'getApiPrefix' (Identifier)
+==> 00000029: <GetByIdShort>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 0000002e: <Call2>: <Reg8: 16, Reg8: 3, Reg8: 4, Reg8: 2>
+==> 00000033: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 3, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000039: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 4, string_id: 34486>  # String: 'post' (Identifier)
+==> 0000003f: <GetByIdShort>: <Reg8: 14, Reg8: 1, UInt8: 5, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 00000044: <GetById>: <Reg8: 12, Reg8: 1, UInt8: 6, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 0000004a: <GetGlobalObject>: <Reg8: 1>
+==> 0000004c: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 7, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000052: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 8, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000057: <LoadConstString>: <Reg8: 17, string_id: 27415>  # String: '' (Identifier)
+==> 0000005b: <LoadConstString>: <Reg8: 15, string_id: 6369>  # String: 'devices/' (String)
+==> 0000005f: <LoadConstString>: <Reg8: 13, string_id: 6349>  # String: '/profiles/' (String)
+==> 00000063: <LoadConstString>: <Reg8: 11, string_id: 6353>  # String: '/share' (String)
+==> 00000067: <Call>: <Reg8: 1, Reg8: 7, UInt8: 7>
+==> 0000006b: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000070: <CompleteGenerator>: <>
+==> 00000071: <Ret>: <Reg8: 1>
+==> 00000073: <CompleteGenerator>: <>
+==> 00000074: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21164 "?anon_0_" of 72 bytes]: 2 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x0055f583
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 62, Reg8: 2>  # Address: 00000045
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 24>  # String: 'get' (Identifier)
+==> 00000015: <GetById>: <Reg8: 7, Reg8: 1, UInt8: 3, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 0000001b: <GetById>: <Reg8: 6, Reg8: 1, UInt8: 4, string_id: 31585>  # String: 'dropType' (Identifier)
+==> 00000021: <GetGlobalObject>: <Reg8: 1>
+==> 00000023: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 5, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000029: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 6, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000002e: <LoadConstString>: <Reg8: 4, string_id: 6354>  # String: 'shared/' (String)
+==> 00000032: <LoadConstString>: <Reg8: 1, string_id: 28201>  # String: '/' (Identifier)
+==> 00000036: <Call4>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 7, Reg8: 1, Reg8: 6>
+==> 0000003d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000042: <CompleteGenerator>: <>
+==> 00000043: <Ret>: <Reg8: 1>
+==> 00000045: <CompleteGenerator>: <>
+==> 00000046: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21168 "?anon_0_" of 65 bytes]: 2 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x0055f5f9
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 55, Reg8: 2>  # Address: 0000003e
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 24>  # String: 'get' (Identifier)
+==> 00000015: <GetById>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 31585>  # String: 'dropType' (Identifier)
+==> 0000001b: <GetGlobalObject>: <Reg8: 1>
+==> 0000001d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 4, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000023: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 5, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000028: <LoadConstString>: <Reg8: 4, string_id: 6416>  # String: 'drops/' (String)
+==> 0000002c: <LoadConstString>: <Reg8: 1, string_id: 6348>  # String: '/profiles' (String)
+==> 00000030: <Call3>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 6, Reg8: 1>
+==> 00000036: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 0000003b: <CompleteGenerator>: <>
+==> 0000003c: <Ret>: <Reg8: 1>
+==> 0000003e: <CompleteGenerator>: <>
+==> 0000003f: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #21172 "?anon_0_" of 115 bytes]: 2 params, frame size=17, strict=0, exc handler=0, debug info=0  @ offset 0x0055f668
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 7, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 105, Reg8: 1>  # Address: 00000070
+==> 0000000a: <GetById>: <Reg8: 4, Reg8: 7, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 2, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000016: <GetByIdShort>: <Reg8: 6, Reg8: 7, UInt8: 3, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 0000001b: <GetGlobalObject>: <Reg8: 1>
+==> 0000001d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 4, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000023: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 5, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000028: <LoadConstString>: <Reg8: 2, string_id: 6366>  # String: 'solo/devices/' (String)
+==> 0000002c: <LoadConstString>: <Reg8: 1, string_id: 1947>  # String: '/active-profile' (String)
+==> 00000030: <Call3>: <Reg8: 2, Reg8: 5, Reg8: 2, Reg8: 6, Reg8: 1>
+==> 00000036: <GetEnvironment>: <Reg8: 1, UInt8: 2>
+==> 00000039: <LoadFromEnvironment>: <Reg8: 5, Reg8: 1, UInt8: 0>
+==> 0000003d: <LoadFromEnvironment>: <Reg8: 6, Reg8: 1, UInt8: 1>
+==> 00000041: <LoadConstUInt8>: <Reg8: 1, UInt8: 2>
+==> 00000044: <GetByVal>: <Reg8: 1, Reg8: 6, Reg8: 1>
+==> 00000048: <LoadConstUndefined>: <Reg8: 6>
+==> 0000004a: <Call2>: <Reg8: 1, Reg8: 5, Reg8: 6, Reg8: 1>
+==> 0000004f: <GetById>: <Reg8: 5, Reg8: 1, UInt8: 6, string_id: 36333>  # String: 'withSettingsVersion' (Identifier)
+==> 00000055: <NewObject>: <Reg8: 1>
+==> 00000057: <GetById>: <Reg8: 7, Reg8: 7, UInt8: 7, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 0000005d: <PutNewOwnById>: <Reg8: 1, Reg8: 7, string_id: 31583>  # String: 'profileId' (Identifier)
+==> 00000062: <Call2>: <Reg8: 1, Reg8: 5, Reg8: 6, Reg8: 1>
+==> 00000067: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 0000006d: <CompleteGenerator>: <>
+==> 0000006e: <Ret>: <Reg8: 1>
+==> 00000070: <CompleteGenerator>: <>
+==> 00000071: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #23540 "?anon_0_" of 65 bytes]: 2 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x005b6404
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 55, Reg8: 2>  # Address: 0000003e
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000016: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 128>  # String: 'deviceId' (Identifier)
+==> 0000001b: <GetGlobalObject>: <Reg8: 1>
+==> 0000001d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 4, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000023: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 5, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000028: <LoadConstString>: <Reg8: 4, string_id: 6367>  # String: '/devices/' (String)
+==> 0000002c: <LoadConstString>: <Reg8: 1, string_id: 6353>  # String: '/share' (String)
+==> 00000030: <Call3>: <Reg8: 1, Reg8: 5, Reg8: 4, Reg8: 6, Reg8: 1>
+==> 00000036: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 0000003b: <CompleteGenerator>: <>
+==> 0000003c: <Ret>: <Reg8: 1>
+==> 0000003e: <CompleteGenerator>: <>
+==> 0000003f: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #23544 "?anon_0_" of 60 bytes]: 2 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x005b6473
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 1, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 00000007: <JmpTrue>: <Addr8: 50, Reg8: 2>  # Address: 00000039
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 1, UInt8: 1, string_id: 33265>  # String: 'axiosInstance' (Identifier)
+==> 00000010: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 2, string_id: 24>  # String: 'get' (Identifier)
+==> 00000015: <GetById>: <Reg8: 5, Reg8: 1, UInt8: 3, string_id: 28866>  # String: 'shareCode' (Identifier)
+==> 0000001b: <GetGlobalObject>: <Reg8: 1>
+==> 0000001d: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 4, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000023: <GetByIdShort>: <Reg8: 4, Reg8: 1, UInt8: 5, string_id: 107>  # String: 'concat' (Identifier)
+==> 00000028: <LoadConstString>: <Reg8: 1, string_id: 6368>  # String: '/devices/verify?code=' (String)
+==> 0000002c: <Call2>: <Reg8: 1, Reg8: 4, Reg8: 1, Reg8: 5>
+==> 00000031: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 1>
+==> 00000039: <CompleteGenerator>: <>
+==> 0000003a: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #23675 "?anon_0_" of 57 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x005b95d5
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 47, Reg8: 1>  # Address: 00000036
+==> 0000000a: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000024: <LoadConstString>: <Reg8: 1, string_id: 6361>  # String: '/clean' (String)
+==> 00000028: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002e: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000033: <CompleteGenerator>: <>
+==> 00000034: <Ret>: <Reg8: 1>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #23679 "?anon_0_" of 57 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x005b963c
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 47, Reg8: 1>  # Address: 00000036
+==> 0000000a: <GetById>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000024: <LoadConstString>: <Reg8: 1, string_id: 6444>  # String: '/rinse' (String)
+==> 00000028: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002e: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000033: <CompleteGenerator>: <>
+==> 00000034: <Ret>: <Reg8: 1>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #27711 "?anon_0_" of 91 bytes]: 3 params, frame size=15, strict=0, exc handler=0, debug info=0  @ offset 0x006279e0
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <LoadParam>: <Reg8: 1, UInt8: 2>
+==> 00000007: <ResumeGenerator>: <Reg8: 0, Reg8: 2>
+==> 0000000a: <JmpTrue>: <Addr8: 78, Reg8: 2>  # Address: 00000058
+==> 0000000d: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000013: <NewObject>: <Reg8: 2>
+==> 00000015: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 2, string_id: 236>  # String: 'timezone' (Identifier)
+==> 0000001a: <PutNewOwnById>: <Reg8: 2, Reg8: 5, string_id: 32228>  # String: 'deviceTimezone' (Identifier)
+==> 0000001f: <GetByIdShort>: <Reg8: 5, Reg8: 1, UInt8: 3, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000024: <PutNewOwnByIdShort>: <Reg8: 2, Reg8: 5, string_id: 129>  # String: 'deviceType' (Identifier)
+==> 00000028: <GetById>: <Reg8: 5, Reg8: 1, UInt8: 4, string_id: 42490>  # String: 'deviceOS' (Identifier)
+==> 0000002e: <PutNewOwnById>: <Reg8: 2, Reg8: 5, string_id: 42490>  # String: 'deviceOS' (Identifier)
+==> 00000033: <GetById>: <Reg8: 1, Reg8: 1, UInt8: 5, string_id: 42491>  # String: 'deviceOSVersion' (Identifier)
+==> 00000039: <PutNewOwnById>: <Reg8: 2, Reg8: 1, string_id: 42491>  # String: 'deviceOSVersion' (Identifier)
+==> 0000003e: <LoadConstString>: <Reg8: 1, string_id: 1629>  # String: '/auth/device/claimCertificate' (String)
+==> 00000042: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 1, Reg8: 2>
+==> 00000048: <SaveGenerator>: <Addr8: 4>  # Address: 0000004c
+==> 0000004a: <Ret>: <Reg8: 1>
+==> 0000004c: <ResumeGenerator>: <Reg8: 1, Reg8: 2>
+==> 0000004f: <JmpTrue>: <Addr8: 6, Reg8: 2>  # Address: 00000055
+==> 00000052: <CompleteGenerator>: <>
+==> 00000053: <Ret>: <Reg8: 1>
+==> 00000055: <CompleteGenerator>: <>
+==> 00000056: <Ret>: <Reg8: 1>
+==> 00000058: <CompleteGenerator>: <>
+==> 00000059: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #28122 "?anon_0_" of 42 bytes]: 3 params, frame size=14, strict=0, exc handler=0, debug info=0  @ offset 0x00631f62
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 32, Reg8: 1>  # Address: 00000027
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000010: <NewObject>: <Reg8: 2>
+==> 00000012: <LoadParam>: <Reg8: 1, UInt8: 2>
+==> 00000015: <PutNewOwnById>: <Reg8: 2, Reg8: 1, string_id: 29114>  # String: 'fcmToken' (Identifier)
+==> 0000001a: <LoadConstString>: <Reg8: 1, string_id: 6379>  # String: '/firebase/notifications' (String)
+==> 0000001e: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 1, Reg8: 2>
+==> 00000024: <CompleteGenerator>: <>
+==> 00000025: <Ret>: <Reg8: 1>
+==> 00000027: <CompleteGenerator>: <>
+==> 00000028: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #33331 "?anon_0_" of 56 bytes]: 3 params, frame size=16, strict=0, exc handler=0, debug info=0  @ offset 0x006c5b85
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 46, Reg8: 1>  # Address: 00000035
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 24>  # String: 'get' (Identifier)
+==> 0000000f: <GetGlobalObject>: <Reg8: 1>
+==> 00000011: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000017: <GetByIdShort>: <Reg8: 6, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001c: <LoadConstString>: <Reg8: 5, string_id: 6367>  # String: '/devices/' (String)
+==> 00000020: <LoadParam>: <Reg8: 4, UInt8: 2>
+==> 00000023: <LoadConstString>: <Reg8: 1, string_id: 1796>  # String: '/schedules' (String)
+==> 00000027: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 0000002d: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000032: <CompleteGenerator>: <>
+==> 00000033: <Ret>: <Reg8: 1>
+==> 00000035: <CompleteGenerator>: <>
+==> 00000036: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #33335 "?anon_0_" of 80 bytes]: 4 params, frame size=17, strict=0, exc handler=0, debug info=0  @ offset 0x006c5beb
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 70, Reg8: 1>  # Address: 0000004d
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 34486>  # String: 'post' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 7, Reg8: 2, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 6, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 5, UInt8: 2>
+==> 00000024: <LoadConstString>: <Reg8: 2, string_id: 1796>  # String: '/schedules' (String)
+==> 00000028: <Call3>: <Reg8: 2, Reg8: 7, Reg8: 6, Reg8: 5, Reg8: 2>
+==> 0000002e: <TryGetById>: <Reg8: 7, Reg8: 1, UInt8: 4, string_id: 33>  # String: 'Object' (Identifier)
+==> 00000034: <GetByIdShort>: <Reg8: 6, Reg8: 7, UInt8: 5, string_id: 77>  # String: 'assign' (Identifier)
+==> 00000039: <NewObject>: <Reg8: 5>
+==> 0000003b: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 0000003e: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 7, Reg8: 5, Reg8: 1>
+==> 00000044: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 0000004a: <CompleteGenerator>: <>
+==> 0000004b: <Ret>: <Reg8: 1>
+==> 0000004d: <CompleteGenerator>: <>
+==> 0000004e: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #33339 "?anon_0_" of 84 bytes]: 5 params, frame size=19, strict=0, exc handler=0, debug info=0  @ offset 0x006c5c69
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 4, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 74, Reg8: 1>  # Address: 00000051
+==> 0000000a: <GetById>: <Reg8: 3, Reg8: 4, UInt8: 1, string_id: 28987>  # String: 'patch' (Identifier)
+==> 00000010: <GetGlobalObject>: <Reg8: 1>
+==> 00000012: <TryGetById>: <Reg8: 2, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000018: <GetByIdShort>: <Reg8: 8, Reg8: 2, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001d: <LoadConstString>: <Reg8: 7, string_id: 6367>  # String: '/devices/' (String)
+==> 00000021: <LoadParam>: <Reg8: 6, UInt8: 2>
+==> 00000024: <LoadConstString>: <Reg8: 5, string_id: 1797>  # String: '/schedules/' (String)
+==> 00000028: <LoadParam>: <Reg8: 2, UInt8: 4>
+==> 0000002b: <Call4>: <Reg8: 2, Reg8: 8, Reg8: 7, Reg8: 6, Reg8: 5, Reg8: 2>
+==> 00000032: <TryGetById>: <Reg8: 7, Reg8: 1, UInt8: 4, string_id: 33>  # String: 'Object' (Identifier)
+==> 00000038: <GetByIdShort>: <Reg8: 6, Reg8: 7, UInt8: 5, string_id: 77>  # String: 'assign' (Identifier)
+==> 0000003d: <NewObject>: <Reg8: 5>
+==> 0000003f: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 00000042: <Call3>: <Reg8: 1, Reg8: 6, Reg8: 7, Reg8: 5, Reg8: 1>
+==> 00000048: <Call3>: <Reg8: 1, Reg8: 3, Reg8: 4, Reg8: 2, Reg8: 1>
+==> 0000004e: <CompleteGenerator>: <>
+==> 0000004f: <Ret>: <Reg8: 1>
+==> 00000051: <CompleteGenerator>: <>
+==> 00000052: <Ret>: <Reg8: 0>
+
+
+
+===============
+
+=> [Function #33343 "?anon_0_" of 60 bytes]: 4 params, frame size=18, strict=0, exc handler=0, debug info=0  @ offset 0x006c5ceb
+
+Bytecode listing:
+
+==> 00000000: <StartGenerator>: <>
+==> 00000001: <LoadParam>: <Reg8: 3, UInt8: 1>
+==> 00000004: <ResumeGenerator>: <Reg8: 0, Reg8: 1>
+==> 00000007: <JmpTrue>: <Addr8: 50, Reg8: 1>  # Address: 00000039
+==> 0000000a: <GetByIdShort>: <Reg8: 2, Reg8: 3, UInt8: 1, string_id: 126>  # String: 'delete' (Identifier)
+==> 0000000f: <GetGlobalObject>: <Reg8: 1>
+==> 00000011: <TryGetById>: <Reg8: 1, Reg8: 1, UInt8: 2, string_id: 14>  # String: 'HermesInternal' (Identifier)
+==> 00000017: <GetByIdShort>: <Reg8: 7, Reg8: 1, UInt8: 3, string_id: 107>  # String: 'concat' (Identifier)
+==> 0000001c: <LoadConstString>: <Reg8: 6, string_id: 6367>  # String: '/devices/' (String)
+==> 00000020: <LoadParam>: <Reg8: 5, UInt8: 2>
+==> 00000023: <LoadConstString>: <Reg8: 4, string_id: 1797>  # String: '/schedules/' (String)
+==> 00000027: <LoadParam>: <Reg8: 1, UInt8: 3>
+==> 0000002a: <Call4>: <Reg8: 1, Reg8: 7, Reg8: 6, Reg8: 5, Reg8: 4, Reg8: 1>
+==> 00000031: <Call2>: <Reg8: 1, Reg8: 2, Reg8: 3, Reg8: 1>
+==> 00000036: <CompleteGenerator>: <>
+==> 00000037: <Ret>: <Reg8: 1>
+==> 00000039: <CompleteGenerator>: <>
+==> 0000003a: <Ret>: <Reg8: 0>
+
+
+
+===============

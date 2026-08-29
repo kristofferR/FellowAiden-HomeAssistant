@@ -1,0 +1,555 @@
+source_artifact: Fellow_1.4.5_APKPure.xapk
+app_version: 1.4.5
+base_url: "https://l8qtmnc692.execute-api.us-west-2.amazonaws.com/v2"
+device_prefix_behavior:
+  aiden_brewer: empty prefix
+  other_device_types: "/{deviceType.lower()}/"
+  evidence: "evidence/hermes_endpoint_functions.txt (Function #17436 getApiPrefix)"
+entries:
+  - feature: auth_login
+    method: POST
+    path: /auth/login
+    auth_mode: public
+    request_fields:
+      - email
+      - password
+      - timezone
+    response_fields:
+      - accessToken
+      - refreshToken
+    notes: []
+    hermes_function_id: 14026
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14026)"
+    validation_status: static-confirmed
+  - feature: auth_refresh
+    method: POST
+    path: /auth/refresh-token
+    auth_mode: refresh-token body
+    request_fields:
+      - refreshToken
+    response_fields:
+      - accessToken
+      - "refreshToken?"
+    notes:
+      - Request sets skipAuthRefresh=true and Content-Type=application/json.
+    hermes_function_id: 14030
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14030)"
+    validation_status: static-confirmed
+  - feature: auth_sign_up
+    method: POST
+    path: /auth/sign-up
+    auth_mode: public
+    request_fields:
+      - acceptsMarketing
+      - email
+      - firstName
+      - lastName
+      - password
+      - phone
+      - timezone
+    response_fields: []
+    notes: []
+    hermes_function_id: 14034
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14034)"
+    validation_status: static-confirmed
+  - feature: auth_email_status
+    method: POST
+    path: "/auth/email-status/{email}"
+    auth_mode: public
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 14038
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14038)"
+    validation_status: static-confirmed
+  - feature: auth_activate_account
+    method: POST
+    path: /auth/activate-account
+    auth_mode: public
+    request_fields:
+      - customerId
+      - activationToken
+      - password
+      - timezone
+    response_fields: []
+    notes: []
+    hermes_function_id: 14042
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14042)"
+    validation_status: static-confirmed
+  - feature: auth_sign_out
+    method: POST
+    path: /auth/sign-out
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 14046
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14046)"
+    validation_status: static-confirmed
+  - feature: auth_change_password
+    method: PATCH
+    path: /users/profile
+    auth_mode: bearer
+    request_fields:
+      - email
+      - password
+    response_fields: []
+    notes: []
+    hermes_function_id: 14050
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14050)"
+    validation_status: static-confirmed
+  - feature: auth_recover
+    method: POST
+    path: /auth/recover
+    auth_mode: public
+    request_fields:
+      - email
+    response_fields: []
+    notes: []
+    hermes_function_id: 14054
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14054)"
+    validation_status: static-confirmed
+  - feature: user_get
+    method: GET
+    path: /users/profile
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 14059
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14059)"
+    validation_status: static-confirmed
+  - feature: user_notifications_update
+    method: PATCH
+    path: /users/notifications
+    auth_mode: bearer
+    request_fields:
+      - notificationData (spread into body)
+    response_fields: []
+    notes: []
+    hermes_function_id: 14063
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #14063)"
+    validation_status: static-confirmed
+  - feature: device_list
+    method: GET
+    path: "/devices?dataType=real"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18511
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18511)"
+    validation_status: static-confirmed
+  - feature: device_get
+    method: GET
+    path: "/devices/{deviceId}?dataType=real"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18495
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18495)"
+    validation_status: static-confirmed
+  - feature: typed_device_get
+    method: GET
+    path: "/{deviceType}/devices/{deviceId}?dataType=real"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18499
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18499)"
+    validation_status: static-confirmed
+  - feature: device_patch
+    method: PATCH
+    path: "/devices/{deviceId}"
+    auth_mode: bearer
+    request_fields:
+      - patch object
+    response_fields: []
+    notes: []
+    hermes_function_id: 18503
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18503)"
+    validation_status: static-confirmed
+  - feature: typed_device_patch
+    method: PATCH
+    path: "/{deviceType}/devices/{deviceId}"
+    auth_mode: bearer
+    request_fields:
+      - patch object
+    response_fields: []
+    notes: []
+    hermes_function_id: 18507
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18507)"
+    validation_status: static-confirmed
+  - feature: brew_start
+    method: PATCH
+    path: "/devices/{deviceId}/start{?confirm=true}"
+    auth_mode: bearer
+    request_fields:
+      - brewInfo
+    response_fields: []
+    notes: []
+    hermes_function_id: 18515
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18515)"
+    validation_status: static-confirmed
+  - feature: instant_brew_start
+    method: PATCH
+    path: "/devices/{deviceId}/start{?confirm=true}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18519
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18519)"
+    validation_status: static-confirmed
+  - feature: brew_stop
+    method: PATCH
+    path: "/devices/{deviceId}/stop"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18523
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18523)"
+    validation_status: static-confirmed
+  - feature: device_elevation_update
+    method: PATCH
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}"
+    auth_mode: bearer
+    request_fields:
+      - elevation
+    response_fields: []
+    notes: []
+    hermes_function_id: 18527
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18527)"
+    validation_status: static-confirmed
+  - feature: device_factory_reset
+    method: DELETE
+    path: "/devices/{deviceId}/factoryReset"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18531
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18531)"
+    validation_status: static-confirmed
+  - feature: device_delete
+    method: DELETE
+    path: "/devices/{deviceId}{?confirm=true}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18535
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18535)"
+    validation_status: static-confirmed
+  - feature: typed_device_delete
+    method: DELETE
+    path: "/{deviceType}/devices/{deviceId}{?confirm=true}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18539
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18539)"
+    validation_status: static-confirmed
+  - feature: device_update_check
+    method: GET
+    path: "/devices/{deviceId}/updates"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18543
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18543)"
+    validation_status: static-confirmed
+  - feature: typed_device_update_check
+    method: GET
+    path: "/{optionalDeviceType}/devices/{deviceId}/updates"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 18547
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18547)"
+    validation_status: static-confirmed
+  - feature: device_provision
+    method: POST
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/provision"
+    auth_mode: bearer
+    request_fields:
+      - deviceTimezone
+      - deviceType
+      - deviceOS
+      - deviceOSVersion
+    response_fields: []
+    notes: []
+    hermes_function_id: 18551
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #18551)"
+    validation_status: static-confirmed
+  - feature: device_share
+    method: POST
+    path: "/devices/{deviceId}/share"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 23540
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #23540)"
+    validation_status: static-confirmed
+  - feature: device_verify_share_code
+    method: GET
+    path: "/devices/verify?code={code}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 23544
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #23544)"
+    validation_status: static-confirmed
+  - feature: device_claim_certificate
+    method: POST
+    path: /auth/device/claimCertificate
+    auth_mode: bearer
+    request_fields:
+      - deviceType
+      - claim request fields (not fully decoded)
+    response_fields: []
+    notes: []
+    hermes_function_id: 27711
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #27711)"
+    validation_status: static-confirmed
+  - feature: profiles_list
+    method: GET
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21136
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21136)"
+    validation_status: static-confirmed
+  - feature: profile_get
+    method: GET
+    path: "/devices/{deviceId}/profiles/{profileId}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21140
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21140)"
+    validation_status: static-confirmed
+  - feature: profile_create
+    method: POST
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles"
+    auth_mode: bearer
+    request_fields:
+      - profile
+      - settingsVersion (client-added)
+    response_fields: []
+    notes: []
+    hermes_function_id: 21144
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21144)"
+    validation_status: static-confirmed
+  - feature: profile_delete
+    method: DELETE
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles/{profileId}"
+    auth_mode: bearer
+    request_fields:
+      - settingsVersion (client-added delete body)
+    response_fields: []
+    notes: []
+    hermes_function_id: 21148
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21148)"
+    validation_status: static-confirmed
+  - feature: profile_set_default
+    method: PATCH
+    path: "/devices/{deviceId}/selectedProfile?profileId={profileId}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21152
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21152)"
+    validation_status: static-confirmed
+  - feature: profile_update
+    method: PATCH
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles/{profileId}"
+    auth_mode: bearer
+    request_fields:
+      - profile
+      - settingsVersion (client-added)
+    response_fields: []
+    notes: []
+    hermes_function_id: 21156
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21156)"
+    validation_status: static-confirmed
+  - feature: profile_share
+    method: POST
+    path: "/{optionalDeviceTypePrefix}devices/{deviceId}/profiles/{profileId}/share"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21160
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21160)"
+    validation_status: static-confirmed
+  - feature: shared_profile_get
+    method: GET
+    path: "/shared/{dropType}/{profileId}"
+    auth_mode: public
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21164
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21164)"
+    validation_status: static-confirmed
+  - feature: drop_profiles_list
+    method: GET
+    path: "/drops/{dropType}/profiles"
+    auth_mode: public
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 21168
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21168)"
+    validation_status: static-confirmed
+  - feature: solo_active_profile_set
+    method: PATCH
+    path: "/solo/devices/{deviceId}/active-profile"
+    auth_mode: bearer
+    request_fields:
+      - profileId
+      - settingsVersion (client-added)
+    response_fields: []
+    notes: []
+    hermes_function_id: 21172
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #21172)"
+    validation_status: static-confirmed
+  - feature: schedules_list
+    method: GET
+    path: "/devices/{deviceId}/schedules"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 33331
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #33331)"
+    validation_status: static-confirmed
+  - feature: schedule_create
+    method: POST
+    path: "/devices/{deviceId}/schedules"
+    auth_mode: bearer
+    request_fields:
+      - schedule object (spread into body)
+    response_fields: []
+    notes: []
+    hermes_function_id: 33335
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #33335)"
+    validation_status: static-confirmed
+  - feature: schedule_update
+    method: PATCH
+    path: "/devices/{deviceId}/schedules/{scheduleId}"
+    auth_mode: bearer
+    request_fields:
+      - schedule object (spread into body)
+    response_fields: []
+    notes: []
+    hermes_function_id: 33339
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #33339)"
+    validation_status: static-confirmed
+  - feature: schedule_delete
+    method: DELETE
+    path: "/devices/{deviceId}/schedules/{scheduleId}"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 33343
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #33343)"
+    validation_status: static-confirmed
+  - feature: maintenance_clean_start
+    method: PATCH
+    path: "/devices/{deviceId}/clean"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 23675
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #23675)"
+    validation_status: static-confirmed
+  - feature: maintenance_rinse_start
+    method: PATCH
+    path: "/devices/{deviceId}/rinse"
+    auth_mode: bearer
+    request_fields: []
+    response_fields: []
+    notes: []
+    hermes_function_id: 23679
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #23679)"
+    validation_status: static-confirmed
+  - feature: firebase_notification_register
+    method: POST
+    path: /firebase/notifications
+    auth_mode: bearer
+    request_fields:
+      - notification registration payload (not fully decoded)
+    response_fields: []
+    notes: []
+    hermes_function_id: 28122
+    evidence:
+      - "evidence/hermes_endpoint_functions.txt (Function #28122)"
+    validation_status: static-confirmed
+unresolved_operations:
+  - feature: maintenance_calibration_start_finish
+    symbols:
+      - useStartCalibration
+      - useFinishCalibration
+    path: unknown
+    reason: "Hooks are present, but no Android route literal or low-level implementation was recovered."
+    validation_status: hook-only
