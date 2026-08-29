@@ -78,10 +78,16 @@ def is_missing_water(device_config: dict[str, Any]) -> bool | None:
     return nested if isinstance(nested, bool) else None
 
 
-def has_brew_error(device_config: dict[str, Any]) -> bool:
+def has_brew_error(device_config: dict[str, Any]) -> bool | None:
     """Return whether the live state contains a brewer error."""
+    if "state" not in device_config:
+        return None
     state = device_config.get("state")
-    return isinstance(state, dict) and state.get("error") is not None
+    if state is None:
+        return False
+    if not isinstance(state, dict):
+        return None
+    return state.get("error") is not None
 
 
 def has_unsynced_changes(device_config: dict[str, Any]) -> bool | None:

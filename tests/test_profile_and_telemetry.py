@@ -103,6 +103,17 @@ class TelemetryTests(unittest.TestCase):
             )
         )
 
+    def test_brew_error_is_unknown_without_valid_state_data(self) -> None:
+        self.assertIsNone(self.module.has_brew_error({}))
+        self.assertIsNone(self.module.has_brew_error({"state": "invalid"}))
+        self.assertFalse(self.module.has_brew_error({"state": None}))
+        self.assertFalse(self.module.has_brew_error({"state": {"value": "p1"}}))
+        self.assertTrue(
+            self.module.has_brew_error(
+                {"state": {"value": "pa", "error": "missing_water"}}
+            )
+        )
+
     def test_lifecycle_events_follow_live_state_transitions(self) -> None:
         self.assertEqual(
             self.module.device_events(
