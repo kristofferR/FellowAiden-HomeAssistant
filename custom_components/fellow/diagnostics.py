@@ -41,6 +41,21 @@ async def async_get_config_entry_diagnostics(
             "update_interval_seconds": coordinator.update_interval.total_seconds()
             if coordinator.update_interval
             else None,
+            "cloud_push": {
+                "enabled": coordinator.push_manager is not None,
+                "status": coordinator.push_manager.status.value
+                if coordinator.push_manager
+                else "disabled",
+                "messages_received": coordinator.push_manager.message_count
+                if coordinator.push_manager
+                else 0,
+                "reconnections": coordinator.push_manager.reconnect_count
+                if coordinator.push_manager
+                else 0,
+                "last_message_at": coordinator.push_manager.last_message_at.isoformat()
+                if coordinator.push_manager and coordinator.push_manager.last_message_at
+                else None,
+            },
         },
         "device_config": async_redact_data(
             data.get("device_config", {}), TO_REDACT_DEVICE

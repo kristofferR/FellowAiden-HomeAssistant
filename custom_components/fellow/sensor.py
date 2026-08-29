@@ -169,6 +169,8 @@ async def async_setup_entry(
             AidenBasketSensor(coordinator, entry),
         ]
     )
+    if coordinator.push_manager:
+        entities.append(AidenLastCloudPushSensor(coordinator, entry))
 
     _LOGGER.debug("Adding %d sensor entities", len(entities))
     async_add_entities(entities, update_before_add=True)
@@ -215,6 +217,40 @@ class AidenSensor(FellowAidenBaseEntity, SensorEntity):
             return round(value / 1000.0, 2)  # API field is misnamed; value is in mL
 
         return value
+
+
+class AidenLastCloudPushSensor(FellowAidenBaseEntity, SensorEntity):
+    """Timestamp of the last Fellow FCM invalidation received by HA."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "last_cloud_push"
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}-last-cloud-push"
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the most recently received message timestamp."""
+        manager = self.coordinator.push_manager
+        return manager.last_message_at if manager else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str | int]:
+        """Expose receiver counters without tokens or Android credentials."""
+        manager = self.coordinator.push_manager
+        if manager is None:
+            return {"status": "disabled"}
+        return {
+            "status": manager.status.value,
+            "messages_received": manager.message_count,
+            "reconnections": manager.reconnect_count,
+        }
 
 
 class AidenAverageWaterPerBrewSensor(FellowAidenBaseEntity, SensorEntity):

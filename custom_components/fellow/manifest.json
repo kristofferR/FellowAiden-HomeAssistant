@@ -4,7 +4,7 @@
   "codeowners": ["@kristofferR"],
   "config_flow": true,
   "documentation": "https://github.com/kristofferR/FellowAiden-HomeAssistant",
-  "iot_class": "cloud_polling",
+  "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/kristofferR/FellowAiden-HomeAssistant/issues",
   "requirements": ["pydantic>=2.0.0"],
   "version": "2.0.0"

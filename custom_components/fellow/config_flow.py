@@ -17,7 +17,13 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .const import DEFAULT_UPDATE_INTERVAL_SECONDS, DOMAIN, MIN_UPDATE_INTERVAL_SECONDS
+from .const import (
+    CONF_ENABLE_CLOUD_PUSH,
+    DEFAULT_ENABLE_CLOUD_PUSH,
+    DEFAULT_UPDATE_INTERVAL_SECONDS,
+    DOMAIN,
+    MIN_UPDATE_INTERVAL_SECONDS,
+)
 from .fellow_aiden import (
     FellowAiden,
     FellowAuthError,
@@ -306,7 +312,7 @@ class FellowAidenConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options (polling interval)."""
+    """Handle cloud push and polling options."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -323,6 +329,9 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
         current_interval = self.config_entry.options.get(
             "update_interval_seconds", DEFAULT_UPDATE_INTERVAL_SECONDS
         )
+        cloud_push_enabled = self.config_entry.options.get(
+            CONF_ENABLE_CLOUD_PUSH, DEFAULT_ENABLE_CLOUD_PUSH
+        )
 
         return self.async_show_form(
             step_id="init",
@@ -335,6 +344,10 @@ class FellowAidenOptionsFlowHandler(config_entries.OptionsFlow):
                         vol.Coerce(int),
                         vol.Range(min=MIN_UPDATE_INTERVAL_SECONDS, max=300),
                     ),
+                    vol.Optional(
+                        CONF_ENABLE_CLOUD_PUSH,
+                        default=cloud_push_enabled,
+                    ): bool,
                 }
             ),
             errors=errors,

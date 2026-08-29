@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 from time import monotonic
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .brew_history import BrewHistoryManager
 from .const import (
     DEFAULT_UPDATE_INTERVAL_SECONDS,
+    PUSH_CONNECTED_POLL_INTERVAL_SECONDS,
     RESOURCE_UPDATE_INTERVAL_SECONDS,
 )
 from .fellow_aiden import (
@@ -30,6 +31,9 @@ from .fellow_aiden import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from .push import FellowPushManager
 
 
 class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -50,6 +54,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.brewer_id = brewer_id
         self.api: FellowAiden | None = None
         self.history_manager = BrewHistoryManager(hass, entry.entry_id)
+        self.push_manager: FellowPushManager | None = None
         self._next_refresh_verbose = False
         self._last_resource_refresh = monotonic()
 
@@ -57,6 +62,7 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         update_interval_seconds = entry.options.get(
             "update_interval_seconds", DEFAULT_UPDATE_INTERVAL_SECONDS
         )
+        self._configured_update_interval_seconds = update_interval_seconds
 
         super().__init__(
             hass,
@@ -65,6 +71,21 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=update_interval_seconds),
             config_entry=entry,
         )
+
+    def set_push_manager(self, manager: FellowPushManager | None) -> None:
+        """Attach shared account push state and update the polling fallback."""
+        self.push_manager = manager
+        self.set_push_connected(bool(manager and manager.connected))
+
+    def set_push_connected(self, connected: bool) -> None:
+        """Use slower safety polling while cloud invalidations are connected."""
+        interval = (
+            PUSH_CONNECTED_POLL_INTERVAL_SECONDS
+            if connected
+            else self._configured_update_interval_seconds
+        )
+        self.update_interval = timedelta(seconds=interval)
+        self.async_update_listeners()
 
     async def async_config_entry_first_refresh(self) -> None:
         """Create the async API client and perform the initial refresh."""

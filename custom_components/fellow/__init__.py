@@ -21,8 +21,16 @@ from homeassistant.core import (
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DEFAULT_PROFILE_TYPE, DOMAIN, PLATFORMS, FellowAidenConfigEntry
+from .const import (
+    CONF_ENABLE_CLOUD_PUSH,
+    DEFAULT_ENABLE_CLOUD_PUSH,
+    DEFAULT_PROFILE_TYPE,
+    DOMAIN,
+    PLATFORMS,
+    FellowAidenConfigEntry,
+)
 from .coordinator import FellowAidenDataUpdateCoordinator
+from .push import async_detach_push, attach_push
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -569,7 +577,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: FellowAidenConfigEntry) 
 
     entry.runtime_data = coordinator
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    push_enabled = entry.options.get(CONF_ENABLE_CLOUD_PUSH, DEFAULT_ENABLE_CLOUD_PUSH)
+    if push_enabled:
+        attach_push(
+            hass,
+            entry.entry_id,
+            entry.data["email"],
+            coordinator,
+        )
+
+    try:
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    except Exception:
+        if push_enabled:
+            await async_detach_push(hass, entry.entry_id)
+        raise
     entry.async_on_unload(entry.add_update_listener(_async_update_options))
     return True
 
@@ -578,7 +600,10 @@ async def async_unload_entry(
     hass: HomeAssistant, entry: FellowAidenConfigEntry
 ) -> bool:
     """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        await async_detach_push(hass, entry.entry_id)
+    return unload_ok
 
 
 async def async_migrate_entry(
