@@ -61,13 +61,13 @@
     "step": {
       "init": {
         "title": "Fellow Aiden options",
-        "description": "Adjust cloud push and fallback polling. Changes restart the integration.",
+        "description": "Adjust cloud push and polling. Changes restart the integration.",
         "data": {
           "update_interval_seconds": "Update interval (seconds)",
           "enable_cloud_push": "Enable cloud push"
         },
         "data_description": {
-          "update_interval_seconds": "How often to poll live brewer state when push is unavailable. Minimum and default 10 seconds. Connected push uses a 60-second safety poll.",
+          "update_interval_seconds": "How often to poll live brewer state. Minimum and default 10 seconds. Cloud push can trigger additional immediate refreshes.",
           "enable_cloud_push": "Receive the same Firebase data messages as the Fellow Android app for immediate refreshes."
         }
       }
@@ -143,7 +143,8 @@
       "brew_schedule": { "name": "Brew schedule" }
     },
     "button": {
-      "start_brew": { "name": "Start Instant Brew" }
+      "start_brew": { "name": "Start Instant Brew" },
+      "refresh": { "name": "Refresh data" }
     }
   },
   "device_automation": {

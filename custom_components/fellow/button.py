@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_entity import FellowAidenBaseEntity
@@ -20,7 +21,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Fellow Aiden control buttons."""
-    async_add_entities([AidenStartBrewButton(entry.runtime_data, entry)])
+    async_add_entities(
+        [
+            AidenStartBrewButton(entry.runtime_data, entry),
+            AidenRefreshButton(entry.runtime_data, entry),
+        ]
+    )
 
 
 class AidenStartBrewButton(FellowAidenBaseEntity, ButtonEntity):
@@ -48,3 +54,23 @@ class AidenStartBrewButton(FellowAidenBaseEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Start Instant Brew remotely."""
         await self.coordinator.async_start_brew()
+
+
+class AidenRefreshButton(FellowAidenBaseEntity, ButtonEntity):
+    """Refresh all Fellow Aiden cloud data on demand."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "refresh"
+
+    def __init__(
+        self,
+        coordinator: FellowAidenDataUpdateCoordinator,
+        entry: FellowAidenConfigEntry,
+    ) -> None:
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._attr_unique_id = f"{entry.entry_id}-refresh"
+
+    async def async_press(self) -> None:
+        """Refresh live state, profiles, and schedules."""
+        await self.coordinator.async_refresh_with_resources(include_resources=True)

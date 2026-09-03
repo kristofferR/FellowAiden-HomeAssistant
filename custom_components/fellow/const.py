@@ -20,7 +20,6 @@ PLATFORMS = ["sensor", "binary_sensor", "calendar", "button"]
 DEFAULT_UPDATE_INTERVAL_SECONDS = 10
 MIN_UPDATE_INTERVAL_SECONDS = 10
 RESOURCE_UPDATE_INTERVAL_SECONDS = 60
-PUSH_CONNECTED_POLL_INTERVAL_SECONDS = 60
 DEFAULT_ENABLE_CLOUD_PUSH = True
 CONF_ENABLE_CLOUD_PUSH = "enable_cloud_push"
 CONF_UPDATE_INTERVAL_SECONDS = "update_interval_seconds"
@@ -43,7 +42,6 @@ def get_update_interval_seconds(options: Mapping[str, Any]) -> int:
 
 # Historical data constants
 HISTORY_RETENTION_DAYS = 365
-TIMESTAMP_2024_01_01 = 1704067201  # Used for timestamp validation
 MIN_VALID_YEAR = 2023
 
 # Water amount limits (from Fellow API)

@@ -20,7 +20,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .brew_history import BrewHistoryManager
 from .const import (
     EVENT_DEVICE,
-    PUSH_CONNECTED_POLL_INTERVAL_SECONDS,
     RESOURCE_UPDATE_INTERVAL_SECONDS,
     get_update_interval_seconds,
 )
@@ -70,7 +69,6 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Get update interval from options or use default
         update_interval_seconds = get_update_interval_seconds(entry.options)
-        self._configured_update_interval_seconds = update_interval_seconds
 
         super().__init__(
             hass,
@@ -81,22 +79,12 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     def set_push_manager(self, manager: FellowPushManager | None) -> None:
-        """Attach shared account push state and update the polling fallback."""
+        """Attach shared account push state."""
         self.push_manager = manager
         self.set_push_connected(bool(manager and manager.connected))
 
-    def set_push_connected(self, connected: bool) -> None:
-        """Use slower safety polling while cloud invalidations are connected."""
-        interval = (
-            PUSH_CONNECTED_POLL_INTERVAL_SECONDS
-            if connected
-            else self._configured_update_interval_seconds
-        )
-        update_interval = timedelta(seconds=interval)
-        if self.update_interval != update_interval:
-            self.update_interval = update_interval
-            if self._listeners:
-                self._schedule_refresh()
+    def set_push_connected(self, _connected: bool) -> None:
+        """Refresh diagnostics when the push connection changes."""
         self.async_update_listeners()
 
     async def async_config_entry_first_refresh(self) -> None:

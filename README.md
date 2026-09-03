@@ -115,13 +115,13 @@ After installation, go to **Settings > Devices & Services > Fellow Aiden > Confi
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
 | Cloud push | On | On/Off | Register a private Android FCM receiver for immediate cloud-triggered updates. |
-| Update interval | 10 s | 10-300 s | Fallback polling interval while push is unavailable. Connected push uses a 60-second safety poll. |
+| Update interval | 10 s | 10-300 s | Live-state polling interval. Cloud push can trigger additional immediate refreshes. |
 
 ---
 
 ## How data is updated
 
-The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. A 60-second safety poll remains active while push is connected. If push disconnects or is disabled, live state returns to the configurable polling interval (default 10 seconds). Profiles and schedules refresh separately every 60 seconds. Historical brew and water usage data is tracked locally and kept for 365 days.
+The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. Live state also refreshes at the configurable polling interval (default 10 seconds), because Fellow may not send a notification for every physical state change. Profiles and schedules refresh separately every 60 seconds. The diagnostic **Refresh data** button refreshes live state, profiles, and schedules on demand. Historical brew and water usage data is tracked locally and kept for 365 days.
 
 Receiver credentials and tokens are kept in Home Assistant's private storage and are excluded from diagnostics and logs. Each data message also fires a `fellow_cloud_push` event with `config_entry_ids`, `category`, and the FCM `data` mapping, so automations can react to notification types that Fellow adds without waiting for an integration update.
 

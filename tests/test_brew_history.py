@@ -140,6 +140,37 @@ class BrewHistoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("end_time", record)
         self.assertNotIn("duration_seconds", record)
 
+    async def test_idle_device_interactions_do_not_create_a_last_brew_time(
+        self,
+    ) -> None:
+        baseline = datetime.fromtimestamp(1788010000, UTC)
+        interaction = datetime.fromtimestamp(1788011800, UTC)
+        with patch.object(self.module.dt_util, "now", return_value=baseline):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": None,
+                    "brewEndTime": str(int(baseline.timestamp())),
+                },
+                [],
+            )
+        with patch.object(self.module.dt_util, "now", return_value=interaction):
+            await self.manager.async_update_data(
+                {
+                    "totalBrewingCycles": 10,
+                    "totalWaterVolumeL": 5000,
+                    "state": None,
+                    "lidClosed": True,
+                    "carafePresent": False,
+                    "brewEndTime": str(int(interaction.timestamp())),
+                },
+                [],
+            )
+
+        self.assertEqual(self.manager.get_brew_history_count(), 0)
+        self.assertIsNone(self.manager.get_last_brew_time())
+
     async def test_observed_cycle_stores_paired_duration(self) -> None:
         now = datetime.fromtimestamp(1788012278, UTC)
         with patch.object(self.module.dt_util, "now", return_value=now):
