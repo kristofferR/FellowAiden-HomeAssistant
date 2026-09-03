@@ -156,6 +156,7 @@ class FellowPushManager:
             },
         )
         for coordinator in self._coordinators.values():
+            coordinator.activate_fast_polling()
             coordinator.async_update_listeners()
 
         self._refresh_pending = True

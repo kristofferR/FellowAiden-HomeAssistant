@@ -31,13 +31,13 @@
     "step": {
       "init": {
         "title": "Configurar Opciones Avanzadas de Fellow Aiden",
-        "description": "Ajusta las notificaciones en la nube y el sondeo. Los cambios reiniciarán la integración.",
+        "description": "Ajusta las notificaciones en la nube y el sondeo de respaldo. Los cambios reiniciarán la integración.",
         "data": {
           "update_interval_seconds": "Intervalo de Actualización (segundos)",
           "enable_cloud_push": "Activar notificaciones en la nube"
         },
         "data_description": {
-          "update_interval_seconds": "Con qué frecuencia consultar el estado en vivo. El mínimo y valor predeterminado son 10 segundos. Las notificaciones en la nube pueden activar actualizaciones inmediatas adicionales.",
+          "update_interval_seconds": "Con qué frecuencia consultar el estado cuando las notificaciones no están disponibles. El mínimo es 10 segundos y el valor predeterminado es 30. Con conexión activa se consulta cada 60 segundos en reposo y cada 10 segundos alrededor de la actividad.",
           "enable_cloud_push": "Recibe los mismos mensajes de datos de Firebase que la aplicación Fellow para Android y actualiza el estado de inmediato."
         }
       }

@@ -115,13 +115,13 @@ After installation, go to **Settings > Devices & Services > Fellow Aiden > Confi
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
 | Cloud push | On | On/Off | Register a private Android FCM receiver for immediate cloud-triggered updates. |
-| Update interval | 10 s | 10-300 s | Live-state polling interval. Cloud push can trigger additional immediate refreshes. |
+| Update interval | 30 s | 10-300 s | Live-state fallback while push is unavailable. |
 
 ---
 
 ## How data is updated
 
-The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. Live state also refreshes at the configurable polling interval (default 10 seconds), because Fellow may not send a notification for every physical state change. Profiles and schedules refresh separately every 60 seconds. The diagnostic **Refresh data** button refreshes live state, profiles, and schedules on demand. Historical brew and water usage data is tracked locally and kept for 365 days.
+The integration uses Fellow's v2 cloud API. By default it registers an Android-compatible Firebase receiver and refreshes every configured brewer on the account when Fellow sends a data message. With push connected, live state uses a 60-second idle safety poll and 10-second polling for two minutes after a push or while brewing. If push is unavailable, it uses the configurable fallback interval (default 30 seconds). Profiles and schedules refresh separately every five minutes. The diagnostic **Refresh data** button refreshes live state, profiles, and schedules on demand, then enables the same two-minute rapid polling window. Historical brew and water usage data is tracked locally and kept for 365 days.
 
 Receiver credentials and tokens are kept in Home Assistant's private storage and are excluded from diagnostics and logs. Each data message also fires a `fellow_cloud_push` event with `config_entry_ids`, `category`, and the FCM `data` mapping, so automations can react to notification types that Fellow adds without waiting for an integration update.
 
@@ -250,7 +250,7 @@ automation:
 
 ## Known limitations
 
-- Remote start uses the brewer's existing Instant Brew profile and quantity. The button is unavailable when the brewer reports offline, busy, open, out of water, or missing the required basket/carafe. A single-serve cup cannot be detected, so place one under the basket before pressing it. Remote stop remains unavailable because the observed endpoint did not reliably stop a running brew.
+- Remote start requires firmware 1.5.16 or newer and uses the brewer's existing Instant Brew profile and quantity. The button is hidden on older or unknown firmware and unavailable when the brewer reports offline, busy, open, out of water, or missing the required basket/carafe. A single-serve cup cannot be detected, so place one under the basket before pressing it. Remote stop remains unavailable because the observed endpoint did not reliably stop a running brew.
 - No remote profile selection: the mobile client contains a selection route, but Fellow's live Aiden gateway rejects authenticated calls to it. The integration exposes the current profile as a sensor instead of a non-functional control.
 - Cloud push uses Fellow's Android Firebase registration flow, which is an undocumented mobile protocol. The integration automatically reconnects and retains polling as the source-of-truth fallback.
 - Cloud-only: all data comes through Fellow's servers. If their API is down, the integration can't update.

@@ -20,7 +20,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .brew_history import BrewHistoryManager
 from .const import (
     EVENT_DEVICE,
+    RECENT_ACTIVITY_SECONDS,
     RESOURCE_UPDATE_INTERVAL_SECONDS,
+    get_adaptive_update_interval_seconds,
     get_update_interval_seconds,
 )
 from .fellow_aiden import (
@@ -33,6 +35,7 @@ from .telemetry import (
     brew_phase,
     can_start_brew,
     device_events,
+    is_brewing,
     merge_event_telemetry,
 )
 
@@ -66,9 +69,11 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._force_resource_refresh = False
         self._last_resource_refresh = monotonic()
         self._event_device_config: dict[str, Any] | None = None
+        self._rapid_poll_until = 0.0
 
         # Get update interval from options or use default
         update_interval_seconds = get_update_interval_seconds(entry.options)
+        self._configured_update_interval_seconds = update_interval_seconds
 
         super().__init__(
             hass,
@@ -84,8 +89,32 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.set_push_connected(bool(manager and manager.connected))
 
     def set_push_connected(self, _connected: bool) -> None:
-        """Refresh diagnostics when the push connection changes."""
+        """Update polling and diagnostics when the push connection changes."""
+        self._apply_update_interval()
         self.async_update_listeners()
+
+    def activate_fast_polling(self) -> None:
+        """Use rapid polling briefly after cloud or manual activity."""
+        self._rapid_poll_until = max(
+            self._rapid_poll_until,
+            monotonic() + RECENT_ACTIVITY_SECONDS,
+        )
+        self._apply_update_interval()
+
+    def _apply_update_interval(self, *, reschedule: bool = True) -> None:
+        """Apply the polling interval appropriate for current activity."""
+        manager = self.push_manager
+        interval_seconds = get_adaptive_update_interval_seconds(
+            self._configured_update_interval_seconds,
+            push_connected=bool(manager and manager.connected),
+            recently_active=monotonic() < self._rapid_poll_until,
+        )
+        update_interval = timedelta(seconds=interval_seconds)
+        if self.update_interval == update_interval:
+            return
+        self.update_interval = update_interval
+        if reschedule and self._listeners:
+            self._schedule_refresh()
 
     async def async_config_entry_first_refresh(self) -> None:
         """Create the async API client and perform the initial refresh."""
@@ -116,6 +145,8 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.api:
             _LOGGER.error("Fellow Aiden library not initialized")
             raise UpdateFailed("Fellow Aiden library not initialized")
+
+        previous_device_config = (self.data or {}).get("device_config", {})
 
         try:
             _LOGGER.debug("Fetching device data")
@@ -252,6 +283,16 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "phase": brew_phase(event_device_config),
                 },
             )
+
+        if (
+            is_brewing(previous_device_config) is True
+            or is_brewing(device_config) is True
+        ):
+            self._rapid_poll_until = max(
+                self._rapid_poll_until,
+                monotonic() + RECENT_ACTIVITY_SECONDS,
+            )
+        self._apply_update_interval(reschedule=False)
 
         _LOGGER.debug("Data update completed successfully")
         return result
