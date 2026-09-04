@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
+
+MIN_REMOTE_START_FIRMWARE = (1, 5, 16)
+_FIRMWARE_VERSION_RE = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:\+[0-9A-Za-z.-]+)?$")
 
 BREW_PHASES = (
     "idle",
@@ -98,6 +102,17 @@ def has_unsynced_changes(device_config: dict[str, Any]) -> bool | None:
     return None
 
 
+def supports_remote_start(device_config: dict[str, Any]) -> bool:
+    """Return whether firmware supports reliable remote brewing."""
+    firmware = device_config.get("firmwareVersion")
+    if not isinstance(firmware, str):
+        return False
+    match = _FIRMWARE_VERSION_RE.fullmatch(firmware.strip())
+    if match is None:
+        return False
+    return tuple(int(part) for part in match.groups()) >= MIN_REMOTE_START_FIRMWARE
+
+
 def can_start_brew(device_config: dict[str, Any]) -> bool:
     """Return whether reported state is safe for an Instant Brew start."""
     single_basket = device_config.get("singleBrewBasketPresent") is True
@@ -106,7 +121,8 @@ def can_start_brew(device_config: dict[str, Any]) -> bool:
         and device_config.get("carafePresent") is True
     )
     return bool(
-        device_config.get("isConnected") is True
+        supports_remote_start(device_config)
+        and device_config.get("isConnected") is True
         and is_brewing(device_config) is False
         and device_config.get("lidClosed") is True
         and is_missing_water(device_config) is False

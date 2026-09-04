@@ -126,7 +126,7 @@ class FellowPushManager:
             return
         self.status = status
         for coordinator in self._coordinators.values():
-            coordinator.set_push_connected(self.connected)
+            coordinator.set_push_connected()
 
     async def _async_register_with_fellow(self, token: str) -> None:
         for coordinator in self._coordinators.values():
@@ -156,6 +156,7 @@ class FellowPushManager:
             },
         )
         for coordinator in self._coordinators.values():
+            coordinator.activate_fast_polling()
             coordinator.async_update_listeners()
 
         self._refresh_pending = True

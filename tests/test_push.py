@@ -32,18 +32,22 @@ class FakeCoordinator:
     def __init__(self) -> None:
         self.api = None
         self.push_manager = None
-        self.connected_states: list[bool] = []
+        self.push_connected_updates = 0
         self.listener_updates = 0
         self.refreshes = 0
+        self.fast_poll_activations = 0
 
     def set_push_manager(self, manager: object) -> None:
         self.push_manager = manager
 
-    def set_push_connected(self, connected: bool) -> None:
-        self.connected_states.append(connected)
+    def set_push_connected(self) -> None:
+        self.push_connected_updates += 1
 
     def async_update_listeners(self) -> None:
         self.listener_updates += 1
+
+    def activate_fast_polling(self) -> None:
+        self.fast_poll_activations += 1
 
     async def async_request_refresh(self) -> None:
         self.refreshes += 1
@@ -78,6 +82,7 @@ class PushManagerTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(manager.message_count, 2)
         self.assertEqual(coordinator.refreshes, 1)
+        self.assertEqual(coordinator.fast_poll_activations, 2)
         self.assertEqual(hass.bus.events[0][0], self.module.EVENT_CLOUD_PUSH)
         self.assertEqual(
             hass.bus.events[0][1],

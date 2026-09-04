@@ -15,12 +15,14 @@ type FellowAidenConfigEntry = ConfigEntry[FellowAidenDataUpdateCoordinator]
 DOMAIN = "fellow"
 PLATFORMS = ["sensor", "binary_sensor", "calendar", "button"]
 
-# Update intervals. Device state changes quickly during a brew, while profiles
-# and schedules are configuration data and can be refreshed less frequently.
-DEFAULT_UPDATE_INTERVAL_SECONDS = 10
+# Update intervals. Push keeps idle state current, while short polling bursts
+# provide responsive phase changes during and immediately after activity.
+DEFAULT_UPDATE_INTERVAL_SECONDS = 30
 MIN_UPDATE_INTERVAL_SECONDS = 10
-RESOURCE_UPDATE_INTERVAL_SECONDS = 60
-PUSH_CONNECTED_POLL_INTERVAL_SECONDS = 60
+ACTIVE_UPDATE_INTERVAL_SECONDS = 10
+PUSH_CONNECTED_IDLE_UPDATE_INTERVAL_SECONDS = 60
+RECENT_ACTIVITY_SECONDS = 120
+RESOURCE_UPDATE_INTERVAL_SECONDS = 5 * 60
 DEFAULT_ENABLE_CLOUD_PUSH = True
 CONF_ENABLE_CLOUD_PUSH = "enable_cloud_push"
 CONF_UPDATE_INTERVAL_SECONDS = "update_interval_seconds"
@@ -41,9 +43,22 @@ def get_update_interval_seconds(options: Mapping[str, Any]) -> int:
     return DEFAULT_UPDATE_INTERVAL_SECONDS
 
 
+def get_adaptive_update_interval_seconds(
+    configured_interval_seconds: int,
+    *,
+    push_connected: bool,
+    recently_active: bool,
+) -> int:
+    """Return the current live-state polling interval."""
+    if recently_active:
+        return ACTIVE_UPDATE_INTERVAL_SECONDS
+    if push_connected:
+        return PUSH_CONNECTED_IDLE_UPDATE_INTERVAL_SECONDS
+    return configured_interval_seconds
+
+
 # Historical data constants
 HISTORY_RETENTION_DAYS = 365
-TIMESTAMP_2024_01_01 = 1704067201  # Used for timestamp validation
 MIN_VALID_YEAR = 2023
 
 # Water amount limits (from Fellow API)

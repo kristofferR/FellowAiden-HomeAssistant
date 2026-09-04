@@ -157,6 +157,7 @@ class TelemetryTests(unittest.TestCase):
 
     def test_remote_start_requires_safe_reported_state(self) -> None:
         ready = {
+            "firmwareVersion": "1.5.16",
             "state": None,
             "isConnected": True,
             "lidClosed": True,
@@ -191,3 +192,19 @@ class TelemetryTests(unittest.TestCase):
                 }
             )
         )
+
+    def test_remote_start_requires_supported_firmware(self) -> None:
+        self.assertFalse(
+            self.module.supports_remote_start({"firmwareVersion": "1.5.15"})
+        )
+        self.assertTrue(
+            self.module.supports_remote_start({"firmwareVersion": "1.5.16"})
+        )
+        self.assertTrue(
+            self.module.supports_remote_start({"firmwareVersion": "1.5.16+build.1"})
+        )
+        self.assertFalse(
+            self.module.supports_remote_start({"firmwareVersion": "1.5.16-rc.1"})
+        )
+        self.assertTrue(self.module.supports_remote_start({"firmwareVersion": "1.6.0"}))
+        self.assertFalse(self.module.supports_remote_start({}))

@@ -67,7 +67,7 @@
           "enable_cloud_push": "Enable cloud push"
         },
         "data_description": {
-          "update_interval_seconds": "How often to poll live brewer state when push is unavailable. Minimum and default 10 seconds. Connected push uses a 60-second safety poll.",
+          "update_interval_seconds": "How often to poll live brewer state when push is unavailable. Minimum 10 seconds, default 30. Connected push uses a 60-second idle poll and 10-second bursts around activity.",
           "enable_cloud_push": "Receive the same Firebase data messages as the Fellow Android app for immediate refreshes."
         }
       }
@@ -143,7 +143,8 @@
       "brew_schedule": { "name": "Brew schedule" }
     },
     "button": {
-      "start_brew": { "name": "Start Instant Brew" }
+      "start_brew": { "name": "Start Instant Brew" },
+      "refresh": { "name": "Refresh data" }
     }
   },
   "device_automation": {

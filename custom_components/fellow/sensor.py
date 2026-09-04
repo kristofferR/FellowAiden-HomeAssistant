@@ -18,7 +18,6 @@ from .base_entity import FellowAidenBaseEntity
 from .const import (
     MIN_HISTORICAL_DATA_FOR_ACCURACY,
     MIN_VALID_YEAR,
-    TIMESTAMP_2024_01_01,
     FellowAidenConfigEntry,
 )
 from .coordinator import FellowAidenDataUpdateCoordinator
@@ -288,7 +287,7 @@ class AidenAverageWaterPerBrewSensor(FellowAidenBaseEntity, SensorEntity):
 
 
 class AidenBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
-    """Displays a brew start or end time, converted from a Unix timestamp."""
+    """Preserve the legacy brew-end entity with validated history data."""
 
     def __init__(
         self,
@@ -306,25 +305,8 @@ class AidenBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
 
     @property
     def native_value(self) -> datetime | None:
-        """Return the brew time as a timezone-aware datetime."""
-        data = self.coordinator.data or {}
-        device_config = data.get("device_config", {})
-        timestamp_str = device_config.get(self._key)
-
-        if not timestamp_str or timestamp_str == "0":
-            return None
-
-        try:
-            timestamp_int = int(timestamp_str)
-            if timestamp_int == 0:
-                return None
-            brew_datetime = dt_util.utc_from_timestamp(timestamp_int)
-            if brew_datetime.year < MIN_VALID_YEAR:
-                return None
-            return brew_datetime
-        except (ValueError, TypeError, OSError, OverflowError) as error:
-            _LOGGER.error("Error parsing %s: %s", self._key, error)
-            return None
+        """Return a time tied to a recorded brewing-cycle increment."""
+        return self.coordinator.history_manager.get_last_brew_time()
 
 
 class AidenAverageTimeBetweenBrewsSensor(FellowAidenBaseEntity, SensorEntity):
@@ -400,35 +382,10 @@ class AidenLastBrewTimeSensor(FellowAidenBaseEntity, SensorEntity):
     @property
     def native_value(self) -> datetime | None:
         """Return the last brew completion time using historical data."""
-        # Try historical data first, fallback to device data
         historical_time = self.coordinator.history_manager.get_last_brew_time()
-        if historical_time:
-            # Ensure timezone is set
-            if historical_time.tzinfo is None:
-                return dt_util.as_local(historical_time)
-            return historical_time
-
-        # Fallback to device data
-        data = self.coordinator.data
-        if not data:
-            return None
-        device_config = data.get("device_config", {})
-        end_time_str = device_config.get("brewEndTime")
-
-        if not end_time_str or end_time_str == "0":
-            return None
-
-        try:
-            timestamp_int = int(end_time_str)
-            if (
-                timestamp_int == 0 or timestamp_int < TIMESTAMP_2024_01_01
-            ):  # Before 2024
-                return None
-            # Create timezone-aware datetime
-            return dt_util.utc_from_timestamp(timestamp_int)
-        except (ValueError, TypeError) as error:
-            _LOGGER.error("Error parsing last brew time: %s", error)
-            return None
+        if historical_time and historical_time.tzinfo is None:
+            return dt_util.as_local(historical_time)
+        return historical_time
 
 
 class AidenTotalWaterTodaySensor(FellowAidenBaseEntity, SensorEntity):

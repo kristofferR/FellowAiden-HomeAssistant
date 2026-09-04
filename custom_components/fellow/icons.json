@@ -31,7 +31,8 @@
       "brew_schedule": { "default": "mdi:calendar-clock" }
     },
     "button": {
-      "start_brew": { "default": "mdi:coffee-maker-check" }
+      "start_brew": { "default": "mdi:coffee-maker-check" },
+      "refresh": { "default": "mdi:refresh" }
     }
   },
   "services": {
