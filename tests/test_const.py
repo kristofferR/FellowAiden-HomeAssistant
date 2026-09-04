@@ -40,6 +40,16 @@ class UpdateIntervalTests(unittest.TestCase):
             10,
         )
 
+    def test_adaptive_interval_uses_fast_polling_without_push(self) -> None:
+        self.assertEqual(
+            self.module.get_adaptive_update_interval_seconds(
+                30,
+                push_connected=False,
+                recently_active=True,
+            ),
+            10,
+        )
+
     def test_adaptive_interval_slows_idle_polling_when_push_is_connected(
         self,
     ) -> None:

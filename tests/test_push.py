@@ -32,7 +32,7 @@ class FakeCoordinator:
     def __init__(self) -> None:
         self.api = None
         self.push_manager = None
-        self.connected_states: list[bool] = []
+        self.push_connected_updates = 0
         self.listener_updates = 0
         self.refreshes = 0
         self.fast_poll_activations = 0
@@ -40,8 +40,8 @@ class FakeCoordinator:
     def set_push_manager(self, manager: object) -> None:
         self.push_manager = manager
 
-    def set_push_connected(self, connected: bool) -> None:
-        self.connected_states.append(connected)
+    def set_push_connected(self) -> None:
+        self.push_connected_updates += 1
 
     def async_update_listeners(self) -> None:
         self.listener_updates += 1

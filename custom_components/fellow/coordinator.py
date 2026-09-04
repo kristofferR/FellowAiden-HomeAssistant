@@ -86,9 +86,9 @@ class FellowAidenDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def set_push_manager(self, manager: FellowPushManager | None) -> None:
         """Attach shared account push state."""
         self.push_manager = manager
-        self.set_push_connected(bool(manager and manager.connected))
+        self.set_push_connected()
 
-    def set_push_connected(self, _connected: bool) -> None:
+    def set_push_connected(self) -> None:
         """Update polling and diagnostics when the push connection changes."""
         self._apply_update_interval()
         self.async_update_listeners()
